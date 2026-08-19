@@ -2,5 +2,10 @@
 
 ## Cómo ejecutar
 
-Abrir el archivo `index.html` en un navegador web.
+1. Abrir una terminal en la carpeta raíz del proyecto.
+2. Ejecutar:
+
+```bash
+go run .
+
 
