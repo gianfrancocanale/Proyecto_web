@@ -7,7 +7,5 @@
 
 ```bash
 go run .
-```
 
-3. Copiar la URL http://localhost:8080 en el navegador web.
 

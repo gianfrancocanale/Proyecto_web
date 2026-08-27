@@ -28,5 +28,4 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error al iniciar el servidor: %s\n", err)
 	}
-
 }
