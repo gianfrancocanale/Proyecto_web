@@ -8,7 +8,6 @@ import (
 
 	sqlc "Proyecto_web/db/sqlc"
 
-	//_ "github.com/lib/pq"
 )
 
 // setupTestDB establece la conexión con la base de datos PostgreSQL de prueba.
