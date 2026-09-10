@@ -27,16 +27,16 @@ func setupTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-// cleanupTestDB elimina todos los registros respetando la integridad referencial (Foreign Keys).
+// cleanupTestDB elimina todos los registros respetando la integridad referencial.
 func cleanupTestDB(t *testing.T, db *sql.DB) {
 	tables := []string{
-		"apuestas",
-		"gran_premio",
-		"pilotos",
+		"apuesta",
 		"gran_premio_historico",
+		"gran_premio",
+		"piloto",
 		"piloto_historico",
-		"escuderias",
-		"usuarios",
+		"escuderia",
+		"usuario",
 	}
 
 	for _, table := range tables {
@@ -45,10 +45,6 @@ func cleanupTestDB(t *testing.T, db *sql.DB) {
 		}
 	}
 }
-
-// ==========================================
-// TESTS DE USUARIOS
-// ==========================================
 
 func TestUsuarioRepository_CRUD(t *testing.T) {
 	db := setupTestDB(t)
@@ -99,10 +95,6 @@ func TestUsuarioRepository_CRUD(t *testing.T) {
 	})
 }
 
-// ==========================================
-// TESTS DE ESCUDERÍAS
-// ==========================================
-
 func TestEscuderiaRepository_CRUD(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
@@ -140,10 +132,6 @@ func TestEscuderiaRepository_CRUD(t *testing.T) {
 	})
 }
 
-// ==========================================
-// TESTS DE PILOTOS (HISTÓRICOS Y TEMPORADA)
-// ==========================================
-
 func TestPilotoRepository_CRUD(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
@@ -155,7 +143,7 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 	t.Run("CrearPilotoHistoricoYTemporada", func(t *testing.T) {
 		cleanupTestDB(t, db)
 
-		// 1. Crear Escudería (necesaria para la FK de Piloto)
+		// 1. Crear Escudería
 		_, err := queries.CrearEscuderia(ctx, sqlc.CrearEscuderiaParams{
 			IDEscuderia:   "RED_BULL",
 			Column2:       int32(200),
@@ -214,10 +202,6 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 	})
 }
 
-// ==========================================
-// TESTS DE GRANDES PREMIOS
-// ==========================================
-
 func TestGranPremioRepository_CRUD(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
@@ -228,44 +212,56 @@ func TestGranPremioRepository_CRUD(t *testing.T) {
 
 	t.Run("CrearYListarGrandesPremios", func(t *testing.T) {
 		cleanupTestDB(t, db)
+		pilotoHist, err := queries.CrearPilotoHistorico(ctx, sqlc.CrearPilotoHistoricoParams{
+			IDPiloto:        1,
+			Nombre:          "Max Verstappen",
+			Pais:            "Países Bajos",
+			FechaNacimiento: time.Date(1997, 9, 30, 0, 0, 0, 0, time.UTC),
+			Column5:         int32(3),
+		})
 
-		// 1. Crear Gran Premio Histórico (Circuito)
-		gpHistorico, err := queries.CrearGranPremioHistorico(ctx, sqlc.CrearGranPremioHistoricoParams{
+		if err != nil {
+			t.Fatalf("Setup Piloto Historico fallo: %v", err)
+		}
+
+		_, err = queries.CrearGranPremio(ctx, sqlc.CrearGranPremioParams{
 			IDGranPremio:    "MONACO",
 			Pais:            "Mónaco",
 			LongitudKm:      sql.NullString{String: "3.337", Valid: true},
 			CantidadVueltas: sql.NullInt32{Int32: 78, Valid: true},
+			IDUltimoGanador: sql.NullInt32{Int32: pilotoHist.IDPiloto, Valid: true},
+		})
+		if err != nil {
+			t.Fatalf("CrearGranPremio fallo: %v", err)
+		}
+
+		// 2. Listar Grandes Premios
+		granPremios, err := queries.ListarGrandesPremios(ctx)
+		if err != nil {
+			t.Fatalf("ListarGrandesPremios fallo: %v", err)
+		}
+
+		if len(granPremios) != 1 {
+			t.Errorf("Se esperaba 1 gran premio, se obtuvieron %d", len(granPremios))
+		}
+
+		if granPremios[0].IDGranPremio != "MONACO" {
+			t.Errorf("Se esperaba 'MONACO', se obtuvo '%s'", granPremios[0].IDGranPremio)
+		}
+
+		// 3. Crear edición histórica del Gran Premio
+		fechaCarrera := time.Date(2026, 5, 24, 14, 0, 0, 0, time.UTC)
+
+		_, err = queries.CrearGranPremioHistorico(ctx, sqlc.CrearGranPremioHistoricoParams{
+			IDGranPremio:     "MONACO",
+			FechaCarrera:     fechaCarrera,
+			ResultadoCarrera: []int32{1, 2, 3},
 		})
 		if err != nil {
 			t.Fatalf("CrearGranPremioHistorico fallo: %v", err)
 		}
 
-		// 2. Programar Evento de Carrera
-		fechaCarrera := time.Date(2026, 5, 24, 14, 0, 0, 0, time.UTC)
-		_, err = queries.CrearGranPremioEvento(ctx, sqlc.CrearGranPremioEventoParams{
-			IDGranPremio:     gpHistorico.IDGranPremio,
-			FechaCarrera:     fechaCarrera,
-			ResultadoCarrera: []int32{1, 2, 3},
-		})
-		if err != nil {
-			t.Fatalf("CrearGranPremioEvento fallo: %v", err)
-		}
-
-		// 3. Listar Eventos
-		eventos, err := queries.ListarGrandesPremiosEventos(ctx)
-		if err != nil {
-			t.Fatalf("ListarGrandesPremiosEventos fallo: %v", err)
-		}
-
-		if len(eventos) != 1 {
-			t.Errorf("Se esperaba 1 evento, se obtuvieron %d", len(eventos))
-		}
-
-		if eventos[0].Pais != "Mónaco" {
-			t.Errorf("Se esperaba 'Mónaco', se obtuvo '%s'", eventos[0].Pais)
-		}
-
-		// 4. Listar Históricos
+		// 4. Listar ediciones históricas
 		historicos, err := queries.ListarGrandesPremiosHistoricos(ctx)
 		if err != nil {
 			t.Fatalf("ListarGrandesPremiosHistoricos fallo: %v", err)
@@ -274,12 +270,18 @@ func TestGranPremioRepository_CRUD(t *testing.T) {
 		if len(historicos) != 1 {
 			t.Errorf("Se esperaba 1 registro historico, se obtuvieron %d", len(historicos))
 		}
+
+		// 5. Modificar resultado de la carrera
+		_, err = queries.RegistrarResultadoCarrera(ctx, sqlc.RegistrarResultadoCarreraParams{
+			IDGranPremio:     "MONACO",
+			FechaCarrera:     fechaCarrera,
+			ResultadoCarrera: []int32{1, 2, 3, 4},
+		})
+		if err != nil {
+			t.Fatalf("RegistrarResultadoCarrera fallo: %v", err)
+		}
 	})
 }
-
-// ==========================================
-// TESTS DE APUESTAS
-// ==========================================
 
 func TestApuestaRepository_CRUD(t *testing.T) {
 	db := setupTestDB(t)
@@ -292,7 +294,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 	t.Run("FlujoCompletoApuesta", func(t *testing.T) {
 		cleanupTestDB(t, db)
 
-		// Setup de dependencias (Usuario y GranPremio)
+		// Setup de Usuario
 		usr, err := queries.CrearUsuario(ctx, sqlc.CrearUsuarioParams{
 			NombreUsuario:  "apostador_1",
 			ContrasenaHash: "pass_123",
@@ -301,28 +303,30 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Fatalf("Setup Usuario fallo: %v", err)
 		}
 
-		gpH, err := queries.CrearGranPremioHistorico(ctx, sqlc.CrearGranPremioHistoricoParams{
+		// Setup de Gran Premio
+		_, err = queries.CrearGranPremio(ctx, sqlc.CrearGranPremioParams{
 			IDGranPremio: "SILVERSTONE",
 			Pais:         "Reino Unido",
 		})
 		if err != nil {
-			t.Fatalf("Setup GPHistorico fallo: %v", err)
+			t.Fatalf("Setup Gran Premio fallo: %v", err)
 		}
 
+		// Setup de edición del Gran Premio
 		fechaCarrera := time.Date(2026, 7, 5, 14, 0, 0, 0, time.UTC)
-		_, err = queries.CrearGranPremioEvento(ctx, sqlc.CrearGranPremioEventoParams{
-			IDGranPremio:     gpH.IDGranPremio,
-			FechaCarrera:     fechaCarrera,
-			ResultadoCarrera: []int32{},
+
+		_, err = queries.CrearGranPremioHistorico(ctx, sqlc.CrearGranPremioHistoricoParams{
+			IDGranPremio: "SILVERSTONE",
+			FechaCarrera: fechaCarrera,
 		})
 		if err != nil {
-			t.Fatalf("Setup GPEvento fallo: %v", err)
+			t.Fatalf("Setup Gran Premio Historico fallo: %v", err)
 		}
 
 		// 1. Crear Apuesta
 		apuesta, err := queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
 			IDUsuario:    usr.IDUsuario,
-			IDGranPremio: gpH.IDGranPremio,
+			IDGranPremio: "SILVERSTONE",
 			FechaCarrera: fechaCarrera,
 			Prediccion:   []int32{1, 44, 16},
 		})
@@ -350,7 +354,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Fatalf("BorrarApuesta fallo: %v", err)
 		}
 
-		// Verificar que fue eliminada
+		// 4. Verificar que fue eliminada
 		apuestasDespues, err := queries.ListarApuestasPorUsuario(ctx, usr.IDUsuario)
 		if err != nil {
 			t.Fatalf("ListarApuestasPorUsuario fallo post borrado: %v", err)
