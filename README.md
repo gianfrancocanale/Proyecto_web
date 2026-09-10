@@ -5,7 +5,7 @@
 Clonar el repositorio:
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/gianfrancocanale/Proyecto_web.git
 ```
 
 Ingresar a la carpeta del proyecto:
