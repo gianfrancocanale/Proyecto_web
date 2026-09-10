@@ -13,7 +13,7 @@ import (
 
 // setupTestDB establece la conexión con la base de datos PostgreSQL de prueba.
 func setupTestDB(t *testing.T) *sql.DB {
-	connStr := "user=videla password='XYZ' dbname=f1db port=5432 sslmode=disable"
+	connStr := "user=ChiaraGian password=ChiaraGian dbname=DB_PredictOne port=5432 sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		t.Fatalf("Error al conectar con la base de datos: %v", err)
