@@ -87,5 +87,9 @@ CREATE TABLE apuesta (
     CONSTRAINT fk_apuesta_gran_premio
         FOREIGN KEY (id_gran_premio, fecha_carrera)
         REFERENCES gran_premio_historico(id_gran_premio, fecha_carrera)
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+
+    -- Garantiza una sola apuesta por usuario en cada edición/carrera concreta
+    CONSTRAINT unq_usuario_gran_premio_carrera
+        UNIQUE (id_usuario, id_gran_premio, fecha_carrera)
 );

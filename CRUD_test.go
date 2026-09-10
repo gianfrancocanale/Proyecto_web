@@ -323,12 +323,12 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Fatalf("Setup Gran Premio Historico fallo: %v", err)
 		}
 
-		// 1. Crear Apuesta
+		// Primera apuesta: debe funcionar
 		apuesta, err := queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
 			IDUsuario:    usr.IDUsuario,
 			IDGranPremio: "SILVERSTONE",
 			FechaCarrera: fechaCarrera,
-			Prediccion:   []int32{1, 44, 16},
+			Prediccion:   []int32{44, 1, 16},
 		})
 		if err != nil {
 			t.Fatalf("CrearApuesta fallo: %v", err)
@@ -338,14 +338,16 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Error("Se esperaba un IDApuesta generado")
 		}
 
-		// 2. Listar Apuestas por Usuario
-		apuestas, err := queries.ListarApuestasPorUsuario(ctx, usr.IDUsuario)
-		if err != nil {
-			t.Fatalf("ListarApuestasPorUsuario fallo: %v", err)
-		}
+		// Segunda apuesta: debe fallar por el UNIQUE
+		_, err = queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
+			IDUsuario:    usr.IDUsuario,
+			IDGranPremio: "SILVERSTONE",
+			FechaCarrera: fechaCarrera,
+			Prediccion:   []int32{44, 1, 16},
+		})
 
-		if len(apuestas) != 1 {
-			t.Errorf("Se esperaba 1 apuesta, se obtuvieron %d", len(apuestas))
+		if err == nil {
+			t.Error("Se esperaba un error al crear una segunda apuesta para el mismo usuario y carrera")
 		}
 
 		// 3. Borrar Apuesta
