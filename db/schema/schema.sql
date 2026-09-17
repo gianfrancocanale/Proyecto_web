@@ -3,15 +3,15 @@ CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
-    puntos_ganados INT
+    puntos_ganados INT NOT NULL
 );
 
 -- 2. Escuderías
 CREATE TABLE escuderia (
     id_escuderia VARCHAR(100) PRIMARY KEY,
-    puntos_temporada INT ,
-    titulos_constructores INT ,
-    fecha_fundacion DATE,
+    puntos_temporada INT NOT NULL,
+    titulos_constructores INT NOT NULL ,
+    fecha_fundacion DATE NOT NULL,
     team_principal VARCHAR(150) NOT NULL
 );
 
@@ -21,14 +21,14 @@ CREATE TABLE piloto_historico (
     nombre VARCHAR(150) NOT NULL,
     pais VARCHAR(100) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    titulos_ganados INT 
+    titulos_ganados INT NOT NULL
     );
 
 -- 4. Pilotos de la Temporada
 CREATE TABLE piloto (
     id_piloto INT PRIMARY KEY,
-    id_escuderia VARCHAR(100),
-    puntos_temporada INT DEFAULT 0 CHECK (puntos_temporada >= 0),
+    id_escuderia VARCHAR(100) NOT NULL,
+    puntos_temporada INT NOT NULL,
 
     CONSTRAINT fk_id_piloto FOREIGN KEY (id_piloto)
         REFERENCES piloto_historico(id_piloto)
@@ -45,9 +45,9 @@ CREATE TABLE piloto (
 CREATE TABLE gran_premio (
     id_gran_premio VARCHAR(100) PRIMARY KEY,
     pais VARCHAR(100) NOT NULL,
-    longitud_km DECIMAL(5,3) CHECK (longitud_km > 0),
-    cantidad_vueltas INT CHECK (cantidad_vueltas > 0),
-    id_ultimo_ganador INT,
+    longitud_km DECIMAL(5,3) NOT NULL,
+    cantidad_vueltas INT NOT NULL,
+    id_ultimo_ganador INT NOT NULL,
 
     CONSTRAINT fk_gran_premio_ultimo_ganador FOREIGN KEY (id_ultimo_ganador)
         REFERENCES piloto_historico(id_piloto)
@@ -58,7 +58,7 @@ CREATE TABLE gran_premio (
 CREATE TABLE gran_premio_historico (
     id_gran_premio VARCHAR(100),
     fecha_carrera TIMESTAMP WITH TIME ZONE NOT NULL,
-    resultado_carrera INTEGER[22],
+    resultado_carrera INTEGER[22] NOT NULL,
 
     CONSTRAINT pk_gran_premio_historico
         PRIMARY KEY (id_gran_premio, fecha_carrera),
