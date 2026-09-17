@@ -3,7 +3,7 @@ CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
-    puntos_ganados INT DEFAULT 0 CHECK (puntos_ganados >= 0)
+    puntos_ganados INT 
 );
 
 -- 2. Escuderías

@@ -9,7 +9,7 @@ INSERT INTO usuario (
     contrasena_hash,
     puntos_ganados
 ) VALUES (
-    $1, $2, COALESCE($3, 0)
+    $1, $2,0
 )
 RETURNING id_usuario, nombre_usuario, puntos_ganados;
 
@@ -51,8 +51,8 @@ INSERT INTO escuderia (
     team_principal
 ) VALUES (
     $1,
-    COALESCE($2, 0),
-    COALESCE($3, 0),
+    $2,
+    $3,
     $4,
     $5
 )
@@ -88,7 +88,7 @@ INSERT INTO piloto_historico (
     $2,
     $3,
     $4,
-    COALESCE($5, 0)
+    0
 )
 RETURNING *;
 
@@ -118,7 +118,7 @@ INSERT INTO piloto (
 ) VALUES (
     $1,
     $2,
-    COALESCE($3, 0)
+    0
 )
 RETURNING *;
 
