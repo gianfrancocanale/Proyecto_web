@@ -1,15 +1,49 @@
-.PHONY: test generate clean start wait compile
+APP_NAME := predictone
+DB_URL := postgres://ChiaraGian:ChiaraGian@database:5432/DB_PredictOne?sslmode=disable
+
+.PHONY: all run generate migrate apply status build test clean docker-up docker-down
+
+all: build
+
+run:
+	@air
 
 generate:
 	@sqlc generate
 
-clean:
-	@echo "Limpiando contenedores y volúmenes"
-	@docker compose down -v --remove-orphans
+migrate:
+	@test -n "$(name)" || (echo "Uso: make migrate name=nombre" && exit 1)
+	@atlas migrate diff "$(name)" \
+		--dir "file://db/migrations" \
+		--to "file://db/schema/schema.sql" \
+		--dev-url "docker://postgres/18/dev?search_path=public"
 
-start:
-	@echo "Iniciando contenedor de PostgreSQL"
-	@docker compose up -d database
+apply:
+	@atlas migrate apply \
+		--dir "file://db/migrations" \
+		--url "$(DB_URL)"
+
+
+status:
+	@atlas migrate status \
+		--dir "file://db/migrations" \
+		--url "$(DB_URL)"
+
+build: generate
+	@mkdir -p tmp
+	@go build -o tmp/$(APP_NAME) .
+
+test:
+	@go test ./...
+
+clean:
+	@rm -rf tmp
+
+docker-up:
+	@docker compose up --build
+
+docker-down:
+	@docker compose down
 
 wait:
 	@echo "Esperando a que PostgreSQL esté listo"
@@ -24,20 +58,9 @@ compile:
 test:
 	$(MAKE) clean
 	$(MAKE) generate
-	$(MAKE) start
+	$(MAKE) docker-up
 	$(MAKE) wait
 	$(MAKE) compile
-	@echo "Ejecutando Tests"
-	go test ./...
-	$(MAKE) clean
-
-
-run:
-	$(MAKE) clean
-	$(MAKE) generate
-	$(MAKE) start
-	$(MAKE) wait
-	$(MAKE) compile
-	@echo "Ejecutando API en Docker"
-	docker compose up --build api
+	$(MAKE) test
+	$(MAKE) docker-down
 	$(MAKE) clean

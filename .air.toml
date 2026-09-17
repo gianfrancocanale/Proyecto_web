@@ -1,0 +1,8 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "make build"
+entrypoint = ["./tmp/predictone"]
+include_ext = ["go", "html", "css", "js", "sql"]
+exclude_dir = ["tmp", "vendor", "db/sqlc"]
