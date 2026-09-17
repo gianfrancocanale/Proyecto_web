@@ -3,14 +3,14 @@ CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
-    puntos_ganados INT 
+    puntos_ganados INT
 );
 
 -- 2. Escuderías
 CREATE TABLE escuderia (
     id_escuderia VARCHAR(100) PRIMARY KEY,
-    puntos_temporada INT DEFAULT 0 CHECK (puntos_temporada >= 0),
-    titulos_constructores INT DEFAULT 0 CHECK (titulos_constructores >= 0),
+    puntos_temporada INT ,
+    titulos_constructores INT ,
     fecha_fundacion DATE,
     team_principal VARCHAR(150) NOT NULL
 );
@@ -21,8 +21,8 @@ CREATE TABLE piloto_historico (
     nombre VARCHAR(150) NOT NULL,
     pais VARCHAR(100) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    titulos_ganados INT DEFAULT 0 CHECK (titulos_ganados >= 0)
-);
+    titulos_ganados INT 
+    );
 
 -- 4. Pilotos de la Temporada
 CREATE TABLE piloto (
