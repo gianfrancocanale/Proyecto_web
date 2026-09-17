@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine
+FROM golang:1.25-alpine
 
 WORKDIR /app
 
@@ -7,8 +7,8 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o api .
+RUN go build -o api 
 
 EXPOSE 8080
 
-// CMD ["./api"]
+CMD ["./api"]
