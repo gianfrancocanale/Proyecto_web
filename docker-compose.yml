@@ -14,7 +14,7 @@ services:
             - database
 
         volumes:
-            - ./api:/app
+            - .:/app
     database:
         image: postgres:18
         container_name: postgres-db

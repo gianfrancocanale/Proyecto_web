@@ -30,3 +30,14 @@ test:
 	@echo "Ejecutando Tests"
 	go test ./...
 	$(MAKE) clean
+
+
+run:
+	$(MAKE) clean
+	$(MAKE) generate
+	$(MAKE) start
+	$(MAKE) wait
+	$(MAKE) compile
+	@echo "Ejecutando API en Docker"
+	docker compose up --build api
+	$(MAKE) clean
