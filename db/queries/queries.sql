@@ -81,6 +81,28 @@ SELECT
 FROM escuderia
 ORDER BY puntos_temporada DESC;
 
+-- name: RecuperarEscuderia :one
+-- Obtener datos de una escudería por ID
+SELECT
+    id_escuderia,
+    puntos_temporada,
+    titulos_constructores,
+    fecha_fundacion,
+    team_principal
+FROM escuderia
+WHERE id_escuderia = $1;
+
+-- name: ModificarEscuderia :one
+-- Actualizar datos de una escudería
+UPDATE escuderia
+SET
+    puntos_temporada = COALESCE($2, puntos_temporada),
+    titulos_constructores = COALESCE($3, titulos_constructores),
+    fecha_fundacion = COALESCE($4, fecha_fundacion),
+    team_principal = COALESCE($5, team_principal)
+WHERE id_escuderia = $1
+RETURNING *;
+
 -- name: EliminarEscuderia :exec
 -- Eliminar una escudería
 DELETE FROM escuderia

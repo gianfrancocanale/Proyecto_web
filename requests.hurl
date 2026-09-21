@@ -117,8 +117,71 @@ jsonpath "$.id_piloto" == 44
 jsonpath "$.nombre" == "Max Verstappen"
 jsonpath "$.titulos_ganados" == 4
 
+# ==========================================
+#  ESCUDERIAS
+# ==========================================
+
+# Crear escudería
+POST http://localhost:8080/escuderias
+Content-Type: application/json
+
+{
+  "id_escuderia": "ferrari",
+  "fecha_fundacion": "1929-12-16T00:00:00Z",
+  "team_principal": "Frédéric Vasseur"
+}
+
+HTTP/1.1 201
+[Asserts]
+jsonpath "$.id_escuderia" == "ferrari"
+jsonpath "$.puntos_temporada" == 0
+jsonpath "$.titulos_constructores" == 0
+jsonpath "$.team_principal" == "Frédéric Vasseur"
+
+
+# Listar escuderías
+GET http://localhost:8080/escuderias
+
+HTTP/1.1 200
+[Asserts]
+jsonpath "$" isCollection
+jsonpath "$[0].id_escuderia" exists
+
+
+# Obtener escudería
+GET http://localhost:8080/escuderias/ferrari
+
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.id_escuderia" == "ferrari"
+jsonpath "$.team_principal" == "Frédéric Vasseur"
+
+
+# Actualizar escudería
+PUT http://localhost:8080/escuderias/ferrari
+Content-Type: application/json
+
+{
+  "fecha_fundacion": "1929-12-16T00:00:00Z",
+  "team_principal": "Frédéric Vasseur"
+}
+
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.id_escuderia" == "ferrari"
+jsonpath "$.team_principal" == "Frédéric Vasseur"
+
+# ========================================
+# BORRADO DE ENTIDADES
+#=========================================
 
 # Eliminar piloto histórico
 DELETE http://localhost:8080/pilotos_historicos/44
 
 HTTP/1.1 204
+
+# Eliminar escudería
+DELETE http://localhost:8080/escuderias/ferrari
+
+HTTP/1.1 204
+
