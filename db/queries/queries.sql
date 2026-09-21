@@ -9,7 +9,7 @@ INSERT INTO usuario (
     contrasena_hash,
     puntos_ganados
 ) VALUES (
-    $1, $2,0
+    $1, $2, $3
 )
 RETURNING id_usuario, nombre_usuario, puntos_ganados;
 
@@ -22,6 +22,14 @@ SELECT
     puntos_ganados
 FROM usuario
 WHERE id_usuario = $1;
+
+-- name: RecuperarUsuarios :many
+-- Obtener todos los usuarios
+SELECT
+    id_usuario,
+    nombre_usuario,
+    puntos_ganados
+FROM usuario;
 
 
 -- name: ModificarUsuario :one
@@ -88,7 +96,7 @@ INSERT INTO piloto_historico (
     $2,
     $3,
     $4,
-    0
+    $5
 )
 RETURNING *;
 
@@ -118,7 +126,7 @@ INSERT INTO piloto (
 ) VALUES (
     $1,
     $2,
-    0
+    $3
 )
 RETURNING *;
 

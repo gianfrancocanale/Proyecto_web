@@ -10,11 +10,7 @@ CREATE TABLE usuario (
 CREATE TABLE escuderia (
     id_escuderia VARCHAR(100) PRIMARY KEY,
     puntos_temporada INT NOT NULL,
-<<<<<<< HEAD
-    titulos_constructores INT NOT NULL ,
-=======
     titulos_constructores INT NOT NULL,
->>>>>>> da69f37 (Arreglado los test)
     fecha_fundacion DATE NOT NULL,
     team_principal VARCHAR(150) NOT NULL
 );
@@ -51,11 +47,7 @@ CREATE TABLE gran_premio (
     pais VARCHAR(100) NOT NULL,
     longitud_km DECIMAL(5,3) NOT NULL,
     cantidad_vueltas INT NOT NULL,
-<<<<<<< HEAD
-    id_ultimo_ganador INT NOT NULL,
-=======
     id_ultimo_ganador INT  NOT NULL,
->>>>>>> da69f37 (Arreglado los test)
 
     CONSTRAINT fk_gran_premio_ultimo_ganador FOREIGN KEY (id_ultimo_ganador)
         REFERENCES piloto_historico(id_piloto)
@@ -64,15 +56,9 @@ CREATE TABLE gran_premio (
 
 -- 6. Gran Premio Histórico (Ediciones específicas de carreras)
 CREATE TABLE gran_premio_historico (
-<<<<<<< HEAD
-    id_gran_premio VARCHAR(100),
-    fecha_carrera TIMESTAMP WITH TIME ZONE NOT NULL,
-    resultado_carrera INTEGER[22] NOT NULL,
-=======
     id_gran_premio VARCHAR(100) NOT NULL,
     fecha_carrera DATE  NOT NULL,
     resultado_carrera INTEGER[22],
->>>>>>> da69f37 (Arreglado los test)
 
     CONSTRAINT pk_gran_premio_historico
         PRIMARY KEY (id_gran_premio, fecha_carrera),
