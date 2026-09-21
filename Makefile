@@ -37,7 +37,11 @@ run:
 	$(MAKE) generate
 	$(MAKE) start
 	$(MAKE) wait
-	$(MAKE) compile
 	@echo "Ejecutando API en Docker"
 	docker compose up --build api
 	$(MAKE) clean
+
+hurl:
+	@echo "Ejecutando pruebas Hurl"
+	hurl --test requests.hurl
+

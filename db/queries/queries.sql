@@ -48,6 +48,9 @@ RETURNING id_usuario, nombre_usuario, puntos_ganados;
 DELETE FROM usuario
 WHERE id_usuario = $1;
 
+-- ==========================================
+-- ESCUDERÍAS
+-- ==========================================  
 
 -- name: CrearEscuderia :one
 -- Registrar una nueva escudería
@@ -77,6 +80,11 @@ SELECT
     team_principal
 FROM escuderia
 ORDER BY puntos_temporada DESC;
+
+-- name: EliminarEscuderia :exec
+-- Eliminar una escudería
+DELETE FROM escuderia
+WHERE id_escuderia = $1;
 
 
 -- ==========================================
@@ -112,6 +120,33 @@ SELECT
 FROM piloto_historico
 ORDER BY titulos_ganados DESC, nombre ASC;
 
+-- name: RecuperarPilotoHistorico :one
+-- Obtener datos de un piloto histórico por ID
+SELECT
+    id_piloto,
+    nombre,
+    pais,
+    fecha_nacimiento,
+    titulos_ganados
+FROM piloto_historico
+WHERE id_piloto = $1;
+
+-- name: ModificarPilotoHistorico :one
+-- Actualizar datos de un piloto histórico
+UPDATE piloto_historico
+SET
+    nombre = COALESCE($2, nombre),
+    pais = COALESCE($3, pais),
+    fecha_nacimiento = COALESCE($4, fecha_nacimiento),
+    titulos_ganados = COALESCE($5, titulos_ganados)
+WHERE id_piloto = $1
+RETURNING *;
+
+-- name: EliminarPilotoHistorico :exec
+-- Eliminar un piloto histórico
+DELETE FROM piloto_historico
+WHERE id_piloto = $1;
+
 
 -- ==========================================
 -- PILOTOS DE LA TEMPORADA
@@ -146,6 +181,11 @@ FROM piloto p
 INNER JOIN piloto_historico ph
     ON p.id_piloto = ph.id_piloto
 ORDER BY p.puntos_temporada DESC, ph.nombre ASC;
+
+-- name: EliminarPilotoTemporada :exec
+-- Eliminar un piloto de la temporada
+DELETE FROM piloto
+WHERE id_piloto = $1;
 
 
 -- ==========================================
@@ -183,6 +223,11 @@ FROM gran_premio gp
 LEFT JOIN piloto_historico ph
     ON gp.id_ultimo_ganador = ph.id_piloto
 ORDER BY gp.id_gran_premio ASC;
+
+-- name: EliminarGranPremio :exec
+-- Eliminar un gran premio
+DELETE FROM gran_premio
+WHERE id_gran_premio = $1;
 
 
 -- ==========================================
@@ -227,6 +272,10 @@ WHERE id_gran_premio = $1
   AND fecha_carrera = $2
 RETURNING *;
 
+-- name: EliminarGranPremioHistorico :exec
+-- Eliminar un gran premio histórico
+DELETE FROM gran_premio_historico
+WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 
 -- ==========================================
 -- apuestaS
@@ -298,7 +347,7 @@ RETURNING
     fecha_apuesta;
 
 
--- name: BorrarApuesta :exec
+-- name: EliminarApuesta :exec
 -- Eliminar una apuesta
 DELETE FROM apuesta
 WHERE id_apuesta = $1;

@@ -17,30 +17,197 @@ func main() {
 	db := conectarBase()
 	fmt.Printf("La base de datos se inicio")
 	defer db.Close()
+
+	// MANEJO DE RUTAS DE ENTIDAD USUARIO:
 	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {
 		crearUsuario(db, w, r)
 	})
-
 	http.HandleFunc("GET /usuarios", func(w http.ResponseWriter, r *http.Request) {
 		listarUsuarios(db, w, r)
 	})
-
 	http.HandleFunc("GET /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
 		obtenerUsuario(db, w, r)
 	})
-
 	http.HandleFunc("PUT /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
 		actualizarUsuario(db, w, r)
 	})
-
 	http.HandleFunc("DELETE /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
 		eliminarUsuario(db, w, r)
+	})
+
+	//MANEJO DE RUTAS DE ENTIDAD PILOTO HISTORICO:
+	http.HandleFunc("POST /pilotos_historicos", func(w http.ResponseWriter, r *http.Request) {
+		crearPilotoHistorico(db, w, r)
+	})
+	http.HandleFunc("GET /pilotos_historicos", func(w http.ResponseWriter, r *http.Request) {
+		listarPilotosHistoricos(db, w, r)
+	})
+	http.HandleFunc("GET /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
+		obtenerPilotoHistorico(db, w, r)
+	})
+	http.HandleFunc("PUT /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
+		actualizarPilotoHistorico(db, w, r)
+	})
+	http.HandleFunc("DELETE /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
+		eliminarPilotoHistorico(db, w, r)
 	})
 
 	fmt.Println("Servidor escuchando en :8080")
 	http.ListenAndServe(":8080", nil)
 }
 
+// PILOTO HISTORICO
+func crearPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var pilotoHistorico sqlc.CrearPilotoHistoricoParams
+
+	err := json.NewDecoder(r.Body).Decode(&pilotoHistorico)
+
+	if err != nil {
+		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
+		return
+	}
+
+	pilotoHistorico.TitulosGanados = 0 //setea 0 titulos ganados al crear un nuevo piloto historico
+
+	if pilotoHistorico.Nombre == "" || pilotoHistorico.Pais == "" || pilotoHistorico.FechaNacimiento.IsZero() {
+		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
+		return
+	}
+
+	queries := sqlc.New(db)
+
+	devolver, err := queries.CrearPilotoHistorico(r.Context(), pilotoHistorico)
+	if err != nil {
+		http.Error(w, "Error al crear el piloto histórico", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(devolver)
+}
+
+func listarPilotosHistoricos(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	queries := sqlc.New(db)
+
+	pilotosHistoricos, err := queries.ListarPilotosHistoricos(r.Context())
+	if err != nil {
+		http.Error(w, "Error al obtener los pilotos históricos", http.StatusInternalServerError)
+		return
+	}
+	if len(pilotosHistoricos) == 0 {
+		http.Error(w, "No se encontraron pilotos históricos", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pilotosHistoricos)
+}
+
+func obtenerPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
+		return
+	}
+
+	queries := sqlc.New(db)
+
+	pilotoHistorico, err := queries.RecuperarPilotoHistorico(r.Context(), int32(idPiloto))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Piloto histórico no encontrado", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al obtener el piloto histórico", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pilotoHistorico)
+}
+
+func actualizarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
+		return
+	}
+
+	var pilotoHistorico sqlc.ModificarPilotoHistoricoParams
+
+	err = json.NewDecoder(r.Body).Decode(&pilotoHistorico)
+	if err != nil {
+		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
+		return
+	}
+
+	if pilotoHistorico.Nombre == "" || pilotoHistorico.Pais == "" || pilotoHistorico.FechaNacimiento.IsZero() {
+		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
+		return
+	}
+
+	pilotoHistorico.IDPiloto = int32(idPiloto)
+
+	queries := sqlc.New(db)
+
+	devolver, err := queries.ModificarPilotoHistorico(r.Context(), pilotoHistorico)
+	if err != nil {
+		http.Error(w, "Error al actualizar el piloto histórico", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(devolver)
+}
+
+func eliminarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
+		return
+	}
+
+	queries := sqlc.New(db)
+
+	err = queries.EliminarPilotoHistorico(r.Context(), int32(idPiloto))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Piloto histórico no encontrado", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al eliminar el piloto histórico", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// USUARIO
 func eliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
@@ -168,8 +335,6 @@ func crearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := sqlc.New(db)
-
 	var usuario sqlc.CrearUsuarioParams
 
 	err := json.NewDecoder(r.Body).Decode(&usuario)
@@ -183,6 +348,10 @@ func crearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	usuario.PuntosGanados = 0 //setea 0 puntos ganados al crear un nuevo usuario
+
+	queries := sqlc.New(db)
+
 	devolver, err := queries.CrearUsuario(r.Context(), usuario)
 
 	if err != nil {
@@ -191,7 +360,6 @@ func crearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "Usuario creado exitosamente")
 	json.NewEncoder(w).Encode(devolver)
 }
 

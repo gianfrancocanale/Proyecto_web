@@ -358,7 +358,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 		}
 
 		// 3. Borrar Apuesta
-		err = queries.BorrarApuesta(ctx, apuesta.IDApuesta)
+		err = queries.EliminarApuesta(ctx, apuesta.IDApuesta)
 		if err != nil {
 			t.Fatalf("BorrarApuesta fallo: %v", err)
 		}
