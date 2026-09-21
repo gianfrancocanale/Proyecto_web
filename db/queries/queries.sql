@@ -221,7 +221,7 @@ RETURNING *;
 
 
 -- ==========================================
--- APUESTAS
+-- apuestaS
 -- ==========================================
 
 -- name: CrearApuesta :one
@@ -230,12 +230,14 @@ INSERT INTO apuesta (
     id_usuario,
     id_gran_premio,
     fecha_carrera,
-    prediccion
+    prediccion,
+    fecha_apuesta
 ) VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    CURRENT_TIMESTAMP
 )
 RETURNING
     id_apuesta,
@@ -272,7 +274,7 @@ WHERE id_usuario = $1
 ORDER BY fecha_apuesta DESC;
 
 
--- name: ModificarApuesta :one
+-- name: ModificArapuesta :one
 -- Actualizar la predicción de una apuesta
 UPDATE apuesta
 SET

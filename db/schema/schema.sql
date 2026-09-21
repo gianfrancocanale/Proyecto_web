@@ -1,7 +1,7 @@
 -- 1. Usuarios
 CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
-    nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
+    nombre_usuario VARCHAR(50) NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
     puntos_ganados INT NOT NULL
 );
@@ -10,7 +10,11 @@ CREATE TABLE usuario (
 CREATE TABLE escuderia (
     id_escuderia VARCHAR(100) PRIMARY KEY,
     puntos_temporada INT NOT NULL,
+<<<<<<< HEAD
     titulos_constructores INT NOT NULL ,
+=======
+    titulos_constructores INT NOT NULL,
+>>>>>>> da69f37 (Arreglado los test)
     fecha_fundacion DATE NOT NULL,
     team_principal VARCHAR(150) NOT NULL
 );
@@ -38,7 +42,7 @@ CREATE TABLE piloto (
     CONSTRAINT fk_piloto_escuderia FOREIGN KEY (id_escuderia)
         REFERENCES escuderia(id_escuderia)
         ON UPDATE CASCADE
-        ON DELETE SET NULL
+        ON DELETE CASCADE
 );
 
 -- 5. Gran Premio Histórico (Circuitos)
@@ -47,7 +51,11 @@ CREATE TABLE gran_premio (
     pais VARCHAR(100) NOT NULL,
     longitud_km DECIMAL(5,3) NOT NULL,
     cantidad_vueltas INT NOT NULL,
+<<<<<<< HEAD
     id_ultimo_ganador INT NOT NULL,
+=======
+    id_ultimo_ganador INT  NOT NULL,
+>>>>>>> da69f37 (Arreglado los test)
 
     CONSTRAINT fk_gran_premio_ultimo_ganador FOREIGN KEY (id_ultimo_ganador)
         REFERENCES piloto_historico(id_piloto)
@@ -56,9 +64,15 @@ CREATE TABLE gran_premio (
 
 -- 6. Gran Premio Histórico (Ediciones específicas de carreras)
 CREATE TABLE gran_premio_historico (
+<<<<<<< HEAD
     id_gran_premio VARCHAR(100),
     fecha_carrera TIMESTAMP WITH TIME ZONE NOT NULL,
     resultado_carrera INTEGER[22] NOT NULL,
+=======
+    id_gran_premio VARCHAR(100) NOT NULL,
+    fecha_carrera DATE  NOT NULL,
+    resultado_carrera INTEGER[22],
+>>>>>>> da69f37 (Arreglado los test)
 
     CONSTRAINT pk_gran_premio_historico
         PRIMARY KEY (id_gran_premio, fecha_carrera),
@@ -73,9 +87,9 @@ CREATE TABLE apuesta (
     id_apuesta SERIAL,
     id_usuario INT NOT NULL,
     id_gran_premio VARCHAR(100) NOT NULL,
-    fecha_carrera TIMESTAMP WITH TIME ZONE NOT NULL,
+    fecha_carrera DATE  NOT NULL,
     prediccion INTEGER[10] NOT NULL,
-    fecha_apuesta TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    fecha_apuesta DATE NOT NULL,
 
     CONSTRAINT pk_apuesta
         PRIMARY KEY (id_apuesta, id_usuario),
