@@ -29,9 +29,8 @@ func main() {
 			listarUsuarios(db, w, r)
 		default:
 			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+			fmt.Println("entro al default")
 		}
-
-		crearUsuario(db, w, r)
 	})
 
 	http.HandleFunc("/usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
