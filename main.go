@@ -10,6 +10,8 @@ import (
 	"os"      //obtener datos de variables de entorno(bases de datos)
 	"strconv" //convertir string a int
 
+	// "Proyecto_web/handlers"
+
 	_ "github.com/lib/pq"
 )
 
@@ -19,56 +21,81 @@ func main() {
 	defer db.Close()
 
 	// MANEJO DE RUTAS DE ENTIDAD USUARIO:
-	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/usuarios", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			crearUsuario(db, w, r)
+		case http.MethodGet:
+			listarUsuarios(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+
 		crearUsuario(db, w, r)
 	})
-	http.HandleFunc("GET /usuarios", func(w http.ResponseWriter, r *http.Request) {
-		listarUsuarios(db, w, r)
-	})
-	http.HandleFunc("GET /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
-		obtenerUsuario(db, w, r)
-	})
-	http.HandleFunc("PUT /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
-		actualizarUsuario(db, w, r)
-	})
-	http.HandleFunc("DELETE /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
-		eliminarUsuario(db, w, r)
+
+	http.HandleFunc("/usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			obtenerUsuario(db, w, r)
+		case http.MethodPut:
+			actualizarUsuario(db, w, r)
+		case http.MethodDelete:
+			eliminarUsuario(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
 
 	//MANEJO DE RUTAS DE ENTIDAD PILOTO HISTORICO:
-	http.HandleFunc("POST /pilotos_historicos", func(w http.ResponseWriter, r *http.Request) {
-		crearPilotoHistorico(db, w, r)
+	http.HandleFunc("/pilotos_historicos", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			crearPilotoHistorico(db, w, r)
+		case http.MethodGet:
+			listarPilotosHistoricos(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
-	http.HandleFunc("GET /pilotos_historicos", func(w http.ResponseWriter, r *http.Request) {
-		listarPilotosHistoricos(db, w, r)
-	})
-	http.HandleFunc("GET /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
-		obtenerPilotoHistorico(db, w, r)
-	})
-	http.HandleFunc("PUT /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
-		actualizarPilotoHistorico(db, w, r)
-	})
-	http.HandleFunc("DELETE /pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
-		eliminarPilotoHistorico(db, w, r)
+	http.HandleFunc("/pilotos_historicos/{id}", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			obtenerPilotoHistorico(db, w, r)
+		case http.MethodPut:
+			actualizarPilotoHistorico(db, w, r)
+		case http.MethodDelete:
+			eliminarPilotoHistorico(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
 
 	//MANEJO DE RUTAS DE ENTIDAD ESCUDERIA:
-	http.HandleFunc("POST /escuderias", func(w http.ResponseWriter, r *http.Request) {
-		crearEscuderia(db, w, r)
+	http.HandleFunc("/escuderias", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			crearEscuderia(db, w, r)
+		case http.MethodGet:
+			listarEscuderias(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
-	http.HandleFunc("GET /escuderias", func(w http.ResponseWriter, r *http.Request) {
-		listarEscuderias(db, w, r)
-	})
-	http.HandleFunc("GET /escuderias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		obtenerEscuderia(db, w, r)
-	})
-	http.HandleFunc("PUT /escuderias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		actualizarEscuderia(db, w, r)
-	})
-	http.HandleFunc("DELETE /escuderias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		eliminarEscuderia(db, w, r)
+	http.HandleFunc("/escuderias/{id}", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			obtenerEscuderia(db, w, r)
+		case http.MethodPut:
+			actualizarEscuderia(db, w, r)
+		case http.MethodDelete:
+			eliminarEscuderia(db, w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
 
+	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")
 	http.ListenAndServe(":8080", nil)
 }
