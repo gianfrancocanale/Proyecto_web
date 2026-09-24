@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	sqlc "Proyecto_web/db/sqlc"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
 )
 
-func crearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func CrearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -42,7 +43,7 @@ func crearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func listarEscuderias(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ListarEscuderias(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -64,7 +65,7 @@ func listarEscuderias(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(escuderias)
 }
 
-func obtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ObtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -88,7 +89,7 @@ func obtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(escuderia)
 }
 
-func actualizarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ActualizarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -127,7 +128,7 @@ func actualizarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func eliminarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func EliminarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return

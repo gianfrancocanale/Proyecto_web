@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	sqlc "Proyecto_web/db/sqlc"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -8,7 +9,7 @@ import (
 	"strconv"
 )
 
-func eliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -35,7 +36,7 @@ func eliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func actualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -79,7 +80,7 @@ func actualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func obtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ObtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -107,7 +108,7 @@ func obtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(usuario)
 }
 
-func listarUsuarios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ListarUsuarios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -129,7 +130,7 @@ func listarUsuarios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(usuarios)
 }
 
-func crearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func CrearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return

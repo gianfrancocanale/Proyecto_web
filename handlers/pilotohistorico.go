@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	sqlc "Proyecto_web/db/sqlc"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -8,7 +9,7 @@ import (
 	"strconv"
 )
 
-func crearPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func CrearPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -42,7 +43,7 @@ func crearPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func listarPilotosHistoricos(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ListarPilotosHistoricos(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -64,7 +65,7 @@ func listarPilotosHistoricos(db *sql.DB, w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(pilotosHistoricos)
 }
 
-func obtenerPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ObtenerPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -92,7 +93,7 @@ func obtenerPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(pilotoHistorico)
 }
 
-func actualizarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ActualizarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -131,7 +132,7 @@ func actualizarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func eliminarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func EliminarPilotoHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
