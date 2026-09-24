@@ -36,8 +36,8 @@ func main() {
 	http.HandleFunc("/pilotos/{id}", handlerPilotoId)
 
 	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO:
-	http.HandleFunc("/gran_premios", h.HandlerGranPremio)
-	http.HandleFunc("/gran_premios/{id}", h.HandlerGranPremioId)
+	http.HandleFunc("/gran_premios", HandlerGranPremio)
+	http.HandleFunc("/gran_premios/{id}", HandlerGranPremioId)
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")

@@ -251,6 +251,27 @@ INSERT INTO gran_premio (
 )
 RETURNING *;
 
+-- name: RecuperarGranPremio :one
+-- Obtener datos de un gran premio por ID
+SELECT
+    id_gran_premio,
+    pais,
+    longitud_km,
+    cantidad_vueltas,
+    id_ultimo_ganador
+FROM gran_premio
+WHERE id_gran_premio = $1;
+
+-- name: ModificarGranPremio :one
+-- Actualizar datos de un gran premio
+UPDATE gran_premio
+SET
+    pais = COALESCE($2, pais),
+    longitud_km = COALESCE($3, longitud_km),
+    cantidad_vueltas = COALESCE($4, cantidad_vueltas),
+    id_ultimo_ganador = COALESCE($5, id_ultimo_ganador)
+WHERE id_gran_premio = $1
+RETURNING *;
 
 -- name: ListarGrandesPremios :many
 -- Listar circuitos con la información de su último ganador

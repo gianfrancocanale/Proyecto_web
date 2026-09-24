@@ -220,7 +220,7 @@ func TestGranPremioRepository_CRUD(t *testing.T) {
 		_, err = queries.CrearGranPremio(ctx, sqlc.CrearGranPremioParams{
 			IDGranPremio:    "MONACO",
 			Pais:            "Mónaco",
-			LongitudKm:      "3.337",
+			LongitudKm:      3,
 			CantidadVueltas: 78,
 			IDUltimoGanador: pilotoHist.IDPiloto,
 		})
@@ -310,7 +310,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 		_, err = queries.CrearGranPremio(ctx, sqlc.CrearGranPremioParams{
 			IDGranPremio:    "SILVERSTONE",
 			Pais:            "Reino Unido",
-			LongitudKm:      "5.891",
+			LongitudKm:      5,
 			CantidadVueltas: 52,
 			IDUltimoGanador: gan.IDPiloto,
 		})

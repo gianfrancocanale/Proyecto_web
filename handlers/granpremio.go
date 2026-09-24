@@ -15,7 +15,6 @@ func CrearGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var granPremio sqlc.CrearGranPremioParams
-	var piloto sqlc.ObtenerPilotoParams
 
 	err := json.NewDecoder(r.Body).Decode(&granPremio)
 	if err != nil {
@@ -30,7 +29,7 @@ func CrearGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	queries := sqlc.New(db)
 
-	piloto, err := queries.ObtenerPiloto(r.Context(), granPremio.IDUltimoGanador)
+	_, err = queries.RecuperarPiloto(r.Context(), granPremio.IDUltimoGanador)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El último ganador no existe", http.StatusBadRequest)
@@ -58,7 +57,7 @@ func ListarGranPremios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	queries := sqlc.New(db)
 
-	granPremios, err := queries.ListarGranPremios(r.Context())
+	granPremios, err := queries.ListarGrandesPremios(r.Context())
 	if err != nil {
 		http.Error(w, "Error al obtener los Gran Premios", http.StatusInternalServerError)
 		return
@@ -82,7 +81,7 @@ func ObtenerGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	queries := sqlc.New(db)
 
-	granPremio, err := queries.ObtenerGranPremio(r.Context(), idGranPremio)
+	granPremio, err := queries.RecuperarGranPremio(r.Context(), idGranPremio)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Gran Premio no encontrado", http.StatusNotFound)
@@ -104,7 +103,8 @@ func ActualizarGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	idGranPremio := r.PathValue("id")
 
-	var granPremio sqlc.ActualizarGranPremioParams
+	var granPremio sqlc.ModificarGranPremioParams
+
 	err := json.NewDecoder(r.Body).Decode(&granPremio)
 	if err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
@@ -120,7 +120,17 @@ func ActualizarGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	queries := sqlc.New(db)
 
-	_, err = queries.ActualizarGranPremio(r.Context(), granPremio)
+	_, err = queries.RecuperarPiloto(r.Context(), granPremio.IDUltimoGanador)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "El último ganador no existe", http.StatusBadRequest)
+		} else {
+			http.Error(w, "Error al verificar el último ganador", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_, err = queries.ModificarGranPremio(r.Context(), granPremio)
 	if err != nil {
 		http.Error(w, "Error al actualizar el Gran Premio", http.StatusInternalServerError)
 		return
@@ -128,4 +138,27 @@ func ActualizarGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(granPremio)
+}
+
+func EliminarGranPremio(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idGranPremio := r.PathValue("id")
+
+	queries := sqlc.New(db)
+
+	err := queries.EliminarGranPremio(r.Context(), idGranPremio)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Gran Premio no encontrado", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al eliminar el Gran Premio", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
