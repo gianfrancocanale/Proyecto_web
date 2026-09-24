@@ -340,6 +340,15 @@ RETURNING *;
 DELETE FROM gran_premio_historico
 WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 
+-- name: RecuperarGranPremioHistorico :one 
+-- Obtener datos de un gran premio histórico por ID
+SELECT
+    id_gran_premio,
+    fecha_carrera,
+    resultado_carrera
+FROM gran_premio_historico
+WHERE id_gran_premio = $1;
+
 -- ==========================================
 -- apuestas
 -- ==========================================
