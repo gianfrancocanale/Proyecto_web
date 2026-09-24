@@ -187,6 +187,26 @@ INSERT INTO piloto (
 )
 RETURNING *;
 
+-- name: ModificarPiloto :one
+-- Actualizar datos de un piloto actual
+UPDATE piloto
+SET
+    id_piloto = COALESCE($2, id_piloto),
+    id_escuderia = COALESCE($3, id_escuderia),
+    puntos_temporada = COALESCE($4, puntos_temporada)
+WHERE id_piloto = $1
+RETURNING *;
+
+
+-- name: RecuperarPiloto :one
+-- Recuperar pilotos activos en la temporada
+SELECT 
+    id_piloto,
+    id_escuderia,
+    puntos_temporada
+FROM piloto
+WHERE id_piloto = $1;
+
 
 -- name: ListarPilotos :many
 -- Listar pilotos activos en la temporada
