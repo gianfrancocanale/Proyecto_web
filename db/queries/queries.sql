@@ -389,6 +389,17 @@ SELECT
 FROM apuesta
 WHERE id_apuesta = $1;
 
+-- name: RecuperarApuestaPorIdUsuario :one
+-- Obtener apuestas de un usuario por su ID
+SELECT
+    id_apuesta,
+    id_gran_premio,
+    fecha_carrera,
+    prediccion,
+    fecha_apuesta
+FROM apuesta
+WHERE id_usuario = $1 AND id_apuesta = $2;
+
 
 -- name: ListarApuestasPorUsuario :many
 -- Listar apuestas registradas por un usuario
@@ -414,12 +425,14 @@ SELECT
 FROM apuesta;
 
 -- name: ModificarApuesta :one
--- Actualizar la predicción de una apuesta
+-- Modificar una apuesta existente
 UPDATE apuesta
 SET
-    prediccion = $2,
-    fecha_apuesta = CURRENT_TIMESTAMP
-WHERE id_usuario = $1
+    prediccion = COALESCE($2, prediccion),
+    fecha_apuesta = COALESCE($3, fecha_apuesta),
+    id_gran_premio = COALESCE($4, id_gran_premio),
+    fecha_carrera = COALESCE($5, fecha_carrera)
+WHERE id_apuesta = $1 AND id_usuario = $6
 RETURNING
     id_apuesta,
     id_usuario,
@@ -432,4 +445,4 @@ RETURNING
 -- name: EliminarApuesta :exec
 -- Eliminar una apuesta
 DELETE FROM apuesta
-WHERE id_apuesta = $1;
+WHERE id_apuesta = $1 AND id_usuario = $2;

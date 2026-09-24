@@ -357,8 +357,12 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Error("Se esperaba un error al crear una segunda apuesta para el mismo usuario y carrera")
 		}
 
+		var apuestaElim sqlc.EliminarApuestaParams
+		apuestaElim.IDApuesta = apuesta.IDApuesta
+		apuestaElim.IDUsuario = apuesta.IDUsuario
+
 		// 3. Borrar Apuesta
-		err = queries.EliminarApuesta(ctx, apuesta.IDApuesta)
+		err = queries.EliminarApuesta(ctx, apuestaElim)
 		if err != nil {
 			t.Fatalf("BorrarApuesta fallo: %v", err)
 		}

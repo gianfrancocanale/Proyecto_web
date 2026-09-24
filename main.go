@@ -41,7 +41,8 @@ func main() {
 
 	//MANEJO DE RUTAS DE ENTIDAD APUESTA:
 	http.HandleFunc("/apuestas", handlerApuesta)
-	http.HandleFunc("/apuestas/{id}/{usuario}", handlerApuestaId)
+	http.HandleFunc("/apuestas/{id}/{usuario}", handlerApuestaIdUsuario)
+	http.HandleFunc("/apuestas/{usuario}", handlerApuestaUsuario)
 
 	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO HISTORICO:
 	http.HandleFunc("/gran_premios_historicos", handlerGranPremioHistorico)
@@ -50,6 +51,15 @@ func main() {
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")
 	http.ListenAndServe(":8080", nil)
+}
+
+func handlerApuestaUsuario(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerApuestaUsuario(db, w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
 }
 
 func handlerApuesta(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +73,12 @@ func handlerApuesta(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlerApuestaId(w http.ResponseWriter, r *http.Request) {
+func handlerApuestaIdUsuario(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		h.ObtenerApuesta(db, w, r)
+		h.ObtenerApuestaPorIdUsuario(db, w, r)
 	case http.MethodPut:
-		h.ActualizarApuesta(db, w, r)
+		h.ActualizarApuestaIdUsuario(db, w, r)
 	case http.MethodDelete:
 		h.EliminarApuesta(db, w, r)
 	default:
@@ -81,7 +91,7 @@ func handlerGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		h.CrearGranPremioHistorico(db, w, r)
 	case http.MethodGet:
-		h.ListarGranPremiosHistoricos(db, w, r)
+		h.ListarGrandesPremiosHistoricos(db, w, r)
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
