@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -24,24 +23,12 @@ func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if granPremioHistorico.FechaCarrera.IsZero() {
+	if granPremioHistorico.FechaCarrera.IsZero() || granPremioHistorico.IDGranPremio == "" || len(granPremioHistorico.ResultadoCarrera) == 0 {
 		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
-
-	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = queries.RecuperarPiloto(r.Context(), piloto)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				http.Error(w, "El piloto no existe en la grilla", http.StatusBadRequest)
-			} else {
-				http.Error(w, "Error al verificar resultado", http.StatusInternalServerError)
-			}
-			return
-		}
-	}
 
 	_, err = queries.RecuperarGranPremio(r.Context(), granPremioHistorico.IDGranPremio)
 	if err != nil {
@@ -51,6 +38,18 @@ func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request
 			http.Error(w, "Error al verificar el gran premio", http.StatusInternalServerError)
 		}
 		return
+	}
+
+	for _, piloto := range granPremioHistorico.ResultadoCarrera {
+		_, err = queries.RecuperarPiloto(r.Context(), piloto)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)
+			} else {
+				http.Error(w, "Error al verificar resultado", http.StatusInternalServerError)
+			}
+			return
+		}
 	}
 
 	devolver, err := queries.CrearGranPremioHistorico(r.Context(), granPremioHistorico)
@@ -92,10 +91,25 @@ func ObtenerGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Reque
 	}
 
 	idGranPremioHistorico := r.PathValue("id")
+	fechaCarreraStr := r.PathValue("fecha_carrera")
+
+	if idGranPremioHistorico == "" || fechaCarreraStr == "" {
+		http.Error(w, "Son obligatorios el ID del Gran Premio y su fecha", http.StatusBadRequest)
+		return
+	}
+
+	fechaCarrera, err := time.Parse("02-01-2006", fechaCarreraStr)
+	if err != nil {
+		http.Error(w, "Fecha de carrera inválida", http.StatusBadRequest)
+		return
+	}
 
 	queries := sqlc.New(db)
 
-	granPremioHistorico, err := queries.RecuperarGranPremioHistorico(r.Context(), idGranPremioHistorico)
+	granPremioHistorico, err := queries.RecuperarGranPremioHistorico(r.Context(), sqlc.RecuperarGranPremioHistoricoParams{
+		IDGranPremio: idGranPremioHistorico,
+		FechaCarrera: fechaCarrera})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Gran Premio Histórico no encontrado", http.StatusNotFound)
@@ -117,6 +131,19 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 
 	idGranPremioHistorico := r.PathValue("id")
 	fechaCarrera, err := time.Parse("02-01-2006", r.PathValue("fecha_carrera"))
+	if err != nil {
+		http.Error(w, "Fecha de carrera inválida", http.StatusBadRequest)
+		return
+	}
+
+	if idGranPremioHistorico == "" || fechaCarrera.IsZero() {
+		http.Error(
+			w,
+			"El ID del Gran Premio y la fecha de carrera son obligatorios",
+			http.StatusBadRequest,
+		)
+		return
+	}
 
 	var granPremioHistorico sqlc.RegistrarResultadoCarreraParams
 
@@ -126,8 +153,8 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if granPremioHistorico.FechaCarrera.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
+	if len(granPremioHistorico.ResultadoCarrera) == 0 {
+		http.Error(w, "El resultado de la carrera es obligatorio", http.StatusBadRequest)
 		return
 	}
 
@@ -136,19 +163,7 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 
 	queries := sqlc.New(db)
 
-	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = queries.RecuperarPiloto(r.Context(), piloto)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				http.Error(w, "El piloto %s no existe en la grilla", http.StatusBadRequest)
-			} else {
-				http.Error(w, "Error al verificar resultado", http.StatusInternalServerError)
-			}
-			return
-		}
-	}
-
-	_, err = queries.RecuperarGranPremio(r.Context(), granPremioHistorico.IDGranPremio)
+	_, err = queries.RecuperarGranPremio(r.Context(), idGranPremioHistorico)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El gran premio no existe", http.StatusBadRequest)
@@ -156,6 +171,18 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 			http.Error(w, "Error al verificar el gran premio", http.StatusInternalServerError)
 		}
 		return
+	}
+
+	for _, piloto := range granPremioHistorico.ResultadoCarrera {
+		_, err = queries.RecuperarPiloto(r.Context(), piloto)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)
+			} else {
+				http.Error(w, "Error al verificar resultado", http.StatusInternalServerError)
+			}
+			return
+		}
 	}
 
 	_, err = queries.RegistrarResultadoCarrera(r.Context(), granPremioHistorico)
@@ -175,16 +202,19 @@ func EliminarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Requ
 	}
 
 	idGranPremioHistorico := r.PathValue("id")
+	fechaCarreraStr := r.PathValue("fecha_carrera")
 
-	idGranPremioHistorico, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	fechaCarrera, err := time.Parse("02-01-2006", fechaCarreraStr)
 	if err != nil {
-		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
+		http.Error(w, "Fecha de carrera inválida", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
 
-	err := queries.EliminarGranPremioHistorico(r.Context(), int32(idGranPremioHistorico))
+	err = queries.EliminarGranPremioHistorico(r.Context(), sqlc.EliminarGranPremioHistoricoParams{
+		IDGranPremio: idGranPremioHistorico,
+		FechaCarrera: fechaCarrera})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Gran Premio Histórico no encontrado", http.StatusNotFound)

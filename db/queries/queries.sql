@@ -341,13 +341,13 @@ DELETE FROM gran_premio_historico
 WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 
 -- name: RecuperarGranPremioHistorico :one 
--- Obtener datos de un gran premio histórico por ID
+-- Obtener datos de un gran premio histórico por ID y Fecha
 SELECT
     id_gran_premio,
     fecha_carrera,
     resultado_carrera
 FROM gran_premio_historico
-WHERE id_gran_premio = $1;
+WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 
 -- ==========================================
 -- apuestas
@@ -419,7 +419,7 @@ UPDATE apuesta
 SET
     prediccion = $2,
     fecha_apuesta = CURRENT_TIMESTAMP
-WHERE id_usuario = $1FechaCarrera
+WHERE id_usuario = $1
 RETURNING
     id_apuesta,
     id_usuario,
