@@ -45,7 +45,7 @@ CREATE TABLE piloto (
 CREATE TABLE gran_premio (
     id_gran_premio VARCHAR(100) PRIMARY KEY,
     pais VARCHAR(100) NOT NULL,
-    longitud_km DECIMAL(5,3) NOT NULL,
+    longitud_km INT NOT NULL,
     cantidad_vueltas INT NOT NULL,
     id_ultimo_ganador INT  NOT NULL,
 
