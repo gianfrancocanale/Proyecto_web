@@ -36,12 +36,68 @@ func main() {
 	http.HandleFunc("/pilotos/{id}", handlerPilotoId)
 
 	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO:
-	http.HandleFunc("/gran_premios", HandlerGranPremio)
-	http.HandleFunc("/gran_premios/{id}", HandlerGranPremioId)
+	http.HandleFunc("/gran_premios", handlerGranPremio)
+	http.HandleFunc("/gran_premios/{id}", handlerGranPremioId)
+
+	//MANEJO DE RUTAS DE ENTIDAD APUESTA:
+	http.HandleFunc("/apuestas", handlerApuesta)
+	http.HandleFunc("/apuestas/{id}/{usuario}", handlerApuestaId)
+
+	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO HISTORICO:
+	http.HandleFunc("/gran_premios_historicos", handlerGranPremioHistorico)
+	http.HandleFunc("/gran_premios_historicos/{id}/{fecha_carrera}", handlerGranPremioHistoricoId)
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")
 	http.ListenAndServe(":8080", nil)
+}
+
+func handlerApuesta(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.CrearApuesta(db, w, r)
+	case http.MethodGet:
+		h.ListarApuestas(db, w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func handlerApuestaId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerApuesta(db, w, r)
+	case http.MethodPut:
+		h.ActualizarApuesta(db, w, r)
+	case http.MethodDelete:
+		h.EliminarApuesta(db, w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func handlerGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.CrearGranPremioHistorico(db, w, r)
+	case http.MethodGet:
+		h.ListarGranPremiosHistoricos(db, w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func handlerGranPremioHistoricoId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerGranPremioHistorico(db, w, r)
+	case http.MethodPut:
+		h.ActualizarGranPremioHistorico(db, w, r)
+	case http.MethodDelete:
+		h.EliminarGranPremioHistorico(db, w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
 }
 
 func handlerGranPremio(w http.ResponseWriter, r *http.Request) {

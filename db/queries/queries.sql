@@ -274,7 +274,7 @@ WHERE id_gran_premio = $1
 RETURNING *;
 
 -- name: ListarGrandesPremios :many
--- Listar circuitos con la información de su último ganador
+-- Listar circuitos con la infRecuperarGraormación de su último ganador
 SELECT
     gp.id_gran_premio,
     gp.pais,
@@ -341,7 +341,7 @@ DELETE FROM gran_premio_historico
 WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 
 -- ==========================================
--- apuestaS
+-- apuestas
 -- ==========================================
 
 -- name: CrearApuesta :one
@@ -357,7 +357,7 @@ INSERT INTO apuesta (
     $2,
     $3,
     $4,
-    CURRENT_TIMESTAMP
+    $5
 )
 RETURNING
     id_apuesta,
@@ -393,14 +393,24 @@ FROM apuesta
 WHERE id_usuario = $1
 ORDER BY fecha_apuesta DESC;
 
+-- name: ListarApuestas :many
+-- Listar todas las apuestas registradas
+SELECT
+    id_apuesta,
+    id_usuario,
+    id_gran_premio,
+    fecha_carrera,
+    prediccion,
+    fecha_apuesta
+FROM apuesta;
 
--- name: ModificArapuesta :one
+-- name: ModificarApuesta :one
 -- Actualizar la predicción de una apuesta
 UPDATE apuesta
 SET
     prediccion = $2,
     fecha_apuesta = CURRENT_TIMESTAMP
-WHERE id_apuesta = $1
+WHERE id_usuario = $1FechaCarrera
 RETURNING
     id_apuesta,
     id_usuario,
