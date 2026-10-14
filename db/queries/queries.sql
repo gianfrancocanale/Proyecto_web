@@ -11,22 +11,20 @@ INSERT INTO usuario (
 ) VALUES (
     $1, $2, $3
 )
-RETURNING id_usuario, nombre_usuario, puntos_ganados;
+RETURNING nombre_usuario, puntos_ganados;
 
 
 -- name: RecuperarUsuarioPorId :one
 -- Obtener usuario por ID
 SELECT
-    id_usuario,
     nombre_usuario,
     puntos_ganados
 FROM usuario
-WHERE id_usuario = $1;
+WHERE nombre_usuario = $1;
 
 -- name: RecuperarUsuarios :many
 -- Obtener todos los usuarios
 SELECT
-    id_usuario,
     nombre_usuario,
     puntos_ganados
 FROM usuario;
@@ -39,14 +37,14 @@ SET
     nombre_usuario = COALESCE($2, nombre_usuario),
     contrasena_hash = COALESCE($3, contrasena_hash),
     puntos_ganados = COALESCE($4, puntos_ganados)
-WHERE id_usuario = $1
-RETURNING id_usuario, nombre_usuario, puntos_ganados;
+WHERE nombre_usuario = $1
+RETURNING nombre_usuario, puntos_ganados;
 
 
 -- name: EliminarUsuario :exec
 -- Eliminar un usuario
 DELETE FROM usuario
-WHERE id_usuario = $1;
+WHERE nombre_usuario = $1;
 
 -- ==========================================
 -- ESCUDERÍAS
@@ -356,7 +354,7 @@ WHERE id_gran_premio = $1 AND fecha_carrera = $2;
 -- name: CrearApuesta :one
 -- Crear una apuesta vinculada a un evento de carrera específico
 INSERT INTO apuesta (
-    id_usuario,
+    nombre_usuario,
     id_gran_premio,
     fecha_carrera,
     prediccion,
@@ -370,7 +368,7 @@ INSERT INTO apuesta (
 )
 RETURNING
     id_apuesta,
-    id_usuario,
+    nombre_usuario,
     id_gran_premio,
     fecha_carrera,
     prediccion,
@@ -381,7 +379,7 @@ RETURNING
 -- Obtener apuestas por ID
 SELECT
     id_apuesta,
-    id_usuario,
+    nombre_usuario,
     id_gran_premio,
     fecha_carrera,
     prediccion,
@@ -398,7 +396,7 @@ SELECT
     prediccion,
     fecha_apuesta
 FROM apuesta
-WHERE id_usuario = $1 AND id_apuesta = $2;
+WHERE nombre_usuario = $1 AND id_apuesta = $2;
 
 
 -- name: ListarApuestasPorUsuario :many
@@ -410,14 +408,14 @@ SELECT
     prediccion,
     fecha_apuesta
 FROM apuesta
-WHERE id_usuario = $1
+WHERE nombre_usuario = $1
 ORDER BY fecha_apuesta DESC;
 
 -- name: ListarApuestas :many
 -- Listar todas las apuestas registradas
 SELECT
     id_apuesta,
-    id_usuario,
+    nombre_usuario,
     id_gran_premio,
     fecha_carrera,
     prediccion,
@@ -432,10 +430,10 @@ SET
     fecha_apuesta = COALESCE($3, fecha_apuesta),
     id_gran_premio = COALESCE($4, id_gran_premio),
     fecha_carrera = COALESCE($5, fecha_carrera)
-WHERE id_apuesta = $1 AND id_usuario = $6
+WHERE id_apuesta = $1 AND nombre_usuario = $6
 RETURNING
     id_apuesta,
-    id_usuario,
+    nombre_usuario,
     id_gran_premio,
     fecha_carrera,
     prediccion,
@@ -445,4 +443,4 @@ RETURNING
 -- name: EliminarApuesta :exec
 -- Eliminar una apuesta
 DELETE FROM apuesta
-WHERE id_apuesta = $1 AND id_usuario = $2;
+WHERE id_apuesta = $1 AND nombre_usuario = $2;

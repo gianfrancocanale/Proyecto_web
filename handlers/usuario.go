@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 )
 
 func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -15,15 +14,15 @@ func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idUsuario, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de usuario invalido", http.StatusBadRequest)
+	nombreUsuario := r.PathValue("id")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario invalido", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
 
-	err = queries.EliminarUsuario(r.Context(), int32(idUsuario))
+	err := queries.EliminarUsuario(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Usuario no encontrado", http.StatusNotFound)
@@ -42,15 +41,15 @@ func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idUsuario, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de usuario invalido", http.StatusBadRequest)
+	nombreUsuario := r.PathValue("id")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario invalido", http.StatusBadRequest)
 		return
 	}
 
 	var usuario sqlc.ModificarUsuarioParams
 
-	err = json.NewDecoder(r.Body).Decode(&usuario)
+	err := json.NewDecoder(r.Body).Decode(&usuario)
 	if err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
 		return
@@ -66,7 +65,7 @@ func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usuario.IDUsuario = int32(idUsuario)
+	usuario.NombreUsuario = nombreUsuario
 
 	queries := sqlc.New(db)
 
@@ -86,15 +85,15 @@ func ObtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idUsuario, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de usuario invalido", http.StatusBadRequest)
+	nombreUsuario := r.PathValue("nombre")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario invalido", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
 
-	usuario, err := queries.RecuperarUsuarioPorId(r.Context(), int32(idUsuario))
+	usuario, err := queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Usuario no encontrado", http.StatusNotFound)

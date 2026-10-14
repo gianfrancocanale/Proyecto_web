@@ -12,7 +12,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
+var db *sql.DB //HAY RACE CONDITION?? POR QUE ES VARIABLE COMPARTIDA
 
 func main() {
 	db = conectarBase()

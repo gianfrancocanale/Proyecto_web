@@ -23,18 +23,20 @@ func CrearApuesta(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
 		return
 	}
-	if apuesta.IDUsuario == 0 || apuesta.IDGranPremio == "" || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() || apuesta.FechaApuesta.IsZero() {
+
+	// fecha_apuesta la asigna el servidor, por eso no se valida acá
+	if apuesta.NombreUsuario == "" || apuesta.IDGranPremio == "" || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() {
 		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
 		return
 	}
 
-	// Asignar la fecha actual como fecha de carrera
+	// Asignar la fecha actual como fecha de la apuesta
 	apuesta.FechaApuesta = time.Now()
 
 	queries := sqlc.New(db)
 
 	// Verificar que el usuario existe
-	_, err = queries.RecuperarUsuarioPorId(r.Context(), apuesta.IDUsuario)
+	_, err = queries.RecuperarUsuarioPorId(r.Context(), apuesta.NombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "No existe el usuario", http.StatusBadRequest)
@@ -78,6 +80,7 @@ func CrearApuesta(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(devolver)
 }
@@ -110,15 +113,15 @@ func ObtenerApuestaUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idUsuario, err := strconv.ParseInt(r.PathValue("usuario"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de apuesta invalido", http.StatusBadRequest)
+	nombreUsuario := r.PathValue("usuario")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
 
-	_, err = queries.RecuperarUsuarioPorId(r.Context(), int32(idUsuario))
+	_, err := queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "No existe el usuario", http.StatusBadRequest)
@@ -128,18 +131,18 @@ func ObtenerApuestaUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apuesta, err := queries.ListarApuestasPorUsuario(r.Context(), int32(idUsuario))
+	apuestas, err := queries.ListarApuestasPorUsuario(r.Context(), nombreUsuario)
 	if err != nil {
-		http.Error(w, "Error al obtener la apuesta", http.StatusInternalServerError)
+		http.Error(w, "Error al obtener las apuestas", http.StatusInternalServerError)
 		return
 	}
-	if len(apuesta) == 0 {
-		http.Error(w, "No se encontraron Gran Premios Histórico", http.StatusNotFound)
+	if len(apuestas) == 0 {
+		http.Error(w, "No se encontraron apuestas", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(apuesta)
+	json.NewEncoder(w).Encode(apuestas)
 }
 
 func ObtenerApuestaPorIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -149,15 +152,19 @@ func ObtenerApuestaPorIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 	}
 
 	idApuesta, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	idUsuario, err := strconv.ParseInt(r.PathValue("usuario"), 10, 32)
 	if err != nil {
-		http.Error(w, "ID de apuesta invalido", http.StatusBadRequest)
+		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
+		return
+	}
+	nombreUsuario := r.PathValue("usuario")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
 		return
 	}
 
 	queries := sqlc.New(db)
 
-	_, err = queries.RecuperarUsuarioPorId(r.Context(), int32(idUsuario))
+	_, err = queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "No existe el usuario", http.StatusBadRequest)
@@ -169,12 +176,12 @@ func ObtenerApuestaPorIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 
 	var PK_apuesta sqlc.RecuperarApuestaPorIdUsuarioParams
 	PK_apuesta.IDApuesta = int32(idApuesta)
-	PK_apuesta.IDUsuario = int32(idUsuario)
+	PK_apuesta.NombreUsuario = nombreUsuario
 
 	apuesta, err := queries.RecuperarApuestaPorIdUsuario(r.Context(), PK_apuesta)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "apuesta no encontrada", http.StatusNotFound)
+			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
 		} else {
 			http.Error(w, "Error al obtener la apuesta", http.StatusInternalServerError)
 		}
@@ -183,7 +190,6 @@ func ObtenerApuestaPorIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(apuesta)
-
 }
 
 func ActualizarApuestaIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -191,9 +197,15 @@ func ActualizarApuestaIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
-	_, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+
+	idApuesta, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
 	if err != nil {
-		http.Error(w, "ID de usuario invalido", http.StatusBadRequest)
+		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
+		return
+	}
+	nombreUsuario := r.PathValue("usuario")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
 		return
 	}
 
@@ -205,7 +217,11 @@ func ActualizarApuestaIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if apuesta.IDApuesta == 0 || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() || apuesta.FechaApuesta.IsZero() {
+	// La identidad de la apuesta sale siempre de la URL, no del body
+	apuesta.IDApuesta = int32(idApuesta)
+	apuesta.NombreUsuario = nombreUsuario
+
+	if apuesta.IDGranPremio == "" || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() || apuesta.FechaApuesta.IsZero() {
 		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
 		return
 	}
@@ -214,7 +230,11 @@ func ActualizarApuestaIdUsuario(db *sql.DB, w http.ResponseWriter, r *http.Reque
 
 	devolver, err := queries.ModificarApuesta(r.Context(), apuesta)
 	if err != nil {
-		http.Error(w, "Error al actualizar la apuesta", http.StatusInternalServerError)
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al actualizar la apuesta", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -233,9 +253,9 @@ func EliminarApuesta(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
 		return
 	}
-	idUsuario, err := strconv.ParseInt(r.PathValue("usuario"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de Usuario inválido", http.StatusBadRequest)
+	nombreUsuario := r.PathValue("usuario")
+	if nombreUsuario == "" {
+		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
 		return
 	}
 
@@ -243,15 +263,11 @@ func EliminarApuesta(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	var apuestaEliminada sqlc.EliminarApuestaParams
 	apuestaEliminada.IDApuesta = int32(idApuesta)
-	apuestaEliminada.IDUsuario = int32(idUsuario)
+	apuestaEliminada.NombreUsuario = nombreUsuario
 
 	err = queries.EliminarApuesta(r.Context(), apuestaEliminada)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al eliminar la apuesta", http.StatusInternalServerError)
-		}
+		http.Error(w, "Error al eliminar la apuesta", http.StatusInternalServerError)
 		return
 	}
 

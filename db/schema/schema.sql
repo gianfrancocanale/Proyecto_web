@@ -1,7 +1,6 @@
 -- 1. Usuarios
 CREATE TABLE usuario (
-    id_usuario SERIAL PRIMARY KEY,
-    nombre_usuario VARCHAR(50) NOT NULL,
+    nombre_usuario VARCHAR(50) PRIMARY KEY,
     contrasena_hash VARCHAR(255) NOT NULL,
     puntos_ganados INT NOT NULL
 );
@@ -71,17 +70,17 @@ CREATE TABLE gran_premio_historico (
 -- 7. Apuestas
 CREATE TABLE apuesta (
     id_apuesta SERIAL,
-    id_usuario INT NOT NULL,
+    nombre_usuario VARCHAR(50) NOT NULL,
     id_gran_premio VARCHAR(100) NOT NULL,
     fecha_carrera DATE  NOT NULL,
     prediccion INTEGER[10] NOT NULL,
     fecha_apuesta DATE NOT NULL,
 
     CONSTRAINT pk_apuesta
-        PRIMARY KEY (id_apuesta, id_usuario),
+        PRIMARY KEY (id_apuesta, nombre_usuario),
 
-    CONSTRAINT fk_apuesta_usuario FOREIGN KEY (id_usuario)
-        REFERENCES usuario(id_usuario)
+    CONSTRAINT fk_apuesta_usuario FOREIGN KEY (nombre_usuario)
+        REFERENCES usuario(nombre_usuario)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_apuesta_gran_premio
@@ -91,5 +90,5 @@ CREATE TABLE apuesta (
 
     -- Garantiza una sola apuesta por usuario en cada edición/carrera concreta
     CONSTRAINT unq_usuario_gran_premio_carrera
-        UNIQUE (id_usuario, id_gran_premio, fecha_carrera)
+        UNIQUE (nombre_usuario, id_gran_premio, fecha_carrera)
 );

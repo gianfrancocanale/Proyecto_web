@@ -58,18 +58,38 @@ func TestUsuarioRepository_CRUD(t *testing.T) {
 		usuario, err := queries.CrearUsuario(ctx, sqlc.CrearUsuarioParams{
 			NombreUsuario:  "usuario_test_1",
 			ContrasenaHash: "hash_seguro_123",
+			PuntosGanados:  0,
 		})
 
 		if err != nil {
 			t.Fatalf("CrearUsuario fallo: %v", err)
 		}
 
-		if usuario.IDUsuario == 0 {
-			t.Error("Se esperaba un IDUsuario autogenerado")
-		}
-
 		if usuario.NombreUsuario != "usuario_test_1" {
 			t.Errorf("Se esperaba 'usuario_test_1', se obtuvo '%s'", usuario.NombreUsuario)
+		}
+
+		if usuario.PuntosGanados != 0 {
+			t.Errorf("Se esperaban 0 puntos, se obtuvo %d", usuario.PuntosGanados)
+		}
+	})
+
+	t.Run("CrearUsuarioDuplicado", func(t *testing.T) {
+		cleanupTestDB(t, db)
+
+		params := sqlc.CrearUsuarioParams{
+			NombreUsuario:  "usuario_duplicado",
+			ContrasenaHash: "hash_789",
+			PuntosGanados:  0,
+		}
+
+		if _, err := queries.CrearUsuario(ctx, params); err != nil {
+			t.Fatalf("Setup fallo: %v", err)
+		}
+
+		// El nombre de usuario es la PK, no se puede repetir
+		if _, err := queries.CrearUsuario(ctx, params); err == nil {
+			t.Error("Se esperaba un error al crear un usuario con nombre_usuario repetido")
 		}
 	})
 
@@ -79,14 +99,20 @@ func TestUsuarioRepository_CRUD(t *testing.T) {
 		usuario, err := queries.CrearUsuario(ctx, sqlc.CrearUsuarioParams{
 			NombreUsuario:  "usuario_a_eliminar",
 			ContrasenaHash: "hash_456",
+			PuntosGanados:  0,
 		})
 		if err != nil {
 			t.Fatalf("Setup fallo: %v", err)
 		}
 
-		err = queries.EliminarUsuario(ctx, usuario.IDUsuario)
+		err = queries.EliminarUsuario(ctx, usuario.NombreUsuario)
 		if err != nil {
 			t.Fatalf("EliminarUsuario fallo: %v", err)
+		}
+
+		_, err = queries.RecuperarUsuarioPorId(ctx, "usuario_a_eliminar")
+		if err != sql.ErrNoRows {
+			t.Errorf("Se esperaba sql.ErrNoRows tras eliminar, se obtuvo: %v", err)
 		}
 	})
 }
@@ -119,7 +145,7 @@ func TestEscuderiaRepository_CRUD(t *testing.T) {
 		}
 
 		if len(escuderias) != 1 {
-			t.Errorf("Se esperaba 1 escuderia, se obtuvieron %d", len(escuderias))
+			t.Fatalf("Se esperaba 1 escuderia, se obtuvieron %d", len(escuderias))
 		}
 
 		if escuderias[0].IDEscuderia != "FERRARI" {
@@ -144,6 +170,7 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 			IDEscuderia:          "RED_BULL",
 			PuntosTemporada:      int32(32),
 			TitulosConstructores: int32(16),
+			FechaFundacion:       time.Date(2005, 1, 1, 0, 0, 0, 0, time.UTC),
 			TeamPrincipal:        "Christian Horner",
 		})
 		if err != nil {
@@ -156,6 +183,7 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 			Nombre:          "Max Verstappen",
 			Pais:            "Países Bajos",
 			FechaNacimiento: time.Date(1997, 9, 30, 0, 0, 0, 0, time.UTC),
+			TitulosGanados:  4,
 		})
 		if err != nil {
 			t.Fatalf("CrearPilotoHistorico fallo: %v", err)
@@ -163,8 +191,9 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 
 		// 3. Crear Piloto en Temporada
 		_, err = queries.CrearPilotoTemporada(ctx, sqlc.CrearPilotoTemporadaParams{
-			IDPiloto:    pilotoHist.IDPiloto,
-			IDEscuderia: "RED_BULL",
+			IDPiloto:        pilotoHist.IDPiloto,
+			IDEscuderia:     "RED_BULL",
+			PuntosTemporada: 0,
 		})
 		if err != nil {
 			t.Fatalf("CrearPilotoTemporada fallo: %v", err)
@@ -177,7 +206,7 @@ func TestPilotoRepository_CRUD(t *testing.T) {
 		}
 
 		if len(pilotos) != 1 {
-			t.Errorf("Se esperaba 1 piloto activo, se obtuvieron %d", len(pilotos))
+			t.Fatalf("Se esperaba 1 piloto activo, se obtuvieron %d", len(pilotos))
 		}
 
 		if pilotos[0].Nombre != "Max Verstappen" {
@@ -206,17 +235,19 @@ func TestGranPremioRepository_CRUD(t *testing.T) {
 
 	t.Run("CrearYListarGrandesPremios", func(t *testing.T) {
 		cleanupTestDB(t, db)
+
 		pilotoHist, err := queries.CrearPilotoHistorico(ctx, sqlc.CrearPilotoHistoricoParams{
 			IDPiloto:        1,
 			Nombre:          "Max Verstappen",
 			Pais:            "Países Bajos",
 			FechaNacimiento: time.Date(1997, 9, 30, 0, 0, 0, 0, time.UTC),
+			TitulosGanados:  4,
 		})
-
 		if err != nil {
 			t.Fatalf("Setup Piloto Historico fallo: %v", err)
 		}
 
+		// 1. Crear Gran Premio
 		_, err = queries.CrearGranPremio(ctx, sqlc.CrearGranPremioParams{
 			IDGranPremio:    "MONACO",
 			Pais:            "Mónaco",
@@ -235,7 +266,7 @@ func TestGranPremioRepository_CRUD(t *testing.T) {
 		}
 
 		if len(granPremios) != 1 {
-			t.Errorf("Se esperaba 1 gran premio, se obtuvieron %d", len(granPremios))
+			t.Fatalf("Se esperaba 1 gran premio, se obtuvieron %d", len(granPremios))
 		}
 
 		if granPremios[0].IDGranPremio != "MONACO" {
@@ -291,6 +322,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 		usr, err := queries.CrearUsuario(ctx, sqlc.CrearUsuarioParams{
 			NombreUsuario:  "apostador_1",
 			ContrasenaHash: "pass_123",
+			PuntosGanados:  0,
 		})
 		if err != nil {
 			t.Fatalf("Setup Usuario fallo: %v", err)
@@ -301,6 +333,7 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			Nombre:          "Lewis Hamilton",
 			Pais:            "Reino Unido",
 			FechaNacimiento: time.Date(1985, 1, 7, 0, 0, 0, 0, time.UTC),
+			TitulosGanados:  7,
 		})
 		if err != nil {
 			t.Fatalf("Setup Piloto Historico fallo: %v", err)
@@ -332,10 +365,11 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 
 		// Primera apuesta: debe funcionar
 		apuesta, err := queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
-			IDUsuario:    usr.IDUsuario,
-			IDGranPremio: "SILVERSTONE",
-			FechaCarrera: fechaCarrera,
-			Prediccion:   []int32{44, 1, 16},
+			NombreUsuario: usr.NombreUsuario,
+			IDGranPremio:  "SILVERSTONE",
+			FechaCarrera:  fechaCarrera,
+			Prediccion:    []int32{44, 1, 16},
+			FechaApuesta:  time.Now(),
 		})
 		if err != nil {
 			t.Fatalf("CrearApuesta fallo: %v", err)
@@ -345,30 +379,46 @@ func TestApuestaRepository_CRUD(t *testing.T) {
 			t.Error("Se esperaba un IDApuesta generado")
 		}
 
+		if apuesta.NombreUsuario != usr.NombreUsuario {
+			t.Errorf("Se esperaba usuario '%s', se obtuvo '%s'", usr.NombreUsuario, apuesta.NombreUsuario)
+		}
+
 		// Segunda apuesta: debe fallar por el UNIQUE
 		_, err = queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
-			IDUsuario:    usr.IDUsuario,
-			IDGranPremio: "SILVERSTONE",
-			FechaCarrera: fechaCarrera,
-			Prediccion:   []int32{44, 1, 16},
+			NombreUsuario: usr.NombreUsuario,
+			IDGranPremio:  "SILVERSTONE",
+			FechaCarrera:  fechaCarrera,
+			Prediccion:    []int32{44, 1, 16},
+			FechaApuesta:  time.Now(),
 		})
-
 		if err == nil {
 			t.Error("Se esperaba un error al crear una segunda apuesta para el mismo usuario y carrera")
 		}
 
-		var apuestaElim sqlc.EliminarApuestaParams
-		apuestaElim.IDApuesta = apuesta.IDApuesta
-		apuestaElim.IDUsuario = apuesta.IDUsuario
+		// 2. Recuperar la apuesta por (usuario, id)
+		recuperada, err := queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
+			NombreUsuario: usr.NombreUsuario,
+			IDApuesta:     apuesta.IDApuesta,
+		})
+		if err != nil {
+			t.Fatalf("RecuperarApuestaPorIdUsuario fallo: %v", err)
+		}
+
+		if recuperada.IDGranPremio != "SILVERSTONE" {
+			t.Errorf("Se esperaba 'SILVERSTONE', se obtuvo '%s'", recuperada.IDGranPremio)
+		}
 
 		// 3. Borrar Apuesta
-		err = queries.EliminarApuesta(ctx, apuestaElim)
+		err = queries.EliminarApuesta(ctx, sqlc.EliminarApuestaParams{
+			IDApuesta:     apuesta.IDApuesta,
+			NombreUsuario: apuesta.NombreUsuario,
+		})
 		if err != nil {
-			t.Fatalf("BorrarApuesta fallo: %v", err)
+			t.Fatalf("EliminarApuesta fallo: %v", err)
 		}
 
 		// 4. Verificar que fue eliminada
-		apuestasDespues, err := queries.ListarApuestasPorUsuario(ctx, usr.IDUsuario)
+		apuestasDespues, err := queries.ListarApuestasPorUsuario(ctx, usr.NombreUsuario)
 		if err != nil {
 			t.Fatalf("ListarApuestasPorUsuario fallo post borrado: %v", err)
 		}
