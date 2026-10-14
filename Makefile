@@ -1,4 +1,4 @@
-.PHONY: test generate clean start wait compile
+.PHONY: test generate clean start wait compile run hurl hurlUsuarios hurlApuestas hurlEscuderias hurlPilotos hurlPilotosHistoricos hurlGrandesPremios hurlGrandesPremiosHistoricos
 
 generate:
 	@sqlc generate
@@ -42,6 +42,39 @@ run:
 	$(MAKE) clean
 
 hurl:
-	@echo "Ejecutando pruebas Hurl"
-	hurl --test requests.hurl
+	@echo "Ejecutando todas las pruebas Hurl"
+	hurl --test requests/usuarios.hurl
+	hurl --test requests/apuestas.hurl
+	hurl --test requests/escuderias.hurl
+	hurl --test requests/pilotos.hurl
+	hurl --test requests/pilotos_historicos.hurl
+	hurl --test requests/gran_premios.hurl
+	hurl --test requests/gran_premios_historicos.hurl
 
+hurlUsuarios:
+	@echo "Ejecutando pruebas Hurl para usuarios"
+	hurl --test requests/usuarios.hurl
+
+hurlApuestas:
+	@echo "Ejecutando pruebas Hurl para apuestas"
+	hurl --test requests/apuestas.hurl
+
+hurlEscuderias:
+	@echo "Ejecutando pruebas Hurl para escuderías"
+	hurl --test requests/escuderias.hurl
+
+hurlPilotos:
+	@echo "Ejecutando pruebas Hurl para pilotos"
+	hurl --test requests/pilotos.hurl
+
+hurlPilotosHistoricos:
+	@echo "Ejecutando pruebas Hurl para pilotos históricos"
+	hurl --test requests/pilotos_historicos.hurl
+
+hurlGrandesPremios:
+	@echo "Ejecutando pruebas Hurl para grandes premios"
+	hurl --test requests/gran_premios.hurl
+
+hurlGrandesPremiosHistoricos:
+	@echo "Ejecutando pruebas Hurl para grandes premios históricos"
+	hurl --test requests/gran_premios_historicos.hurl

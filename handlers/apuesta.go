@@ -51,6 +51,15 @@ func (h *ApuestaHandler) HandlerApuestaIdUsuario(w http.ResponseWriter, r *http.
 	}
 }
 
+func (h *ApuestaHandler) HandlerApuestaUsuario(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerApuestaUsuario(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
 func (h *ApuestaHandler) CrearApuesta(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
