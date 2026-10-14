@@ -15,7 +15,7 @@ import (
 var db *sql.DB
 
 func main() {
-	db := conectarBase()
+	db = conectarBase()
 	fmt.Printf("La base de datos se inicio")
 	defer db.Close()
 
