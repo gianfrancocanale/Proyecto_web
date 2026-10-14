@@ -29,7 +29,7 @@ GET http://localhost:8080/escuderias
 HTTP 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_escuderia == 'ferrari')].team_principal" includes "Frédéric Vasseur"
+jsonpath "$[?(@.id_escuderia == 'ferrari')].team_principal" contains "Frédéric Vasseur"
 
 
 # Obtener escudería

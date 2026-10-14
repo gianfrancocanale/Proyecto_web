@@ -69,7 +69,7 @@ func (h *GranPremioHandler) CrearGranPremio(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Verificar que el último ganador existe
-	_, err = h.queries.RecuperarPiloto(r.Context(), granPremio.IDUltimoGanador)
+	_, err = h.queries.RecuperarPilotoHistorico(r.Context(), granPremio.IDUltimoGanador)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El último ganador no existe", http.StatusBadRequest)
@@ -165,7 +165,7 @@ func (h *GranPremioHandler) ActualizarGranPremio(w http.ResponseWriter, r *http.
 	}
 
 	// Verificar que el último ganador existe
-	_, err = h.queries.RecuperarPiloto(r.Context(), granPremio.IDUltimoGanador)
+	_, err = h.queries.RecuperarPilotoHistorico(r.Context(), granPremio.IDUltimoGanador)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El último ganador no existe", http.StatusBadRequest)

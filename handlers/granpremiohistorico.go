@@ -83,10 +83,10 @@ func (h *GranPremioHistoricoHandler) CrearGranPremioHistorico(w http.ResponseWri
 
 	// Verificar que todos los pilotos del resultado existen
 	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = h.queries.RecuperarPiloto(r.Context(), piloto)
+		_, err = h.queries.RecuperarPilotoHistorico(r.Context(), piloto)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)
+				http.Error(w, "El piloto no existe", http.StatusBadRequest)
 			} else {
 				http.Error(w, "Error al verificar resultado", http.StatusInternalServerError)
 			}
@@ -210,7 +210,7 @@ func (h *GranPremioHistoricoHandler) ActualizarGranPremioHistorico(w http.Respon
 
 	// Verificar que todos los pilotos del resultado existen
 	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = h.queries.RecuperarPiloto(r.Context(), piloto)
+		_, err = h.queries.RecuperarPilotoHistorico(r.Context(), piloto)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)

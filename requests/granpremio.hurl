@@ -7,7 +7,7 @@ Content-Type: application/json
   "id_piloto": 44,
   "nombre": "Max Verstappen",
   "pais": "Países Bajos",
-  "fecha_nacimiento": "1997-09-30",
+  "fecha_nacimiento": "1997-09-30T00:00:00Z",
   "titulos_ganados": 0
 }
 
@@ -44,7 +44,7 @@ GET http://localhost:8080/gran_premios
 HTTP/1.1 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_gran_premio == 'SILVERSTONE')].pais" includes "Reino Unido"
+jsonpath "$[?(@.id_gran_premio == 'SILVERSTONE')].pais" contains "Reino Unido"
 
 
 # Obtener gran premio

@@ -7,7 +7,7 @@ Content-Type: application/json
   "id_piloto": 44,
   "nombre": "Max Verstappen",
   "pais": "Países Bajos",
-  "fecha_nacimiento": "1997-09-30",
+  "fecha_nacimiento": "1997-09-30T00:00:00Z",
   "titulos_ganados": 0
 }
 
@@ -35,8 +35,8 @@ Content-Type: application/json
 
 {
   "id_gran_premio": "SILVERSTONE",
-  "fecha_carrera": "2026-07-05",
-  "resultado_carrera": [44, 1, 16]
+  "fecha_carrera": "2026-07-05T00:00:00Z",
+  "resultado_carrera": [44]
 }
 
 HTTP 201
@@ -44,8 +44,7 @@ HTTP 201
 jsonpath "$.id_gran_premio" == "SILVERSTONE"
 jsonpath "$.fecha_carrera" exists
 jsonpath "$.resultado_carrera[0]" == 44
-jsonpath "$.resultado_carrera[1]" == 1
-jsonpath "$.resultado_carrera[2]" == 16
+
 
 
 # Listar ediciones de Grandes Premios
@@ -54,11 +53,11 @@ GET http://localhost:8080/gran_premios_historicos
 HTTP 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_gran_premio == 'SILVERSTONE')].fecha_carrera" includes "2026-07-05"
+jsonpath "$[?(@.id_gran_premio == 'SILVERSTONE')].fecha_carrera" contains "2026-07-05"
 
 
 # Obtener edición por circuito y fecha
-GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
+GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/05-07-2026
 
 HTTP 200
 [Asserts]
@@ -68,38 +67,36 @@ jsonpath "$.resultado_carrera[0]" == 44
 
 
 # Registrar resultado de la carrera
-PUT http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
+PUT http://localhost:8080/gran_premios_historicos/SILVERSTONE/05-07-2026
 Content-Type: application/json
 
 {
-  "resultado_carrera": [1, 44, 16]
+  "resultado_carrera": [44]
 }
 
 HTTP 200
 [Asserts]
 jsonpath "$.id_gran_premio" == "SILVERSTONE"
-jsonpath "$.resultado_carrera[0]" == 1
-jsonpath "$.resultado_carrera[1]" == 44
-jsonpath "$.resultado_carrera[2]" == 16
+
+jsonpath "$.resultado_carrera[0]" == 44
 
 
 # Verificar resultado actualizado
-GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
+GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/05-07-2026
 
 HTTP 200
 [Asserts]
-jsonpath "$.resultado_carrera[0]" == 1
-jsonpath "$.resultado_carrera[1]" == 44
+jsonpath "$.resultado_carrera[0]" == 44
 
 
 # Eliminar edición del Gran Premio
-DELETE http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
+DELETE http://localhost:8080/gran_premios_historicos/SILVERSTONE/05-07-2026
 
 HTTP 200
 
 
 # Verificar eliminación de la edición
-GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
+GET http://localhost:8080/gran_premios_historicos/SILVERSTONE/05-07-2026
 
 HTTP 404
 

@@ -56,7 +56,7 @@ GET http://localhost:8080/pilotos
 HTTP/1.1 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_piloto == {{id_piloto}})].id_escuderia" includes "red_bull"
+jsonpath "$[?(@.id_piloto == {{id_piloto}})].id_escuderia" contains "red_bull"
 
 
 # Obtener piloto de la temporada

@@ -7,7 +7,7 @@ Content-Type: application/json
   "id_piloto": 44,
   "nombre": "Max Verstappen",
   "pais": "Países Bajos",
-  "fecha_nacimiento": "1997-09-30",
+  "fecha_nacimiento": "1997-09-30T00:00:00Z",
   "titulos_ganados": 0
 }
 
@@ -28,7 +28,7 @@ GET http://localhost:8080/pilotos_historicos
 HTTP/1.1 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_piloto == {{id_piloto}})].nombre" includes "Max Verstappen"
+jsonpath "$[?(@.id_piloto == {{id_piloto}})].nombre" contains "Max Verstappen"
 
 
 # Obtener piloto histórico
@@ -49,7 +49,7 @@ Content-Type: application/json
 {
   "nombre": "Max Verstappen",
   "pais": "Países Bajos",
-  "fecha_nacimiento": "1997-09-30",
+  "fecha_nacimiento": "1997-09-30T00:00:00Z",
   "titulos_ganados": 4
 }
 
