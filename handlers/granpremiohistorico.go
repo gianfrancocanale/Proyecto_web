@@ -9,7 +9,49 @@ import (
 	"time"
 )
 
-func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// GranPremioHistoricoHandler agrupa los handlers de gran premio histórico y guarda
+// la conexión a la base de datos y las queries de sqlc.
+type GranPremioHistoricoHandler struct {
+	DB      *sql.DB
+	queries *sqlc.Queries
+}
+
+// NewGranPremioHistoricoHandler es el constructor del handler.
+func NewGranPremioHistoricoHandler(db *sql.DB) *GranPremioHistoricoHandler {
+	return &GranPremioHistoricoHandler{
+		DB:      db,
+		queries: sqlc.New(db),
+	}
+}
+
+// HandlerGranPremioHistorico despacha según el método HTTP para la ruta /grandes-premios-historicos.
+func (h *GranPremioHistoricoHandler) HandlerGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.CrearGranPremioHistorico(w, r)
+	case http.MethodGet:
+		h.ListarGrandesPremiosHistoricos(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+// HandlerGranPremioHistoricoId despacha según el método HTTP para la ruta
+// /grandes-premios-historicos/{id}/{fecha_carrera}.
+func (h *GranPremioHistoricoHandler) HandlerGranPremioHistoricoId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerGranPremioHistorico(w, r)
+	case http.MethodPut:
+		h.ActualizarGranPremioHistorico(w, r)
+	case http.MethodDelete:
+		h.EliminarGranPremioHistorico(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func (h *GranPremioHistoricoHandler) CrearGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -28,9 +70,8 @@ func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	_, err = queries.RecuperarGranPremio(r.Context(), granPremioHistorico.IDGranPremio)
+	// Verificar que el gran premio existe
+	_, err = h.queries.RecuperarGranPremio(r.Context(), granPremioHistorico.IDGranPremio)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El gran premio no existe", http.StatusBadRequest)
@@ -40,8 +81,9 @@ func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Verificar que todos los pilotos del resultado existen
 	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = queries.RecuperarPiloto(r.Context(), piloto)
+		_, err = h.queries.RecuperarPiloto(r.Context(), piloto)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)
@@ -52,39 +94,38 @@ func CrearGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	devolver, err := queries.CrearGranPremioHistorico(r.Context(), granPremioHistorico)
+	devolver, err := h.queries.CrearGranPremioHistorico(r.Context(), granPremioHistorico)
 	if err != nil {
 		http.Error(w, "Error al crear el Gran Premio Histórico", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func ListarGrandesPremiosHistoricos(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *GranPremioHistoricoHandler) ListarGrandesPremiosHistoricos(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	granPremioHistorico, err := queries.ListarGrandesPremiosHistoricos(r.Context())
+	grandesPremiosHistoricos, err := h.queries.ListarGrandesPremiosHistoricos(r.Context())
 	if err != nil {
 		http.Error(w, "Error al obtener los Gran Premios Históricos", http.StatusInternalServerError)
 		return
 	}
-	if len(granPremioHistorico) == 0 {
-		http.Error(w, "No se encontraron Gran Premios Histórico", http.StatusNotFound)
+	if len(grandesPremiosHistoricos) == 0 {
+		http.Error(w, "No se encontraron Gran Premios Históricos", http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(granPremioHistorico)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(grandesPremiosHistoricos)
 }
 
-func ObtenerGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *GranPremioHistoricoHandler) ObtenerGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -104,12 +145,10 @@ func ObtenerGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	granPremioHistorico, err := queries.RecuperarGranPremioHistorico(r.Context(), sqlc.RecuperarGranPremioHistoricoParams{
+	granPremioHistorico, err := h.queries.RecuperarGranPremioHistorico(r.Context(), sqlc.RecuperarGranPremioHistoricoParams{
 		IDGranPremio: idGranPremioHistorico,
-		FechaCarrera: fechaCarrera})
-
+		FechaCarrera: fechaCarrera,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Gran Premio Histórico no encontrado", http.StatusNotFound)
@@ -119,11 +158,11 @@ func ObtenerGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(granPremioHistorico)
 }
 
-func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *GranPremioHistoricoHandler) ActualizarGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -137,11 +176,7 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 	}
 
 	if idGranPremioHistorico == "" || fechaCarrera.IsZero() {
-		http.Error(
-			w,
-			"El ID del Gran Premio y la fecha de carrera son obligatorios",
-			http.StatusBadRequest,
-		)
+		http.Error(w, "El ID del Gran Premio y la fecha de carrera son obligatorios", http.StatusBadRequest)
 		return
 	}
 
@@ -158,12 +193,12 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// La identidad del gran premio histórico sale siempre de la URL, no del body
 	granPremioHistorico.IDGranPremio = idGranPremioHistorico
 	granPremioHistorico.FechaCarrera = fechaCarrera
 
-	queries := sqlc.New(db)
-
-	_, err = queries.RecuperarGranPremio(r.Context(), idGranPremioHistorico)
+	// Verificar que el gran premio existe
+	_, err = h.queries.RecuperarGranPremio(r.Context(), idGranPremioHistorico)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "El gran premio no existe", http.StatusBadRequest)
@@ -173,8 +208,9 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Verificar que todos los pilotos del resultado existen
 	for _, piloto := range granPremioHistorico.ResultadoCarrera {
-		_, err = queries.RecuperarPiloto(r.Context(), piloto)
+		_, err = h.queries.RecuperarPiloto(r.Context(), piloto)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				http.Error(w, "Uno de los pilotos no existe en la grilla", http.StatusBadRequest)
@@ -185,36 +221,42 @@ func ActualizarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	_, err = queries.RegistrarResultadoCarrera(r.Context(), granPremioHistorico)
+	devolver, err := h.queries.RegistrarResultadoCarrera(r.Context(), granPremioHistorico)
 	if err != nil {
-		http.Error(w, "Error al actualizar el Gran Premio Histórico", http.StatusInternalServerError)
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Gran Premio Histórico no encontrado", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al actualizar el Gran Premio Histórico", http.StatusInternalServerError)
+		}
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(granPremioHistorico)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(devolver)
 }
 
-func EliminarGranPremioHistorico(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *GranPremioHistoricoHandler) EliminarGranPremioHistorico(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
 	idGranPremioHistorico := r.PathValue("id")
-	fechaCarreraStr := r.PathValue("fecha_carrera")
+	if idGranPremioHistorico == "" {
+		http.Error(w, "El ID del Gran Premio es obligatorio", http.StatusBadRequest)
+		return
+	}
 
-	fechaCarrera, err := time.Parse("02-01-2006", fechaCarreraStr)
+	fechaCarrera, err := time.Parse("02-01-2006", r.PathValue("fecha_carrera"))
 	if err != nil {
 		http.Error(w, "Fecha de carrera inválida", http.StatusBadRequest)
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	err = queries.EliminarGranPremioHistorico(r.Context(), sqlc.EliminarGranPremioHistoricoParams{
+	err = h.queries.EliminarGranPremioHistorico(r.Context(), sqlc.EliminarGranPremioHistoricoParams{
 		IDGranPremio: idGranPremioHistorico,
-		FechaCarrera: fechaCarrera})
+		FechaCarrera: fechaCarrera,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Gran Premio Histórico no encontrado", http.StatusNotFound)
