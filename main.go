@@ -12,41 +12,47 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB //HAY RACE CONDITION?? POR QUE ES VARIABLE COMPARTIDA
-
 func main() {
-	db = conectarBase()
+	db := conectarBase()
 	fmt.Printf("La base de datos se inicio")
 	defer db.Close()
 
+	hUsuario := h.NewUsuarioHandler(db)
+	hPilotoHistorico := h.NewPilotoHistoricoHandler(db)
+	hPiloto := h.NewPilotoHandler(db)
+	hEscuderia := h.NewEscuderiaHandler(db)
+	hGranPremio := h.NewGranPremioHandler(db)
+	hApuesta := h.NewApuestaHandler(db)
+	hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
+
 	// MANEJO DE RUTAS DE ENTIDAD USUARIO:
-	http.HandleFunc("/usuarios", handlerUsuario)
-	http.HandleFunc("/usuarios/{id}", handlerUsuarioId)
+	http.HandleFunc("/usuarios", hUsuario.HandlerUsuario)
+	http.HandleFunc("/usuarios/{nombre}", hUsuario.HandlerUsuarioId)
 
 	//MANEJO DE RUTAS DE ENTIDAD PILOTO HISTORICO:
-	http.HandleFunc("/pilotos_historicos", handlerPilotoHistorico)
-	http.HandleFunc("/pilotos_historicos/{id}", handlerPilotoHistoricoId)
+	http.HandleFunc("/pilotos_historicos", hPilotoHistorico.HandlerPilotoHistorico)
+	http.HandleFunc("/pilotos_historicos/{id}", hPilotoHistorico.HandlerPilotoHistoricoId)
 
 	//MANEJO DE RUTAS DE ENTIDAD ESCUDERIA:
-	http.HandleFunc("/escuderias", handlerEscuderia)
-	http.HandleFunc("/escuderias/{id}", handlerEscuderiaId)
+	http.HandleFunc("/escuderias", hEscuderia.HandlerEscuderia)
+	http.HandleFunc("/escuderias/{id}", hEscuderia.HandlerEscuderiaId)
 
 	//MANEJO DE RUTAS DE ENTIDAD PILOTO:
-	http.HandleFunc("/pilotos", handlerPiloto)
-	http.HandleFunc("/pilotos/{id}", handlerPilotoId)
+	http.HandleFunc("/pilotos", hPiloto.HandlerPiloto)
+	http.HandleFunc("/pilotos/{id}", hPiloto.HandlerPilotoId)
 
 	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO:
-	http.HandleFunc("/gran_premios", handlerGranPremio)
-	http.HandleFunc("/gran_premios/{id}", handlerGranPremioId)
+	http.HandleFunc("/gran_premios", hGranPremio.HandlerGranPremio)
+	http.HandleFunc("/gran_premios/{id}", hGranPremio.HandlerGranPremioId)
 
 	//MANEJO DE RUTAS DE ENTIDAD APUESTA:
-	http.HandleFunc("/apuestas", handlerApuesta)
-	http.HandleFunc("/apuestas/{id}/{usuario}", handlerApuestaIdUsuario)
-	http.HandleFunc("/apuestas/{usuario}", handlerApuestaUsuario)
+	http.HandleFunc("/apuestas", hApuesta.HandlerApuesta)
+	http.HandleFunc("/apuestas/{id}/{usuario}", hApuesta.HandlerApuestaIdUsuario)
+	http.HandleFunc("/apuestas/{usuario}", hApuesta.HandlerApuestaUsuario)
 
 	//MANEJO DE RUTAS DE ENTIDAD GRAN PREMIO HISTORICO:
-	http.HandleFunc("/gran_premios_historicos", handlerGranPremioHistorico)
-	http.HandleFunc("/gran_premios_historicos/{id}/{fecha_carrera}", handlerGranPremioHistoricoId)
+	http.HandleFunc("/gran_premios_historicos", hGranPremioHistorico.HandlerGranPremioHistorico)
+	http.HandleFunc("/gran_premios_historicos/{id}/{fecha_carrera}", hGranPremioHistorico.HandlerGranPremioHistoricoId)
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")
@@ -57,30 +63,6 @@ func handlerApuestaUsuario(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.ObtenerApuestaUsuario(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func handlerApuesta(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CrearApuesta(db, w, r)
-	case http.MethodGet:
-		h.ListarApuestas(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func handlerApuestaIdUsuario(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerApuestaPorIdUsuario(db, w, r)
-	case http.MethodPut:
-		h.ActualizarApuestaIdUsuario(db, w, r)
-	case http.MethodDelete:
-		h.EliminarApuesta(db, w, r)
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
@@ -158,32 +140,6 @@ func handlerPilotoId(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlerUsuario(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CrearUsuario(db, w, r)
-	case http.MethodGet:
-		h.ListarUsuarios(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		fmt.Println("entro al default")
-	}
-}
-
-func handlerUsuarioId(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerUsuario(db, w, r)
-	case http.MethodPut:
-		h.ActualizarUsuario(db, w, r)
-	case http.MethodDelete:
-		h.EliminarUsuario(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-
-}
-
 func handlerPilotoHistorico(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -203,30 +159,6 @@ func handlerPilotoHistoricoId(w http.ResponseWriter, r *http.Request) {
 		h.ActualizarPilotoHistorico(db, w, r)
 	case http.MethodDelete:
 		h.EliminarPilotoHistorico(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func handlerEscuderia(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CrearEscuderia(db, w, r)
-	case http.MethodGet:
-		h.ListarEscuderias(db, w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func handlerEscuderiaId(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerEscuderia(db, w, r)
-	case http.MethodPut:
-		h.ActualizarEscuderia(db, w, r)
-	case http.MethodDelete:
-		h.EliminarEscuderia(db, w, r)
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}

@@ -5,10 +5,26 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
-func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// UsuarioHandler agrupa los handlers de usuario y guarda
+// la conexión a la base de datos y las queries de sqlc.
+type UsuarioHandler struct {
+	DB      *sql.DB
+	queries *sqlc.Queries
+}
+
+// NewUsuarioHandler es el constructor del handler.
+func NewUsuarioHandler(db *sql.DB) *UsuarioHandler {
+	return &UsuarioHandler{
+		DB:      db,
+		queries: sqlc.New(db),
+	}
+}
+
+func (h *UsuarioHandler) EliminarUsuario(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -20,9 +36,7 @@ func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	err := queries.EliminarUsuario(r.Context(), nombreUsuario)
+	err := h.queries.EliminarUsuario(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Usuario no encontrado", http.StatusNotFound)
@@ -35,7 +49,7 @@ func EliminarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) ActualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -67,9 +81,7 @@ func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	usuario.NombreUsuario = nombreUsuario
 
-	queries := sqlc.New(db)
-
-	devolver, err := queries.ModificarUsuario(r.Context(), usuario)
+	devolver, err := h.queries.ModificarUsuario(r.Context(), usuario)
 	if err != nil {
 		http.Error(w, "Error al actualizar el usuario", http.StatusInternalServerError)
 		return
@@ -79,7 +91,7 @@ func ActualizarUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func ObtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) ObtenerUsuario(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -91,9 +103,7 @@ func ObtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	usuario, err := queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
+	usuario, err := h.queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Usuario no encontrado", http.StatusNotFound)
@@ -107,15 +117,13 @@ func ObtenerUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(usuario)
 }
 
-func ListarUsuarios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) ListarUsuarios(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	usuarios, err := queries.RecuperarUsuarios(r.Context())
+	usuarios, err := h.queries.RecuperarUsuarios(r.Context())
 	if err != nil {
 		http.Error(w, "Error al obtener los usuarios", http.StatusInternalServerError)
 		return
@@ -129,7 +137,7 @@ func ListarUsuarios(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(usuarios)
 }
 
-func CrearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -150,10 +158,7 @@ func CrearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	usuario.PuntosGanados = 0 //setea 0 puntos ganados al crear un nuevo usuario
 
-	queries := sqlc.New(db)
-
-	devolver, err := queries.CrearUsuario(r.Context(), usuario)
-
+	devolver, err := h.queries.CrearUsuario(r.Context(), usuario)
 	if err != nil {
 		http.Error(w, "Error al crear el usuario", http.StatusInternalServerError)
 		return
@@ -161,4 +166,31 @@ func CrearUsuario(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(devolver)
+}
+
+// HandlerUsuario despacha según el método HTTP para la ruta /usuarios.
+func (h *UsuarioHandler) HandlerUsuario(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.CrearUsuario(w, r)
+	case http.MethodGet:
+		h.ListarUsuarios(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		fmt.Println("entro al default")
+	}
+}
+
+// HandlerUsuarioId despacha según el método HTTP para la ruta /usuarios/{...}.
+func (h *UsuarioHandler) HandlerUsuarioId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerUsuario(w, r)
+	case http.MethodPut:
+		h.ActualizarUsuario(w, r)
+	case http.MethodDelete:
+		h.EliminarUsuario(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
 }
