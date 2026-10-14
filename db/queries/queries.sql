@@ -34,9 +34,8 @@ FROM usuario;
 -- Modificar datos de usuario
 UPDATE usuario
 SET
-    nombre_usuario = COALESCE($2, nombre_usuario),
-    contrasena_hash = COALESCE($3, contrasena_hash),
-    puntos_ganados = COALESCE($4, puntos_ganados)
+    contrasena_hash = COALESCE($2, contrasena_hash),
+    puntos_ganados = COALESCE($3, puntos_ganados)
 WHERE nombre_usuario = $1
 RETURNING nombre_usuario, puntos_ganados;
 
@@ -185,15 +184,15 @@ INSERT INTO piloto (
 )
 RETURNING *;
 
+
 -- name: ModificarPiloto :one
--- Actualizar datos de un piloto actual
 UPDATE piloto
 SET
-    id_piloto = COALESCE($2, id_piloto),
-    id_escuderia = COALESCE($3, id_escuderia),
-    puntos_temporada = COALESCE($4, puntos_temporada)
+    id_escuderia = $2,
+    puntos_temporada = $3
 WHERE id_piloto = $1
-RETURNING *;
+RETURNING id_piloto, id_escuderia, puntos_temporada;
+
 
 
 -- name: RecuperarPiloto :one

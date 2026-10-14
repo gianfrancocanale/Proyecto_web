@@ -90,7 +90,7 @@ jsonpath "$.longitud_km" == 6
 # Eliminar gran premio
 DELETE http://localhost:8080/gran_premios/{{id_gran_premio}}
 
-HTTP/1.1 204
+HTTP/1.1 200
 
 
 # Verificar eliminación
@@ -102,4 +102,4 @@ HTTP/1.1 404
 # Limpiar piloto histórico
 DELETE http://localhost:8080/pilotos_historicos/44
 
-HTTP/1.1 204
+HTTP/1.1 200

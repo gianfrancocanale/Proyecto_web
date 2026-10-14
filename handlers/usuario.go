@@ -30,7 +30,7 @@ func (h *UsuarioHandler) EliminarUsuario(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	nombreUsuario := r.PathValue("id")
+	nombreUsuario := r.PathValue("nombre")
 	if nombreUsuario == "" {
 		http.Error(w, "Nombre de usuario invalido", http.StatusBadRequest)
 		return
@@ -46,7 +46,7 @@ func (h *UsuarioHandler) EliminarUsuario(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *UsuarioHandler) ActualizarUsuario(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (h *UsuarioHandler) ActualizarUsuario(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	nombreUsuario := r.PathValue("id")
+	nombreUsuario := r.PathValue("nombre")
 	if nombreUsuario == "" {
 		http.Error(w, "Nombre de usuario invalido", http.StatusBadRequest)
 		return
@@ -69,7 +69,7 @@ func (h *UsuarioHandler) ActualizarUsuario(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if usuario.NombreUsuario == "" || usuario.ContrasenaHash == "" {
+	if usuario.ContrasenaHash == "" {
 		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
 		return
 	}

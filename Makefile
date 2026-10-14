@@ -47,9 +47,9 @@ hurl:
 	hurl --test requests/apuestas.hurl
 	hurl --test requests/escuderias.hurl
 	hurl --test requests/pilotos.hurl
-	hurl --test requests/pilotos_historicos.hurl
-	hurl --test requests/gran_premios.hurl
-	hurl --test requests/gran_premios_historicos.hurl
+	hurl --test requests/pilotohistoricos.hurl
+	hurl --test requests/granpremio.hurl
+	hurl --test requests/granpremiohistorico.hurl
 
 hurlUsuarios:
 	@echo "Ejecutando pruebas Hurl para usuarios"
@@ -69,12 +69,12 @@ hurlPilotos:
 
 hurlPilotosHistoricos:
 	@echo "Ejecutando pruebas Hurl para pilotos históricos"
-	hurl --test requests/pilotos_historicos.hurl
+	hurl --test requests/pilotohistoricos.hurl
 
 hurlGrandesPremios:
 	@echo "Ejecutando pruebas Hurl para grandes premios"
-	hurl --test requests/gran_premios.hurl
+	hurl --test requests/granpremio.hurl
 
 hurlGrandesPremiosHistoricos:
 	@echo "Ejecutando pruebas Hurl para grandes premios históricos"
-	hurl --test requests/gran_premios_historicos.hurl
+	hurl --test requests/granpremioshistorico.hurl

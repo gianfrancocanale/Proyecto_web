@@ -72,7 +72,7 @@ jsonpath "$.titulos_ganados" == 4
 # Eliminar piloto histórico
 DELETE http://localhost:8080/pilotos_historicos/{{id_piloto}}
 
-HTTP/1.1 204
+HTTP/1.1 200
 
 
 # Verificar eliminación

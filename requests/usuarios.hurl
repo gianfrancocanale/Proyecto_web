@@ -28,7 +28,7 @@ GET http://localhost:8080/usuarios
 HTTP/1.1 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.nombre_usuario == 'gian')].nombre_usuario" includes "gian"
+jsonpath "$[0].nombre_usuario" == "gian"
 
 
 # Obtener usuario
@@ -68,7 +68,7 @@ jsonpath "$.puntos_ganados" == 13
 # Eliminar usuario
 DELETE http://localhost:8080/usuarios/{{nombre_usuario}}
 
-HTTP/1.1 204
+HTTP/1.1 200
 
 
 # Verificar eliminación

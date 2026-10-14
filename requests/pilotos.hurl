@@ -7,9 +7,10 @@ Content-Type: application/json
   "id_piloto": 44,
   "nombre": "Max Verstappen",
   "pais": "Países Bajos",
-  "fecha_nacimiento": "1997-09-30",
+  "fecha_nacimiento": "1997-09-30T00:00:00Z",
   "titulos_ganados": 0
 }
+
 
 HTTP/1.1 201
 
@@ -22,7 +23,7 @@ Content-Type: application/json
   "id_escuderia": "red_bull",
   "puntos_temporada": 0,
   "titulos_constructores": 0,
-  "fecha_fundacion": "2005-11-15",
+  "fecha_fundacion": "2005-11-15T00:00:00Z",
   "team_principal": "Christian Horner"
 }
 
@@ -95,7 +96,7 @@ jsonpath "$.puntos_temporada" == 250
 # Eliminar piloto de la temporada
 DELETE http://localhost:8080/pilotos/{{id_piloto}}
 
-HTTP/1.1 204
+HTTP/1.1 200
 
 
 # Verificar eliminación del piloto de temporada
@@ -107,10 +108,10 @@ HTTP/1.1 404
 # Limpiar escudería de prueba
 DELETE http://localhost:8080/escuderias/red_bull
 
-HTTP/1.1 204
+HTTP/1.1 200
 
 
 # Limpiar piloto histórico de prueba
 DELETE http://localhost:8080/pilotos_historicos/{{id_piloto}}
 
-HTTP/1.1 204
+HTTP/1.1 200

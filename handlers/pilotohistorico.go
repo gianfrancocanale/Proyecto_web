@@ -192,5 +192,5 @@ func (h *PilotoHistoricoHandler) EliminarPilotoHistorico(w http.ResponseWriter, 
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }

@@ -95,7 +95,7 @@ jsonpath "$.resultado_carrera[1]" == 44
 # Eliminar edición del Gran Premio
 DELETE http://localhost:8080/gran_premios_historicos/SILVERSTONE/2026-07-05
 
-HTTP 204
+HTTP 200
 
 
 # Verificar eliminación de la edición
@@ -107,10 +107,10 @@ HTTP 404
 # Limpiar circuito de prueba
 DELETE http://localhost:8080/gran_premios/SILVERSTONE
 
-HTTP 204
+HTTP 200
 
 
 # Limpiar piloto histórico de prueba
 DELETE http://localhost:8080/pilotos_historicos/44
 
-HTTP 204
+HTTP 200
