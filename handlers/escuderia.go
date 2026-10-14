@@ -8,7 +8,48 @@ import (
 	"net/http"
 )
 
-func CrearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// EscuderiaHandler agrupa los handlers de escudería y guarda
+// la conexión a la base de datos y las queries de sqlc.
+type EscuderiaHandler struct {
+	DB      *sql.DB
+	queries *sqlc.Queries
+}
+
+// NewEscuderiaHandler es el constructor del handler.
+func NewEscuderiaHandler(db *sql.DB) *EscuderiaHandler {
+	return &EscuderiaHandler{
+		DB:      db,
+		queries: sqlc.New(db),
+	}
+}
+
+// HandlerEscuderia despacha según el método HTTP para la ruta /escuderias.
+func (h *EscuderiaHandler) HandlerEscuderia(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.CrearEscuderia(w, r)
+	case http.MethodGet:
+		h.ListarEscuderias(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+// HandlerEscuderiaId despacha según el método HTTP para la ruta /escuderias/{id}.
+func (h *EscuderiaHandler) HandlerEscuderiaId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ObtenerEscuderia(w, r)
+	case http.MethodPut:
+		h.ActualizarEscuderia(w, r)
+	case http.MethodDelete:
+		h.EliminarEscuderia(w, r)
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func (h *EscuderiaHandler) CrearEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -31,9 +72,7 @@ func CrearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	escuderia.PuntosTemporada = 0      //setea 0 puntos al crear una nueva escuderia
 	escuderia.TitulosConstructores = 0 //setea 0 titulos al crear una nueva escuderia
 
-	queries := sqlc.New(db)
-
-	devolver, err := queries.CrearEscuderia(r.Context(), escuderia)
+	devolver, err := h.queries.CrearEscuderia(r.Context(), escuderia)
 	if err != nil {
 		http.Error(w, "Error al crear la escudería", http.StatusInternalServerError)
 		return
@@ -43,15 +82,13 @@ func CrearEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func ListarEscuderias(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *EscuderiaHandler) ListarEscuderias(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
-	queries := sqlc.New(db)
-
-	escuderias, err := queries.ListarEscuderias(r.Context())
+	escuderias, err := h.queries.ListarEscuderias(r.Context())
 	if err != nil {
 		http.Error(w, "Error al obtener las escuderías", http.StatusInternalServerError)
 		return
@@ -65,7 +102,7 @@ func ListarEscuderias(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(escuderias)
 }
 
-func ObtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *EscuderiaHandler) ObtenerEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -73,9 +110,7 @@ func ObtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	idEscuderia := r.PathValue("id")
 
-	queries := sqlc.New(db)
-
-	escuderia, err := queries.RecuperarEscuderia(r.Context(), idEscuderia)
+	escuderia, err := h.queries.RecuperarEscuderia(r.Context(), idEscuderia)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
@@ -89,7 +124,7 @@ func ObtenerEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(escuderia)
 }
 
-func ActualizarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *EscuderiaHandler) ActualizarEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -112,23 +147,21 @@ func ActualizarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	escuderia.IDEscuderia = idEscuderia
 
-	queries := sqlc.New(db)
-
-	devolver, err := queries.ModificarEscuderia(r.Context(), escuderia)
+	devolver, err := h.queries.ModificarEscuderia(r.Context(), escuderia)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
 		} else {
 			http.Error(w, "Error al actualizar la escudería", http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func EliminarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func (h *EscuderiaHandler) EliminarEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -136,9 +169,7 @@ func EliminarEscuderia(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	idEscuderia := r.PathValue("id")
 
-	queries := sqlc.New(db)
-
-	err := queries.EliminarEscuderia(r.Context(), idEscuderia)
+	err := h.queries.EliminarEscuderia(r.Context(), idEscuderia)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
