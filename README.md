@@ -53,7 +53,7 @@ make test-api
 
 Este único comando realiza todo el proceso:
 
-1. Genera el archivo `.env` a partir de `.env.example` (si todavía no existe) con las variables de acceso a la base de datos.
+1. Genera el archivo `.env` a partir de `.env.example` con las variables de acceso a la base de datos.
 2. Ejecuta `sqlc generate` y compila el proyecto.
 3. Elimina contenedores y volúmenes previos, levanta PostgreSQL y espera a que esté listo.
 4. Construye y levanta la API en Docker y espera a que responda.
