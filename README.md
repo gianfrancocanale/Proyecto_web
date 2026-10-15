@@ -1,4 +1,4 @@
-# PredictOne: API de Fórmula 1 y Predicción de Resultados
+# PredictOne
 
 ## Descripción del Proyecto
 
