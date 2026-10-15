@@ -1,6 +1,6 @@
 # PredictOne: API de Fórmula 1 y Predicción de Resultados
 
-## 📝 Descripción del Proyecto
+## Descripción del Proyecto
 
 **PredictOne** es un proyecto enfocado en el desarrollo de una aplicación web para gestionar información sobre la Fórmula 1 y realizar predicciones acerca de los resultados de las carreras.
 
