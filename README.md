@@ -24,10 +24,15 @@ La aplicación permite administrar:
 | **Hurl** | Ejecución de pruebas automatizadas de los endpoints HTTP. |
 | **Docker** | Containerización y administración de servicios. |
 | **Docker Compose** | Configuración del entorno de base de datos y servicios. |
+| **Make** | Automatización de las tareas de compilación, ejecución y pruebas. |
 
 ---
 
 ## Cómo Ejecutar el Proyecto
+
+### Requisitos previos
+
+Tener instalados: `git`, `make`, `go`, `sqlc`, `docker` (con Docker Compose), `curl` y `hurl`.
 
 ### 1. Clonar el repositorio
 ```bash
@@ -42,15 +47,18 @@ git checkout tp3
 
 ### 3. Ejecutar la aplicación y las pruebas
 
-En la terminal principal, inicia el servidor y los servicios requeridos:
 ```bash
-make run
+make test-api
 ```
 
-En otra terminal, ejecuta la parte de pruebas:
-```bash
-make hurl
-```
+Este único comando realiza todo el proceso:
+
+1. Genera el archivo `.env` a partir de `.env.example` (si todavía no existe) con las variables de acceso a la base de datos.
+2. Ejecuta `sqlc generate` y compila el proyecto.
+3. Elimina contenedores y volúmenes previos, levanta PostgreSQL y espera a que esté listo.
+4. Construye y levanta la API en Docker y espera a que responda.
+5. Ejecuta las pruebas Hurl de todos los endpoints.
+6. Elimina los contenedores y volúmenes al terminar, aunque alguna prueba haya fallado.
 
 ---
 

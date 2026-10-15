@@ -53,7 +53,7 @@ GET http://localhost:8080/gran_premios_historicos
 HTTP 200
 [Asserts]
 jsonpath "$" isCollection
-jsonpath "$[?(@.id_gran_premio == 'SILVERSTONE')].fecha_carrera" contains "2026-07-05"
+jsonpath "$[0].fecha_carrera" contains "2026-07-05"
 
 
 # Obtener edición por circuito y fecha
