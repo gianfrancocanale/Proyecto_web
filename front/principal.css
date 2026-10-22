@@ -102,7 +102,7 @@ a {
             rgba(4, 13, 24, 0.90) 42%,
             rgba(4, 13, 24, 0.20) 100%
         ),
-        url("/imagenes/portada.jpg")
+        url("imagenes/portada.jpg")
         center 55% / cover no-repeat;
 }
 
@@ -212,7 +212,7 @@ a {
             rgba(6, 17, 31, 0.2),
             transparent
         ),
-        url("https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=900&q=80");
+        url("imagenes/escuderia.jpg");
 }
 
 .pilotos-image {
@@ -222,7 +222,7 @@ a {
             rgba(6, 17, 31, 0.2),
             transparent
         ),
-        url("https://images.unsplash.com/photo-1532906619279-a4b7267faa66?auto=format&fit=crop&w=900&q=80");
+        url("imagenes/piloto.jpg") center 50% ;
 }
 
 .premios-image {
@@ -232,7 +232,7 @@ a {
             rgba(6, 17, 31, 0.2),
             transparent
         ),
-        url("https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=900&q=80");
+        url("imagenes/gran-premio.jpg");
 }
 
 /* Contenido de las tarjetas */
