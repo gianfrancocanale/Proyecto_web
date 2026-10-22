@@ -31,7 +31,7 @@ a {
 
 /* Navegación */
 .navbar {
-    min-height: 76px;
+    min-height: 67px;
     padding: 16px 5%;
     display: flex;
     justify-content: space-between;
