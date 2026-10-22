@@ -222,7 +222,8 @@ a {
             rgba(6, 17, 31, 0.2),
             transparent
         ),
-        url("imagenes/piloto.jpg") center 50% ;
+        url("imagenes/piloto.jpg");
+        background-position: center 0%;
 }
 
 .premios-image {
