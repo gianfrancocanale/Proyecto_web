@@ -1,8 +1,3 @@
-
-/* ==========================
-   CONFIGURACIÓN GENERAL
-========================== */
-
 :root {
     --fondo: #06111f;
     --fondo-secundario: #0b192b;
@@ -34,10 +29,7 @@ a {
     text-decoration: none;
 }
 
-/* ==========================
-   BARRA DE NAVEGACIÓN
-========================== */
-
+/* Navegación */
 .navbar {
     min-height: 76px;
     padding: 16px 5%;
@@ -92,9 +84,8 @@ a {
     transform: translateY(-2px);
 }
 
-/* ==========================
-   PORTADA PRINCIPAL
-========================== */
+
+/* PORTADA PRINCIPAL */
 
 .hero {
     min-height: 420px;
@@ -111,7 +102,7 @@ a {
             rgba(4, 13, 24, 0.90) 42%,
             rgba(4, 13, 24, 0.20) 100%
         ),
-        url("https://images.unsplash.com/photo-1504707748692-419802cf939d?auto=format&fit=crop&w=1800&q=85")
+        url("/imagenes/portada.jpg")
         center 55% / cover no-repeat;
 }
 
@@ -148,9 +139,7 @@ a {
     line-height: 1.8;
 }
 
-/* ==========================
-   SECCIÓN DE EXPLORACIÓN
-========================== */
+/* Exploración */
 
 .explore {
     padding: 65px 5% 80px;
@@ -179,9 +168,7 @@ a {
     font-size: 1.05rem;
 }
 
-/* ==========================
-   TARJETAS
-========================== */
+/* TARJETAS*/
 
 .cards {
     display: grid;
