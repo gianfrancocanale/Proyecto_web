@@ -364,3 +364,271 @@ a {
         gap: 12px;
     }
 }
+
+/* ==========================================
+   ESTILOS ADICIONALES PARA PÁGINAS SECUNDARIAS
+========================================== */
+
+/* --- FORMULARIOS (LOGIN Y REGISTRO) --- */
+.auth-container {
+    min-height: calc(100vh - 176px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.auth-box {
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.auth-box h2 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.auth-box h2 span {
+    color: var(--rojo);
+}
+
+.auth-subtitle {
+    color: var(--gris);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--blanco);
+    font-weight: bold;
+}
+
+.form-group input {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--rojo);
+}
+
+.btn-submit {
+    background-color: var(--rojo);
+    color: var(--blanco);
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    margin-top: 10px;
+}
+
+.btn-submit:hover {
+    background-color: #c90025;
+    transform: translateY(-2px);
+}
+
+.auth-footer-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--gris);
+}
+
+.auth-footer-text a {
+    color: var(--rojo);
+    font-weight: bold;
+}
+
+.auth-footer-text a:hover {
+    text-decoration: underline;
+}
+
+/* --- SECCIONES DE CONTENIDO (ESCUDERÍAS, PILOTOS, GPS) --- */
+.page-container {
+    padding: 50px 5% 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: calc(100vh - 176px);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 45px;
+}
+
+.page-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 10px;
+}
+
+.page-header h1 span {
+    color: var(--rojo);
+}
+
+.page-header p {
+    color: var(--gris);
+    font-size: 1.1rem;
+}
+
+.grid-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.data-card {
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.data-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--rojo);
+}
+
+.data-card-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--borde);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.data-card-header h3 {
+    margin-top: 5px;
+    font-size: 1.3rem;
+}
+
+.badge {
+    background-color: var(--rojo);
+    color: var(--blanco);
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.data-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.data-card-body p {
+    color: var(--gris);
+    font-size: 0.95rem;
+}
+
+.data-card-body p strong {
+    color: var(--blanco);
+}
+
+.points {
+    margin-top: 8px;
+    font-weight: bold;
+    color: var(--rojo) !important;
+}
+
+/* Específicos para Pilotos */
+.driver-card {
+    padding-top: 10px;
+}
+
+.driver-number {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--rojo);
+    opacity: 0.8;
+    padding: 0 20px;
+    line-height: 1;
+}
+
+.driver-team {
+    color: var(--rojo) !important;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.data-card-body hr {
+    border: none;
+    border-top: 1px solid var(--borde);
+    margin: 5px 0;
+}
+
+/* --- REGULARES PARA FOTOS DE PILOTOS --- */
+.driver-card {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+}
+
+.driver-img-box {
+    width: 100%;
+    height: 220px;
+    background-color: var(--fondo);
+    overflow: hidden;
+    border-bottom: 2px solid var(--rojo);
+}
+
+.driver-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.3s ease;
+}
+
+.driver-card:hover .driver-img-box img {
+    transform: scale(1.05);
+}
+
+.driver-number {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--rojo);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+/* Específicos para Grandes Premios */
+.gp-date {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--blanco) !important;
+}
