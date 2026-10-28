@@ -56,6 +56,7 @@ run:
 	$(MAKE) generate
 	$(MAKE) start
 	$(MAKE) wait
+	@templ generate
 	@echo "Ejecutando API en Docker"
 	docker compose up --build api
 	$(MAKE) clean

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	sqlc "Proyecto_web/db/sqlc"
+	vista "Proyecto_web/views"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -33,6 +34,15 @@ func (h *EscuderiaHandler) HandlerEscuderia(w http.ResponseWriter, r *http.Reque
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
+}
+
+func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
+	escuderias, err := h.queries.ListarEscuderias(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	vista.EscuderiasPage(escuderias).Render(r.Context(), w)
 }
 
 // HandlerEscuderiaId despacha según el método HTTP para la ruta /escuderias/{id}.

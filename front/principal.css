@@ -632,3 +632,145 @@ a {
     font-weight: bold;
     color: var(--blanco) !important;
 }
+
+/* ==========================================
+   APUESTAS
+========================================== */
+
+.bets-layout {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+.bet-form-box {
+    max-width: none;
+}
+
+/* Select con el mismo estilo que los inputs */
+.form-group select {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group select:focus {
+    border-color: var(--rojo);
+}
+
+/* Formulario: 10 posiciones */
+.positions-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.position-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.position-row select {
+    flex: 1;
+    min-width: 0;
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.position-row select:focus {
+    border-color: var(--rojo);
+}
+
+.position-number {
+    min-width: 42px;
+    padding: 4px 0;
+    text-align: center;
+    background-color: var(--rojo);
+    color: var(--blanco);
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* Listado de apuestas */
+.bets-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.bets-list-header h2 {
+    font-size: 1.8rem;
+}
+
+.bets-list-header h2 span {
+    color: var(--rojo);
+}
+
+.bets-search {
+    display: flex;
+    gap: 10px;
+}
+
+.bets-search input {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--blanco);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.bets-search input:focus {
+    border-color: var(--rojo);
+}
+
+.bets-search button {
+    background: none;
+    color: var(--blanco);
+    cursor: pointer;
+}
+
+/* Tarjeta de apuesta: top 10 */
+.bet-user {
+    color: var(--gris);
+    font-size: 0.85rem;
+}
+
+.bet-positions {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bet-positions li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+    .bets-layout {
+        grid-template-columns: 1fr;
+    }
+}

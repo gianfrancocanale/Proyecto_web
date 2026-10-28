@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apuestas | PredictOne</title>
+    <link rel="stylesheet" href="principal.css">
+    <link rel="stylesheet" href="apuestas.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="/" class="logo">Predict<span>One</span></a>
+
+        <nav class="nav-auth">
+            <a href="ingresar.html" class="btn-login">Iniciar sesión</a>
+            <a href="registrar.html" class="btn-register">Registrarse</a>
+        </nav>
+    </header>
+
+    <main class="page-container">
+        <div class="page-header">
+            <h1>Hacé tus <span>apuestas</span></h1>
+            <p>Elegí el gran premio y armá tu top 10 de pilotos.</p>
+        </div>
+
+        <div class="bets-layout">
+
+            <!-- Formulario de nueva apuesta -->
+            <section class="auth-box bet-form-box">
+                <h2>Nueva <span>apuesta</span></h2>
+                <p class="auth-subtitle">Predecí los 10 primeros puestos</p>
+
+                <form class="auth-form" method="post" action="/apuestas">
+                    <div class="form-group">
+                        <label for="nombre_usuario">Usuario</label>
+                        <input type="text" id="nombre_usuario" name="nombre_usuario"
+                               placeholder="Tu nombre de usuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gran_premio">Gran Premio</label>
+                        <select id="gran_premio" name="gran_premio" required>
+                            <option value="">Elegí un gran premio</option>
+                            <option value="1">Gran Premio de Ejemplo</option>
+                        </select>
+                    </div>
+
+                    <div class="positions-form">
+                        <div class="position-row">
+                            <label for="posicion_1" class="position-number">P1</label>
+                            <select id="posicion_1" name="posicion_1" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_2" class="position-number">P2</label>
+                            <select id="posicion_2" name="posicion_2" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_3" class="position-number">P3</label>
+                            <select id="posicion_3" name="posicion_3" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_4" class="position-number">P4</label>
+                            <select id="posicion_4" name="posicion_4" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_5" class="position-number">P5</label>
+                            <select id="posicion_5" name="posicion_5" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_6" class="position-number">P6</label>
+                            <select id="posicion_6" name="posicion_6" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_7" class="position-number">P7</label>
+                            <select id="posicion_7" name="posicion_7" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_8" class="position-number">P8</label>
+                            <select id="posicion_8" name="posicion_8" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_9" class="position-number">P9</label>
+                            <select id="posicion_9" name="posicion_9" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+
+                        <div class="position-row">
+                            <label for="posicion_10" class="position-number">P10</label>
+                            <select id="posicion_10" name="posicion_10" required>
+                                <option value="">Elegí un piloto</option>
+                                <option value="1">Piloto de Ejemplo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Apostar</button>
+                </form>
+            </section>
+
+            <!-- Listado de apuestas -->
+            <section class="bets-list-box">
+                <div class="bets-list-header">
+                    <h2>Mis <span>apuestas</span></h2>
+
+                    <form class="bets-search" method="get" action="/apuestas">
+                        <input type="text" name="usuario" placeholder="Usuario" required>
+                        <button type="submit" class="btn-login">Ver</button>
+                    </form>
+                </div>
+
+                <div class="grid-content">
+
+                    <article class="data-card">
+                        <div class="data-card-header">
+                            <span class="badge">Apuesta</span>
+                            <h3>Gran Premio de Ejemplo</h3>
+                            <p class="bet-user">usuario_ejemplo</p>
+                        </div>
+                        <div class="data-card-body">
+                            <ol class="bet-positions">
+                                <li><span class="position-number">P1</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P2</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P3</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P4</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P5</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P6</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P7</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P8</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P9</span> Piloto de Ejemplo</li>
+                                <li><span class="position-number">P10</span> Piloto de Ejemplo</li>
+                            </ol>
+                        </div>
+                    </article>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <a href="/" class="logo">Predict<span>One</span></a>
+        <p>LA FÓRMULA 1, MÁS CERCA DE VOS</p>
+    </footer>
+
+</body>
+</html>

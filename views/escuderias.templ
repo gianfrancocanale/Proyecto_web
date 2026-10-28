@@ -1,0 +1,31 @@
+package views
+
+import (
+	"fmt"
+	d "Proyecto_web/db/sqlc"
+)
+
+templ EscuderiasPage(escuderias []d.Escuderium) {
+	@Layout("Escuderías") {
+		<div class="page-container">
+			<div class="page-header">
+				<h1>Las <span>Escuderías</span></h1>
+				<p>Todos los equipos de la temporada.</p>
+			</div>
+			<div class="grid-content">
+				for _, e := range escuderias {
+					<article class="data-card">
+						<div class="data-card-header">
+							<span class="badge">Escudería</span>
+							<h3>{ e.IDEscuderia }</h3>
+						</div>
+						<div class="data-card-body">
+							<p><strong>TeamPrincipal:</strong> { e.TeamPrincipal }</p>
+							<p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
+						</div>
+					</article>
+				}
+			</div>
+		</div>
+	}
+}

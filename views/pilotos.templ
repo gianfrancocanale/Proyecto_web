@@ -1,0 +1,32 @@
+package views
+
+import (
+	"fmt"
+	d "Proyecto_web/db/sqlc"
+)
+
+templ PilotosPage(pilotos []d.ListarPilotosRow) {
+	@Layout("Pilotos") {
+		<div class="page-container">
+			<div class="page-header">
+				<h1>Los <span>Pilotos</span></h1>
+				<p>La parrilla completa de la temporada.</p>
+			</div>
+			<div class="grid-content">
+				for _, p := range pilotos {
+					<article class="data-card driver-card">
+						<span class="driver-number">{ fmt.Sprint(p.IDPiloto) }</span>
+						<div class="data-card-header">
+							<h3>{ p.Nombre }</h3>
+							<p class="driver-team">{ p.IDEscuderia }</p>
+						</div>
+						<div class="data-card-body">
+							<p><strong>País:</strong> { p.Pais }</p>
+							<p class="points">{ fmt.Sprint(p.PuntosTemporada) } pts</p>
+						</div>
+					</article>
+				}
+			</div>
+		</div>
+	}
+}

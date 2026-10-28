@@ -1,0 +1,30 @@
+package views
+
+import d "Proyecto_web/db/sqlc"
+
+templ GranPremiosPage(gps []d.GranPremio) {
+	@Layout("Grandes Premios") {
+		<div class="page-container">
+			<div class="page-header">
+				<h1>Grandes <span>Premios</span></h1>
+				<p>El calendario de carreras.</p>
+			</div>
+			<div class="grid-content">
+				for _, g := range gps {
+					<article class="data-card">
+						<div class="data-card-header">
+							<span class="badge">GP</span>
+							<h3>{ g.IDGranPremio }</h3>
+						</div>
+						<div class="data-granpremio-body">
+							<p><strong>Pais:</strong> { g.Pais }</p>
+							<p><strong>Longitud:</strong> { g.LongitudKm } km</p>
+							<p><strong>Cantidad de Vueltas:</strong> { g.CantidadVueltas }</p>
+							<p><strong>Ultimo Ganador:</strong> { g.IDUltimoGanador }</p>
+						</div>
+					</article>
+				}
+			</div>
+		</div>
+	}
+}

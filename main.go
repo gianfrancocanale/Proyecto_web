@@ -17,14 +17,7 @@ func main() {
 	fmt.Printf("La base de datos se inicio")
 	defer db.Close()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-
-		http.ServeFile(w, r, "front/index.html")
-	})
+	http.Handle("/", http.FileServer(http.Dir("front")))
 
 	hUsuario := h.NewUsuarioHandler(db)
 	hPilotoHistorico := h.NewPilotoHistoricoHandler(db)
