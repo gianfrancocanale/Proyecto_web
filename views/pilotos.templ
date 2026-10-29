@@ -15,6 +15,13 @@ templ PilotosPage(pilotos []d.ListarPilotosRow) {
 			<div class="grid-content">
 				for _, p := range pilotos {
 					<article class="data-card driver-card">
+						<div class="driver-img-box">
+							<img
+								src={ fmt.Sprintf("/imagenes/%d.jpg", p.IDPiloto) }
+								alt={ p.Nombre }
+								onerror="this.parentElement.style.display='none'"
+							/>
+						</div>
 						<span class="driver-number">{ fmt.Sprint(p.IDPiloto) }</span>
 						<div class="data-card-header">
 							<h3>{ p.Nombre }</h3>
@@ -22,6 +29,8 @@ templ PilotosPage(pilotos []d.ListarPilotosRow) {
 						</div>
 						<div class="data-card-body">
 							<p><strong>País:</strong> { p.Pais }</p>
+							<p><strong>Fecha de Nacimiento:</strong> { p.FechaNacimiento.Format("02/01/2006")}</p>
+							<p><strong>Títulos Ganados:</strong> { p.TitulosGanados }</p>
 							<p class="points">{ fmt.Sprint(p.PuntosTemporada) } pts</p>
 						</div>
 					</article>

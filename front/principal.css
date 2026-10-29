@@ -596,19 +596,17 @@ a {
 }
 
 .driver-img-box {
-    width: 100%;
-    height: 220px;
-    background-color: var(--fondo);
-    overflow: hidden;
-    border-bottom: 2px solid var(--rojo);
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
 }
 
 .driver-img-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    transition: transform 0.3s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center; /* encuadra la cara */
 }
 
 .driver-card:hover .driver-img-box img {
