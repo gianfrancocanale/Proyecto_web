@@ -774,3 +774,38 @@ a {
         grid-template-columns: 1fr;
     }
 }
+/* Foto de escudería */
+.teams-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+}
+
+.team-img-box {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    background-color: var(--fondo);
+    border-bottom: 2px solid var(--rojo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    overflow: hidden;
+}
+
+.team-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transition: transform 0.3s ease;
+}
+
+.data-card:hover .team-img-box img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 700px) {
+    .teams-grid {
+        grid-template-columns: 1fr;
+    }
+}

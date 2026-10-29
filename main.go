@@ -2,10 +2,13 @@ package main
 
 import (
 	h "Proyecto_web/handlers"
+	v "Proyecto_web/views"
 	"database/sql" //para manejar errores(id no encontrados)
 	"fmt"
 	"net/http"
 	"os" //obtener datos de variables de entorno(bases de datos)
+
+	"github.com/a-h/templ"
 
 	//convertir string a int
 
@@ -26,6 +29,9 @@ func main() {
 	hGranPremio := h.NewGranPremioHandler(db)
 	hApuesta := h.NewApuestaHandler(db)
 	hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
+
+	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
+	http.HandleFunc("GET /web/escuderias", hEscuderia.Pagina)
 
 	// MANEJO DE RUTAS DE ENTIDAD USUARIO:
 	http.HandleFunc("/usuarios", hUsuario.HandlerUsuario)
