@@ -2,6 +2,7 @@ package handlers
 
 import (
 	sqlc "Proyecto_web/db/sqlc"
+	vista "Proyecto_web/views"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -48,6 +49,15 @@ func (h *PilotoHandler) HandlerPilotoId(w http.ResponseWriter, r *http.Request) 
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
+}
+
+func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
+	pilotos, err := h.queries.ListarPilotos(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	vista.PilotosPage(pilotos).Render(r.Context(), w)
 }
 
 func (h *PilotoHandler) CrearPiloto(w http.ResponseWriter, r *http.Request) {
