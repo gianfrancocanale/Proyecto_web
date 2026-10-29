@@ -50,7 +50,6 @@ test:
 	@echo "Ejecutando Tests"
 	go test ./...
 	$(MAKE) clean
-
 run:
 	$(MAKE) clean
 	$(MAKE) generate
@@ -58,8 +57,9 @@ run:
 	$(MAKE) wait
 	@templ generate
 	@echo "Ejecutando API en Docker"
-	docker compose up --build api
-	$(MAKE) clean
+	docker compose up --build -d api
+	$(MAKE) wait-api
+	hurl --test requests/escuderiasReal.hurl
 
 # Todo el flujo de la entrega: preparar, levantar, probar endpoints y limpiar.
 # El trap hace que se limpie siempre, incluso si algo falla, y conserva el código de salida.
