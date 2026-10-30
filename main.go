@@ -33,6 +33,7 @@ func main() {
 	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
 	http.HandleFunc("GET /web/escuderias", hEscuderia.Pagina)
 	http.HandleFunc("GET /web/pilotos", hPiloto.Pagina)
+	http.HandleFunc("/web/registrar", hUsuario.PaginaRegistrar)
 
 	// MANEJO DE RUTAS DE ENTIDAD USUARIO:
 	http.HandleFunc("/usuarios", hUsuario.HandlerUsuario)

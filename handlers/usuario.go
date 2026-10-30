@@ -2,6 +2,7 @@ package handlers
 
 import (
 	sqlc "Proyecto_web/db/sqlc"
+	views "Proyecto_web/views"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -21,6 +22,33 @@ func NewUsuarioHandler(db *sql.DB) *UsuarioHandler {
 	return &UsuarioHandler{
 		DB:      db,
 		queries: sqlc.New(db),
+	}
+}
+
+func (h *UsuarioHandler) PaginaRegistrar(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		views.RegistrarPage("").Render(r.Context(), w)
+
+	case http.MethodPost:
+		if err := r.ParseForm(); err != nil {
+			views.RegistrarPage("Formulario inválido").Render(r.Context(), w)
+			return
+		}
+
+		errors := h.CrearUsuario(w, r)
+		if errors == "incompleto" {
+			views.RegistrarPage("Todos los campos son obligatorios").Render(r.Context(), w)
+			return
+		} else if errors == "no creado" {
+			views.RegistrarPage("Error al crear el usuario").Render(r.Context(), w)
+			return
+		} else {
+			http.Redirect(w, r, "/web/ingresar", http.StatusSeeOther)
+			return
+		}
+	default:
+		http.Error(w, "método no permitido", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -137,7 +165,7 @@ func (h *UsuarioHandler) ListarUsuarios(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(usuarios)
 }
 
-func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) (errors string) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -153,7 +181,7 @@ func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) {
 
 	if usuario.NombreUsuario == "" || usuario.ContrasenaHash == "" {
 		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
+		return "incompleto"
 	}
 
 	usuario.PuntosGanados = 0 //setea 0 puntos ganados al crear un nuevo usuario
@@ -161,11 +189,12 @@ func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) {
 	devolver, err := h.queries.CrearUsuario(r.Context(), usuario)
 	if err != nil {
 		http.Error(w, "Error al crear el usuario", http.StatusInternalServerError)
-		return
+		return "no creado"
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(devolver)
+	return "creado"
 }
 
 // HandlerUsuario despacha según el método HTTP para la ruta /usuarios.

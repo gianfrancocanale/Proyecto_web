@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 )
 
 // EscuderiaHandler agrupa los handlers de escudería y guarda
@@ -42,7 +43,19 @@ func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	vista.EscuderiasPage(escuderias).Render(r.Context(), w)
+
+	orden := r.URL.Query().Get("orden")
+	if orden != "desc" {
+		orden = "asc" // valor por defecto
+	}
+
+	sort.Slice(escuderias, func(i, j int) bool {
+		if orden == "desc" {
+			return escuderias[i].IDEscuderia > escuderias[j].IDEscuderia
+		}
+		return escuderias[i].IDEscuderia < escuderias[j].IDEscuderia
+	})
+	vista.EscuderiasPage(escuderias, orden).Render(r.Context(), w)
 }
 
 // HandlerEscuderiaId despacha según el método HTTP para la ruta /escuderias/{id}.

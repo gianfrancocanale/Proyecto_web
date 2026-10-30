@@ -5,19 +5,25 @@ import (
 	d "Proyecto_web/db/sqlc"
 )
 
-templ EscuderiasPage(escuderias []d.Escuderium) {
+templ EscuderiasPage(escuderias []d.Escuderium,orden string) {
 	@Layout("Escuderías") {
 		<div class="page-container">
 			<div class="page-header">
 				<h1>Escuderías <span>2026</span></h1>
 				<p>Todos los equipos de la temporada.</p>
+				if orden == "asc" {
+					<a href="/web/escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
+				} else {
+					<a href="/web/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
+				}
 			</div>
+			
 			<div class="grid-content teams-grid">
 				for _, e := range escuderias {
 					<article class="data-card">
 							<div class="team-img-box">
 								<img
-									src={ "/imagenes/" + e.IDEscuderia + ".jpg" }
+									src={ "/imagenes/escuderias/" + e.IDEscuderia + ".jpg" }
 									alt={ e.IDEscuderia }
 									onerror="this.parentElement.style.display='none'"
 								/>
