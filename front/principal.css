@@ -147,8 +147,9 @@ a {
 ========================================== */
 
 .explore {
-    padding: 65px 5% 80px;
-    max-width: 1500px;
+    width: 100%;
+    padding: 65px 3% 80px;
+    max-width: 1700px;
     margin: 0 auto;
 }
 
@@ -180,7 +181,15 @@ a {
 .cards {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 28px;
+    gap: 35px;
+}
+
+.card-image {
+    height: 260px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 2px solid var(--rojo);
 }
 
 .card {
@@ -200,14 +209,6 @@ a {
     transform: translateY(-6px);
     border-color: var(--rojo);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-}
-
-.card-image {
-    height: 210px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-bottom: 2px solid var(--rojo);
 }
 
 .escuderias-image {
@@ -713,8 +714,9 @@ a {
 ========================================== */
 
 .page-container {
-    padding: 50px 5% 80px;
-    max-width: 1400px;
+    width: 100%;
+    max-width: none;
+    padding: 40px 4% 80px;
     margin: 0 auto;
     min-height: calc(100vh - 176px);
 }
@@ -859,6 +861,8 @@ a {
     font-weight: bold;
     color: var(--blanco) !important;
 }
+
+
 
 /* ---------- Escuderías ---------- */
 

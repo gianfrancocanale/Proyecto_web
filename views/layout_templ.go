@@ -40,7 +40,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | PredictOne</title><link rel=\"stylesheet\" href=\"/front/principal.css\"></head><body><header class=\"navbar\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><nav class=\"nav-auth\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | PredictOne</title><link rel=\"icon\" type=\"image/png\" href=\"/front/imagenes/LogoPredictOne.png\"><link rel=\"stylesheet\" href=\"/front/principal.css\"></head><body><header class=\"navbar\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><nav class=\"nav-auth\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
