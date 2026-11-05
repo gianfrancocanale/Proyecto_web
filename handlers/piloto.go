@@ -3,10 +3,12 @@ package handlers
 import (
 	sqlc "Proyecto_web/db/sqlc"
 	vista "Proyecto_web/views"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -25,38 +27,34 @@ func NewPilotoHandler(db *sql.DB) *PilotoHandler {
 	}
 }
 
-// HandlerPiloto despacha según el método HTTP para la ruta /pilotos.
-func (h *PilotoHandler) HandlerPiloto(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CrearPiloto(w, r)
-	case http.MethodGet:
-		h.ListarPilotos(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-// HandlerPilotoId despacha según el método HTTP para la ruta /pilotos/{id}.
-func (h *PilotoHandler) HandlerPilotoId(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerPiloto(w, r)
-	case http.MethodPut:
-		h.ActualizarPiloto(w, r)
-	case http.MethodDelete:
-		h.EliminarPiloto(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
 func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
-	pilotos, err := h.queries.ListarPilotos(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
+
+	pilotos, err := h.ListarPilotos(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "No se encontraron pilotos", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al obtener los pilotos", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	orden := r.URL.Query().Get("orden")
+	if orden != "desc" {
+		orden = "asc" // valor por defecto
+	}
+
+	sort.Slice(pilotos, func(i, j int) bool {
+		if orden == "desc" {
+			return pilotos[i].IDPiloto > pilotos[j].IDPiloto
+		}
+		return pilotos[i].IDPiloto < pilotos[j].IDPiloto
+	})
+
 	vista.PilotosPage(pilotos).Render(r.Context(), w)
 }
 
@@ -109,24 +107,16 @@ func (h *PilotoHandler) CrearPiloto(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func (h *PilotoHandler) ListarPilotos(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	pilotos, err := h.queries.ListarPilotos(r.Context())
+func (h *PilotoHandler) ListarPilotos(ctx context.Context) ([]sqlc.ListarPilotosRow, error) {
+	pilotos, err := h.queries.ListarPilotos(ctx)
 	if err != nil {
-		http.Error(w, "Error al obtener los pilotos", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 	if len(pilotos) == 0 {
-		http.Error(w, "No se encontraron pilotos", http.StatusNotFound)
-		return
+		return nil, sql.ErrNoRows
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pilotos)
+	return pilotos, nil
 }
 
 func (h *PilotoHandler) ObtenerPiloto(w http.ResponseWriter, r *http.Request) {

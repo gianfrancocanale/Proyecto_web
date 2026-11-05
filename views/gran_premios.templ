@@ -2,7 +2,7 @@ package views
 
 import d "Proyecto_web/db/sqlc"
 
-templ GranPremiosPage(gps []d.GranPremio) {
+templ GranPremiosPage(gps []d.ListarGrandesPremiosRow, orden string) {
 	@Layout("Grandes Premios") {
 		<div class="page-container">
 			<div class="page-header">

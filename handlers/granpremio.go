@@ -2,10 +2,13 @@ package handlers
 
 import (
 	sqlc "Proyecto_web/db/sqlc"
+	vista "Proyecto_web/views"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 )
 
 // GranPremioHandler agrupa los handlers de gran premio y guarda
@@ -23,30 +26,34 @@ func NewGranPremioHandler(db *sql.DB) *GranPremioHandler {
 	}
 }
 
-// HandlerGranPremio despacha según el método HTTP para la ruta /grandes-premios.
-func (h *GranPremioHandler) HandlerGranPremio(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CrearGranPremio(w, r)
-	case http.MethodGet:
-		h.ListarGranPremios(w, r)
-	default:
+func (h *GranPremioHandler) Pagina(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
 	}
-}
 
-// HandlerGranPremioId despacha según el método HTTP para la ruta /grandes-premios/{id}.
-func (h *GranPremioHandler) HandlerGranPremioId(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerGranPremio(w, r)
-	case http.MethodPut:
-		h.ActualizarGranPremio(w, r)
-	case http.MethodDelete:
-		h.EliminarGranPremio(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	granPremios, err := h.ListarGranPremios(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "No se encontraron Gran Premios", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error al obtener los Gran Premios", http.StatusInternalServerError)
+		}
+		return
 	}
+
+	orden := r.URL.Query().Get("orden")
+	if orden != "desc" {
+		orden = "asc" // valor por defecto
+	}
+
+	sort.Slice(granPremios, func(i, j int) bool {
+		if orden == "desc" {
+			return granPremios[i].IDGranPremio > granPremios[j].IDGranPremio
+		}
+		return granPremios[i].IDGranPremio < granPremios[j].IDGranPremio
+	})
+	vista.GranPremiosPage(granPremios, orden).Render(r.Context(), w)
 }
 
 func (h *GranPremioHandler) CrearGranPremio(w http.ResponseWriter, r *http.Request) {
@@ -90,24 +97,16 @@ func (h *GranPremioHandler) CrearGranPremio(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(devolver)
 }
 
-func (h *GranPremioHandler) ListarGranPremios(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	granPremios, err := h.queries.ListarGrandesPremios(r.Context())
+func (h *GranPremioHandler) ListarGranPremios(ctx context.Context) ([]sqlc.ListarGrandesPremiosRow, error) {
+	granPremios, err := h.queries.ListarGrandesPremios(ctx)
 	if err != nil {
-		http.Error(w, "Error al obtener los Gran Premios", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 	if len(granPremios) == 0 {
-		http.Error(w, "No se encontraron Gran Premios", http.StatusNotFound)
-		return
+		return nil, sql.ErrNoRows
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(granPremios)
+	return granPremios, nil
 }
 
 func (h *GranPremioHandler) ObtenerGranPremio(w http.ResponseWriter, r *http.Request) {
