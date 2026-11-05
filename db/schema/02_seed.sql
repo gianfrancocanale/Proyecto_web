@@ -61,27 +61,26 @@ INSERT INTO piloto (id_piloto, id_escuderia, puntos_temporada) VALUES
 (51, 'Haas',           0);
 
 INSERT INTO gran_premio (id_gran_premio, pais, longitud_km, cantidad_vueltas, id_ultimo_ganador) VALUES
-('albert_park',     'Australia',             5, 58, 63), -- George Russell
-('shanghai',        'China',                 5, 56, 12), -- Kimi Antonelli
-('suzuka',          'Japón',                 6, 53, 12), -- Kimi Antonelli
-('jeddah',          'Arabia Saudita',        6, 50, 3), -- 
-('miami',           'Estados Unidos',        5, 57, 12), -- Kimi Antonelli
-('gilles_villeneuve','Canadá',               4, 70, 12), -- Kimi Antonelli
-('monaco',          'Mónaco',                3, 78, 12), -- Kimi Antonelli
-('catalunya',       'España (Barcelona)',    5, 66, 44), -- Lewis Hamilton
-('red_bull_ring',   'Austria',               4, 71, 63), -- George Russell
-('silverstone',     'Reino Unido',           6, 52, 16), -- Charles Leclerc
-('spa',             'Bélgica',               7, 44, 12), -- Kimi Antonelli
-('hungaroring',     'Hungría',               4, 70,  1), -- Lando Norris
-('zandvoort',       'Países Bajos',          4, 72,  1), -- Lando Norris
-('monza',           'Italia',                6, 53, 12), -- Kimi Antonelli
-('madring',         'España (Madrid)',       5, 57, 12), -- Kimi Antonelli
-('baku',            'Azerbaiyán',            6, 51, 63), -- George Russell
-('sepang',          'Baréin (Malasia)',      6, 56,  3), -- Max Verstappen
-('marina_bay',      'Singapur',              5, 62,  3), -- Max Verstappen
-('cota',            'Estados Unidos (Austin)',5, 56, 12), -- Kimi Antonelli
-('hermanos_rodriguez','México',              4, 71,  3), -- Max Verstappen
-('interlagos',      'Brasil',                4, 71,  3), -- Pendiente
-('las_vegas',       'Estados Unidos',        6, 50, 3), -- Pendiente por disputar
-('losail',          'Catar',                 5, 57, 3), -- Pendiente por disputar
-('yas_marina',      'Emiratos Árabes Unidos',5, 58, 3); -- Pendiente por disputar
+('Albert Park',     'Australia',             5, 58, 63), -- George Russell
+('Shanghai',        'China',                 5, 56, 12), -- Kimi Antonelli
+('Suzuka',          'Japón',                 6, 53, 12), -- Kimi Antonelli
+('Miami',           'Estados Unidos',        5, 57, 12), -- Kimi Antonelli
+('Gilles Villeneuve','Canadá',               4, 70, 12), -- Kimi Antonelli
+('Monaco',          'Mónaco',                3, 78, 12), -- Kimi Antonelli
+('Catalunya',       'España (Barcelona)',    5, 66, 44), -- Lewis Hamilton
+('Red Bull Ring',   'Austria',               4, 71, 63), -- George Russell
+('Silverstone',     'Reino Unido',           6, 52, 16), -- Charles Leclerc
+('Spa',             'Bélgica',               7, 44, 12), -- Kimi Antonelli
+('Hungaroring',     'Hungría',               4, 70,  1), -- Lando Norris
+('Zandvoort',       'Países Bajos',          4, 72,  1), -- Lando Norris
+('Monza',           'Italia',                6, 53, 12), -- Kimi Antonelli
+('Madring',         'España (Madrid)',       5, 57, 12), -- Kimi Antonelli
+('Baku',            'Azerbaiyán',            6, 51, 63), -- George Russell
+('Sepang',          'Baréin (Malasia)',      6, 56,  3), -- Max Verstappen
+('Marina Bay',      'Singapur',              5, 62,  3), -- Max Verstappen
+('Cota',            'Estados Unidos (Austin)',5, 56, 12), -- Kimi Antonelli
+('Hermanos Rodriguez','México',              4, 71,  3), -- Max Verstappen
+('Interlagos',      'Brasil',                4, 71,  3), -- Pendiente
+('Las Vegas',       'Estados Unidos',        6, 50, 3), -- Pendiente por disputar
+('Losail',          'Catar',                 5, 57, 3), -- Pendiente por disputar
+('Yas Marina',      'Emiratos Árabes Unidos',5, 58, 3); -- Pendiente por disputar

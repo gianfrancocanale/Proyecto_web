@@ -50,9 +50,9 @@ func GranPremiosPage(gps []d.ListarGrandesPremiosRow, orden string) templ.Compon
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/front/imagenes/gran_premio/" + g.IDGranPremio + "-1.svg").ResolveURL(ctx)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/front/imagenes/circuitos/" + g.IDGranPremio + ".jpg").ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/gran_premios.templ`, Line: 17, Col: 72}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/gran_premios.templ`, Line: 17, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 				if templ_7745c5c3_Err != nil {
