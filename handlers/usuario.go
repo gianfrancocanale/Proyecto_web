@@ -229,5 +229,5 @@ func (h *UsuarioHandler) CrearUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/web/ingresar", http.StatusSeeOther)
+	http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
 }

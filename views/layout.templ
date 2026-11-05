@@ -13,8 +13,12 @@ templ Layout(title string) {
 			<header class="navbar">
 				<a href="/" class="logo">Predict<span>One</span></a>
 				<nav class="nav-auth">
+				if logueado(ctx) {
+					<a href="/apuestas" class="btn-register">Apuestas</a>
+				} else {
 					<a href="/ingresar" class="btn-login">Iniciar sesión</a>
 					<a href="/registrar" class="btn-register">Registrarse</a>
+				}
 				</nav>
 			</header>
 			<main class="page-container">

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"Proyecto_web/views"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
@@ -63,9 +65,17 @@ func cerrarSesion(w http.ResponseWriter, r *http.Request) {
 func RequiereLogin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := usuarioActual(r); !ok {
-			http.Redirect(w, r, "/web/ingresar", http.StatusSeeOther)
+			http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
 			return
 		}
 		next(w, r)
 	}
+}
+func ConSesion(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if u, ok := usuarioActual(r); ok {
+			r = r.WithContext(context.WithValue(r.Context(), views.UsuarioKey, u))
+		}
+		next.ServeHTTP(w, r)
+	})
 }

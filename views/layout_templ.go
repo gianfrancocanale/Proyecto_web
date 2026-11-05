@@ -40,7 +40,22 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | PredictOne</title><link rel=\"stylesheet\" href=\"/front/principal.css\"></head><body><header class=\"navbar\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><nav class=\"nav-auth\"><a href=\"/ingresar\" class=\"btn-login\">Iniciar sesión</a> <a href=\"/registrar\" class=\"btn-register\">Registrarse</a></nav></header><main class=\"page-container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | PredictOne</title><link rel=\"stylesheet\" href=\"/front/principal.css\"></head><body><header class=\"navbar\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><nav class=\"nav-auth\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if logueado(ctx) {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/apuestas\" class=\"btn-register\">Apuestas</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a href=\"/ingresar\" class=\"btn-login\">Iniciar sesión</a> <a href=\"/registrar\" class=\"btn-register\">Registrarse</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</nav></header><main class=\"page-container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -48,7 +63,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><footer class=\"footer\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><p>LA FÓRMULA 1, MÁS CERCA DE VOS</p></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</main><footer class=\"footer\"><a href=\"/\" class=\"logo\">Predict<span>One</span></a><p>LA FÓRMULA 1, MÁS CERCA DE VOS</p></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
