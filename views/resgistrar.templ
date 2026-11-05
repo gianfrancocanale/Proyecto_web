@@ -1,35 +1,33 @@
 package views
 
-templ RegistrarPage(errorMsg string) {
+templ RegistrarPage(mensaje string) {
 	@Layout("Registrarse") {
-		<section class="auth-container">
-			<form method="POST" action="/registrar" class="auth-form">
-				<h1>Crear <span>cuenta</span></h1>
-				<p class="auth-subtitle">Registrate para empezar a predecir.</p>
-				if errorMsg != "" {
-					<p class="form-error">{ errorMsg }</p>
-				}
-				<label for="nombre_usuario">Nombre de usuario</label>
-				<input
-					type="text"
-					id="nombre_usuario"
-					name="nombre_usuario"
-					required
-					maxlength="50"
-					autocomplete="username"
-				/>
-				<label for="contraseña">Contraseña</label>
-				<input
-					type="password"
-					id="contraseña"
-					name="contraseña"
-					required
-					minlength="6"
-					autocomplete="new-password"
-				/>
-				<button type="submit" class="btn-register">Registrarse</button>
-				<p class="auth-alt">¿Ya tenés cuenta? <a href="/ingresar">Iniciá sesión</a></p>
+		<section class="register">
+			<div class="register-header">
+				<span class="register-badge">NUEVA CUENTA</span>
+				<h1>Sumate a <span>PredictOne</span></h1>
+				<p>Creá tu cuenta en menos de un minuto</p>
+			</div>
+			if mensaje != "" {
+				<div class="alert-error">{ mensaje }</div>
+			}
+			<form method="post" class="register-form">
+				<div class="form-group full">
+					<label for="nombre_usuario">Nombre de usuario</label>
+					<input type="text" id="nombre_usuario" name="nombre_usuario" placeholder="tu_usuario" required/>
+				</div>
+				<div class="form-group">
+					<label for="contraseña">Contraseña</label>
+					<input type="password" id="contraseña" name="contraseña" placeholder="••••••••" required/>
+				</div>
+				<button type="submit" class="btn-submit full">Crear cuenta</button>
 			</form>
+			<ul class="register-perks">
+				<li><strong>Top 10</strong><span>Armá tu pronóstico por carrera</span></li>
+				<li><strong>Gratis</strong><span>Sin costos ni tarjetas</span></li>
+				<li><strong>Rápido</strong><span>Listo en un minuto</span></li>
+			</ul>
+			<p class="auth-footer-text">¿Ya tenés cuenta? <a href="/ingresar">Iniciá sesión</a></p>
 		</section>
 	}
 }

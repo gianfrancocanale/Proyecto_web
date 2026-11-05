@@ -9,7 +9,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func IngresarPage(errorMsg string) templ.Component {
+func IngresarPage(mensaje string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,30 +38,30 @@ func IngresarPage(errorMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"auth-container\"><form method=\"POST\" action=\"/ingresar\" class=\"auth-form\"><h1>Iniciar <span>sesión</span></h1><p class=\"auth-subtitle\">Ingresá para ver toda la información de la F1.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"login\"><aside class=\"login-aside\"><p class=\"eyebrow\">BIENVENIDO DE VUELTA</p><h1>Volvé a la <span>parrilla</span></h1><p>Entrá a tu cuenta y seguí armando tus pronósticos del top 10.</p></aside><div class=\"login-panel\"><h2>Iniciar sesión</h2><p class=\"login-sub\">Ingresá tus datos para continuar</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if errorMsg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"form-error\">")
+			if mensaje != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"alert-error\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(mensaje)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/ingresar.templ`, Line: 10, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/ingresar.templ`, Line: 15, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<label for=\"nombre_usuario\">Nombre de usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" required autocomplete=\"username\"> <label for=\"contraseña\">Contraseña</label> <input type=\"password\" id=\"contraseña\" name=\"contraseña\" required autocomplete=\"current-password\"> <button type=\"submit\" class=\"btn-register\">Ingresar</button><p class=\"auth-alt\">¿No tenés cuenta? <a href=\"/registrar\">Registrate</a></p></form></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<form method=\"post\" class=\"login-form\"><div class=\"form-group\"><label for=\"nombre_usuario\">Usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" placeholder=\"tu_usuario\" required autofocus></div><div class=\"form-group\"><label for=\"contraseña\">Contraseña</label> <input type=\"password\" id=\"contraseña\" name=\"contraseña\" placeholder=\"••••••••\" required></div><button type=\"submit\" class=\"btn-submit\">Ingresar</button></form><p class=\"auth-footer-text\">¿No tenés cuenta? <a href=\"/registrar\">Registrate</a></p></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

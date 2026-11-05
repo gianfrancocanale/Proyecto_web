@@ -29,7 +29,10 @@ a {
     text-decoration: none;
 }
 
-/* Navegación */
+/* ==========================================
+   NAVEGACIÓN
+========================================== */
+
 .navbar {
     min-height: 67px;
     padding: 16px 5%;
@@ -84,8 +87,9 @@ a {
     transform: translateY(-2px);
 }
 
-
-/* PORTADA PRINCIPAL */
+/* ==========================================
+   PORTADA PRINCIPAL
+========================================== */
 
 .hero {
     min-height: 420px;
@@ -94,7 +98,6 @@ a {
     padding: 70px 6%;
     position: relative;
     overflow: hidden;
-
     background:
         linear-gradient(
             90deg,
@@ -139,7 +142,9 @@ a {
     line-height: 1.8;
 }
 
-/* Exploración */
+/* ==========================================
+   EXPLORACIÓN
+========================================== */
 
 .explore {
     padding: 65px 5% 80px;
@@ -168,7 +173,9 @@ a {
     font-size: 1.05rem;
 }
 
-/* TARJETAS*/
+/* ==========================================
+   TARJETAS
+========================================== */
 
 .cards {
     display: grid;
@@ -195,8 +202,6 @@ a {
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
-/* Imágenes de las tarjetas */
-
 .card-image {
     height: 210px;
     background-size: cover;
@@ -207,36 +212,22 @@ a {
 
 .escuderias-image {
     background-image:
-        linear-gradient(
-            0deg,
-            rgba(6, 17, 31, 0.2),
-            transparent
-        ),
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
         url("imagenes/escuderia.jpg");
 }
 
 .pilotos-image {
     background-image:
-        linear-gradient(
-            0deg,
-            rgba(6, 17, 31, 0.2),
-            transparent
-        ),
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
         url("imagenes/piloto.jpg");
-        background-position: center 0%;
+    background-position: center 0%;
 }
 
 .premios-image {
     background-image:
-        linear-gradient(
-            0deg,
-            rgba(6, 17, 31, 0.2),
-            transparent
-        ),
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
         url("imagenes/gran-premio.jpg");
 }
-
-/* Contenido de las tarjetas */
 
 .card-content {
     padding: 24px;
@@ -270,9 +261,9 @@ a {
     color: var(--rojo);
 }
 
-/* ==========================
+/* ==========================================
    PIE DE PÁGINA
-========================== */
+========================================== */
 
 .footer {
     min-height: 100px;
@@ -296,9 +287,9 @@ a {
     letter-spacing: 2px;
 }
 
-/* ==========================
-   DISEÑO RESPONSIVE
-========================== */
+/* ==========================================
+   RESPONSIVE (PORTADA, NAVBAR Y FOOTER)
+========================================== */
 
 @media (max-width: 900px) {
     .cards {
@@ -366,10 +357,9 @@ a {
 }
 
 /* ==========================================
-   ESTILOS ADICIONALES PARA PÁGINAS SECUNDARIAS
+   FORMULARIOS BASE (compartidos)
 ========================================== */
 
-/* --- FORMULARIOS (LOGIN Y REGISTRO) --- */
 .auth-container {
     min-height: calc(100vh - 176px);
     display: flex;
@@ -431,10 +421,25 @@ a {
     color: var(--blanco);
     font-size: 0.95rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus {
+    border-color: var(--rojo);
+}
+
+.form-group select {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group select:focus {
     border-color: var(--rojo);
 }
 
@@ -472,7 +477,241 @@ a {
     text-decoration: underline;
 }
 
-/* --- SECCIONES DE CONTENIDO (ESCUDERÍAS, PILOTOS, GPS) --- */
+.form-error {
+    color: #e10600;
+    font-weight: 600;
+}
+
+.alert-error {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background-color: rgba(242, 13, 47, 0.1);
+    border: 1px solid var(--rojo);
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: #ff8a9a;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ==========================================
+   INGRESAR (tarjeta partida)
+========================================== */
+
+.login {
+    max-width: 980px;
+    min-height: 560px;
+    margin: 10px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+}
+
+.login-aside {
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background:
+        linear-gradient(
+            0deg,
+            rgba(4, 13, 24, 0.96) 0%,
+            rgba(4, 13, 24, 0.55) 55%,
+            rgba(4, 13, 24, 0.25) 100%
+        ),
+        url("imagenes/portada.jpg") center / cover no-repeat;
+}
+
+.login-aside h1 {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+}
+
+.login-aside h1 span {
+    color: var(--rojo);
+}
+
+.login-aside p:last-child {
+    color: #d2d9e4;
+    max-width: 330px;
+}
+
+.login-panel {
+    padding: 52px 44px;
+    background-color: var(--fondo-secundario);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-panel h2 {
+    font-size: 2rem;
+    margin-bottom: 6px;
+}
+
+.login-sub {
+    color: var(--gris);
+    margin-bottom: 26px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.login .form-group input {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background-color: #08141f;
+}
+
+.login .form-group input:focus {
+    box-shadow: 0 0 0 3px rgba(242, 13, 47, 0.18);
+}
+
+.login .btn-submit {
+    padding: 14px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================
+   REGISTRAR (tarjeta centrada con brillo)
+========================================== */
+
+.register {
+    max-width: 640px;
+    margin: 10px auto 0;
+    padding: 44px 40px 34px;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(242, 13, 47, 0.22),
+            transparent 60%
+        ),
+        var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-top: 3px solid var(--rojo);
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    margin-bottom: 14px;
+    border: 1px solid var(--rojo);
+    border-radius: 999px;
+    color: var(--rojo);
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+.register-header h1 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    letter-spacing: -1px;
+}
+
+.register-header h1 span {
+    color: var(--rojo);
+}
+
+.register-header p {
+    color: var(--gris);
+    margin-top: 6px;
+}
+
+.register-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.register-form .full {
+    grid-column: 1 / -1;
+}
+
+.register .form-group input {
+    border-radius: 6px;
+    background-color: rgba(6, 17, 31, 0.8);
+}
+
+.register .btn-submit {
+    padding: 14px;
+    font-size: 1.05rem;
+    box-shadow: 0 8px 20px rgba(242, 13, 47, 0.25);
+}
+
+.register-perks {
+    list-style: none;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--borde);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    text-align: center;
+}
+
+.register-perks strong {
+    display: block;
+    color: var(--rojo);
+    font-size: 1.05rem;
+}
+
+.register-perks span {
+    color: var(--gris);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 800px) {
+    .login {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .login-aside {
+        padding: 32px 28px;
+        min-height: 200px;
+    }
+
+    .login-panel {
+        padding: 36px 28px;
+    }
+}
+
+@media (max-width: 600px) {
+    .register {
+        padding: 32px 22px 26px;
+    }
+
+    .register-form {
+        grid-template-columns: 1fr;
+    }
+
+    .register-perks {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================
+   SECCIONES DE CONTENIDO (ESCUDERÍAS, PILOTOS, GPS)
+========================================== */
+
 .page-container {
     padding: 50px 5% 80px;
     max-width: 1400px;
@@ -556,39 +795,20 @@ a {
     color: var(--blanco);
 }
 
-.points {
-    margin-top: 8px;
-    font-weight: bold;
-    color: var(--rojo) !important;
-}
-
-/* Específicos para Pilotos */
-.driver-card {
-    padding-top: 10px;
-}
-
-.driver-number {
-    font-size: 3rem;
-    font-weight: 900;
-    color: var(--rojo);
-    opacity: 0.8;
-    padding: 0 20px;
-    line-height: 1;
-}
-
-.driver-team {
-    color: var(--rojo) !important;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
 .data-card-body hr {
     border: none;
     border-top: 1px solid var(--borde);
     margin: 5px 0;
 }
 
-/* --- REGULARES PARA FOTOS DE PILOTOS --- */
+.points {
+    margin-top: 8px;
+    font-weight: bold;
+    color: var(--rojo) !important;
+}
+
+/* ---------- Pilotos ---------- */
+
 .driver-card {
     display: flex;
     flex-direction: column;
@@ -596,17 +816,18 @@ a {
 }
 
 .driver-img-box {
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-  border-radius: 12px 12px 0 0;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
 }
 
 .driver-img-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center; /* encuadra la cara */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.3s ease;
 }
 
 .driver-card:hover .driver-img-box img {
@@ -619,16 +840,61 @@ a {
     right: 15px;
     font-size: 2.8rem;
     font-weight: 900;
+    line-height: 1;
     color: var(--rojo);
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     z-index: 2;
 }
 
-/* Específicos para Grandes Premios */
+.driver-team {
+    color: var(--rojo) !important;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* ---------- Grandes Premios ---------- */
+
 .gp-date {
     margin-top: 10px;
     font-weight: bold;
     color: var(--blanco) !important;
+}
+
+/* ---------- Escuderías ---------- */
+
+.teams-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+}
+
+.team-img-box {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    background-color: var(--fondo);
+    border-bottom: 2px solid var(--rojo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    overflow: hidden;
+}
+
+.team-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transition: transform 0.3s ease;
+}
+
+.data-card:hover .team-img-box img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 700px) {
+    .teams-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ==========================================
@@ -644,22 +910,6 @@ a {
 
 .bet-form-box {
     max-width: none;
-}
-
-/* Select con el mismo estilo que los inputs */
-.form-group select {
-    background-color: var(--fondo);
-    border: 1px solid var(--borde);
-    border-radius: 6px;
-    padding: 12px;
-    color: var(--blanco);
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.form-group select:focus {
-    border-color: var(--rojo);
 }
 
 /* Formulario: 10 posiciones */
@@ -771,65 +1021,4 @@ a {
     .bets-layout {
         grid-template-columns: 1fr;
     }
-}
-/* Foto de escudería */
-.teams-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 28px;
-}
-
-.team-img-box {
-    width: 100%;
-    aspect-ratio: 16 / 7;
-    background-color: var(--fondo);
-    border-bottom: 2px solid var(--rojo);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 24px;
-    overflow: hidden;
-}
-
-.team-img-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
-    transition: transform 0.3s ease;
-}
-
-.data-card:hover .team-img-box img {
-    transform: scale(1.04);
-}
-
-@media (max-width: 700px) {
-    .teams-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.auth-container {
-	display: flex;
-	justify-content: center;
-	padding: 48px 16px;
-}
-.auth-form {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	width: 100%;
-	max-width: 400px;
-}
-.auth-form input {
-	padding: 10px;
-	border-radius: 6px;
-	border: 1px solid #444;
-}
-.auth-form button {
-	margin-top: 12px;
-	cursor: pointer;
-}
-.form-error {
-	color: #e10600;
-	font-weight: 600;
 }

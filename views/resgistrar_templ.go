@@ -9,7 +9,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func RegistrarPage(errorMsg string) templ.Component {
+func RegistrarPage(mensaje string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,30 +38,30 @@ func RegistrarPage(errorMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"auth-container\"><form method=\"POST\" action=\"/registrar\" class=\"auth-form\"><h1>Crear <span>cuenta</span></h1><p class=\"auth-subtitle\">Registrate para empezar a predecir.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"register\"><div class=\"register-header\"><span class=\"register-badge\">NUEVA CUENTA</span><h1>Sumate a <span>PredictOne</span></h1><p>Creá tu cuenta en menos de un minuto</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if errorMsg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"form-error\">")
+			if mensaje != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"alert-error\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(mensaje)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/resgistrar.templ`, Line: 10, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/resgistrar.templ`, Line: 12, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<label for=\"nombre_usuario\">Nombre de usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" required maxlength=\"50\" autocomplete=\"username\"> <label for=\"contraseña\">Contraseña</label> <input type=\"password\" id=\"contraseña\" name=\"contraseña\" required minlength=\"6\" autocomplete=\"new-password\"> <button type=\"submit\" class=\"btn-register\">Registrarse</button><p class=\"auth-alt\">¿Ya tenés cuenta? <a href=\"/ingresar\">Iniciá sesión</a></p></form></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<form method=\"post\" class=\"register-form\"><div class=\"form-group full\"><label for=\"nombre_usuario\">Nombre de usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" placeholder=\"tu_usuario\" required></div><div class=\"form-group\"><label for=\"contraseña\">Contraseña</label> <input type=\"password\" id=\"contraseña\" name=\"contraseña\" placeholder=\"••••••••\" required></div><button type=\"submit\" class=\"btn-submit full\">Crear cuenta</button></form><ul class=\"register-perks\"><li><strong>Top 10</strong><span>Armá tu pronóstico por carrera</span></li><li><strong>Gratis</strong><span>Sin costos ni tarjetas</span></li><li><strong>Rápido</strong><span>Listo en un minuto</span></li></ul><p class=\"auth-footer-text\">¿Ya tenés cuenta? <a href=\"/ingresar\">Iniciá sesión</a></p></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
