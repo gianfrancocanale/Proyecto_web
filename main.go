@@ -21,18 +21,17 @@ func main() {
 	defer db.Close()
 
 	hUsuario := h.NewUsuarioHandler(db)
-	//hPilotoHistorico := h.NewPilotoHistoricoHandler(db)
 	hPiloto := h.NewPilotoHandler(db)
 	hEscuderia := h.NewEscuderiaHandler(db)
-	//hGranPremio := h.NewGranPremioHandler(db)
+	hGranPremio := h.NewGranPremioHandler(db)
 	//hApuesta := h.NewApuestaHandler(db)
-	//hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
 
 	http.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
 
 	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
 	http.HandleFunc("GET /escuderias", hEscuderia.Pagina)
 	http.HandleFunc("GET /pilotos", hPiloto.Pagina)
+	http.HandleFunc("GET /granpremios", hGranPremio.Pagina)
 
 	http.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
 	http.HandleFunc("/registrar", hUsuario.PaginaRegistrar)
