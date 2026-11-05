@@ -59,7 +59,6 @@ run:
 	@echo "Ejecutando API en Docker"
 	docker compose up --build -d api
 	$(MAKE) wait-api
-	hurl --test requests/escuderiasReal.hurl
 
 # Todo el flujo de la entrega: preparar, levantar, probar endpoints y limpiar.
 # El trap hace que se limpie siempre, incluso si algo falla, y conserva el código de salida.

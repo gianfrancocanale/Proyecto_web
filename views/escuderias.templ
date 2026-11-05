@@ -12,9 +12,9 @@ templ EscuderiasPage(escuderias []d.Escuderium,orden string) {
 				<h1>Escuderías <span>2026</span></h1>
 				<p>Todos los equipos de la temporada.</p>
 				if orden == "asc" {
-					<a href="/web/escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
+					<a href="escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
 				} else {
-					<a href="/web/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
+					<a href="/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
 				}
 			</div>
 			
@@ -23,7 +23,7 @@ templ EscuderiasPage(escuderias []d.Escuderium,orden string) {
 					<article class="data-card">
 							<div class="team-img-box">
 								<img
-									src={ "/imagenes/escuderias/" + e.IDEscuderia + ".jpg" }
+									src={ "/front/imagenes/escuderias/" + e.IDEscuderia + ".jpg" }
 									alt={ e.IDEscuderia }
 									onerror="this.parentElement.style.display='none'"
 								/>

@@ -18,6 +18,7 @@ RETURNING nombre_usuario, puntos_ganados;
 -- Obtener usuario por ID
 SELECT
     nombre_usuario,
+    contrasena_hash,
     puntos_ganados
 FROM usuario
 WHERE nombre_usuario = $1;

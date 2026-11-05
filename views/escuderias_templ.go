@@ -48,12 +48,12 @@ func EscuderiasPage(escuderias []d.Escuderium, orden string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if orden == "asc" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/web/escuderias?orden=desc\" class=\"btn-register\">Ordenado: A → Z ⇅</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"escuderias?orden=desc\" class=\"btn-register\">Ordenado: A → Z ⇅</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/web/escuderias?orden=asc\" class=\"btn-register\">Ordenado: Z → A ⇅</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/escuderias?orden=asc\" class=\"btn-register\">Ordenado: Z → A ⇅</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -68,9 +68,9 @@ func EscuderiasPage(escuderias []d.Escuderium, orden string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/imagenes/escuderias/" + e.IDEscuderia + ".jpg").ResolveURL(ctx)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/front/imagenes/escuderias/" + e.IDEscuderia + ".jpg").ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 26, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 26, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 				if templ_7745c5c3_Err != nil {

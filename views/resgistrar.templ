@@ -3,7 +3,7 @@ package views
 templ RegistrarPage(errorMsg string) {
 	@Layout("Registrarse") {
 		<section class="auth-container">
-			<form method="POST" action="/web/registrar" class="auth-form">
+			<form method="POST" action="/registrar" class="auth-form">
 				<h1>Crear <span>cuenta</span></h1>
 				<p class="auth-subtitle">Registrate para empezar a predecir.</p>
 				if errorMsg != "" {
@@ -18,17 +18,17 @@ templ RegistrarPage(errorMsg string) {
 					maxlength="50"
 					autocomplete="username"
 				/>
-				<label for="password">Contraseña</label>
+				<label for="contraseña">Contraseña</label>
 				<input
 					type="password"
-					id="password"
-					name="password"
+					id="contraseña"
+					name="contraseña"
 					required
 					minlength="6"
 					autocomplete="new-password"
 				/>
 				<button type="submit" class="btn-register">Registrarse</button>
-				<p class="auth-alt">¿Ya tenés cuenta? <a href="/web/ingresar">Iniciá sesión</a></p>
+				<p class="auth-alt">¿Ya tenés cuenta? <a href="/ingresar">Iniciá sesión</a></p>
 			</form>
 		</section>
 	}

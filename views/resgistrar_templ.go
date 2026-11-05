@@ -38,7 +38,7 @@ func RegistrarPage(errorMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"auth-container\"><form method=\"POST\" action=\"/web/registrar\" class=\"auth-form\"><h1>Crear <span>cuenta</span></h1><p class=\"auth-subtitle\">Registrate para empezar a predecir.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"auth-container\"><form method=\"POST\" action=\"/registrar\" class=\"auth-form\"><h1>Crear <span>cuenta</span></h1><p class=\"auth-subtitle\">Registrate para empezar a predecir.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -61,7 +61,7 @@ func RegistrarPage(errorMsg string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<label for=\"nombre_usuario\">Nombre de usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" required maxlength=\"50\" autocomplete=\"username\"> <label for=\"password\">Contraseña</label> <input type=\"password\" id=\"password\" name=\"password\" required minlength=\"6\" autocomplete=\"new-password\"> <button type=\"submit\" class=\"btn-register\">Registrarse</button><p class=\"auth-alt\">¿Ya tenés cuenta? <a href=\"/web/ingresar\">Iniciá sesión</a></p></form></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<label for=\"nombre_usuario\">Nombre de usuario</label> <input type=\"text\" id=\"nombre_usuario\" name=\"nombre_usuario\" required maxlength=\"50\" autocomplete=\"username\"> <label for=\"contraseña\">Contraseña</label> <input type=\"password\" id=\"contraseña\" name=\"contraseña\" required minlength=\"6\" autocomplete=\"new-password\"> <button type=\"submit\" class=\"btn-register\">Registrarse</button><p class=\"auth-alt\">¿Ya tenés cuenta? <a href=\"/ingresar\">Iniciá sesión</a></p></form></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
