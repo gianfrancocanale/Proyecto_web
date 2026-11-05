@@ -1,15 +1,15 @@
 INSERT INTO escuderia (id_escuderia, puntos_temporada, titulos_constructores, fecha_fundacion, team_principal) VALUES
-('mercedes',     630,  8, '1970-01-01', 'Toto Wolff'),
-('ferrari',      504, 16, '1929-11-16', 'Frédéric Vasseur'),
-('red_bull',     382,  6, '2005-01-01', 'Laurent Mekies'),
-('mclaren',      365, 10, '1963-01-01', 'Andrea Stella'),
-('racing_bulls', 108,  0, '1985-01-01', 'Alan Permane'),
-('alpine',        69,  2, '1981-01-01', 'Flavio Briatore'),
-('haas',          31,  0, '2014-01-01', 'Ayao Komatsu'),
-('audi',          27,  0, '1970-01-01', 'Mattia Binotto'),
-('williams',      12,  9, '1977-12-16', 'James Vowles'),
-('aston_martin',   7,  0, '1991-01-01', 'Adrian Newey'),
-('cadillac',       0,  0, '2023-01-01', 'Graeme Lowdon');
+('Mercedes',     630,  8, '1970-01-01', 'Toto Wolff'),
+('Ferrari',      504, 16, '1929-11-16', 'Frédéric Vasseur'),
+('Red Bull',     382,  6, '2005-01-01', 'Laurent Mekies'),
+('McLaren',      365, 10, '1963-01-01', 'Andrea Stella'),
+('Racing Bulls', 108,  0, '1985-01-01', 'Alan Permane'),
+('Alpine',        69,  2, '1981-01-01', 'Flavio Briatore'),
+('Haas',          31,  0, '2014-01-01', 'Ayao Komatsu'),
+('Audi',          27,  0, '1970-01-01', 'Mattia Binotto'),
+('Williams',      12,  9, '1977-12-16', 'James Vowles'),
+('Aston Martin',   7,  0, '1991-01-01', 'Adrian Newey'),
+('Cadillac',       0,  0, '2023-01-01', 'Graeme Lowdon');
 
 
 INSERT INTO piloto_historico (id_piloto, nombre, pais, fecha_nacimiento, titulos_ganados) VALUES
@@ -37,28 +37,28 @@ INSERT INTO piloto_historico (id_piloto, nombre, pais, fecha_nacimiento, titulos
 (11, 'Sergio Pérez',        'México',       '1990-01-26', 0);
 
 INSERT INTO piloto (id_piloto, id_escuderia, puntos_temporada) VALUES
-(12, 'mercedes',     380),
-(3,  'red_bull',     261),
-(44,  'ferrari',      259),
-(63,  'mercedes',     250),
-(16,  'ferrari',      245),
-(1,  'mclaren',      221),
-(81,  'mclaren',      144),
-(6, 'red_bull',     107),
-(30, 'racing_bulls',  83),
-(10,  'alpine',        42),
-(41, 'racing_bulls',  38),
-(43, 'alpine',        27),
-(87, 'haas',          23),
-(5, 'audi',          14),
-(27, 'audi',          13),
-(14,  'aston_martin',   7),
-(55, 'williams',       7),
-(23, 'williams',       5),
-(18, 'aston_martin',   0),
-(77, 'cadillac',       0),
-(11, 'cadillac',       0),
-(51, 'haas',           0);
+(12, 'Mercedes',     380),
+(3,  'Red Bull',     261),
+(44,  'Ferrari',      259),
+(63,  'Mercedes',     250),
+(16,  'Ferrari',      245),
+(1,  'McLaren',      221),
+(81,  'McLaren',      144),
+(6, 'Red Bull',     107),
+(30, 'Racing Bulls',  83),
+(10,  'Alpine',        42),
+(41, 'Racing Bulls',  38),
+(43, 'Alpine',        27),
+(87, 'Haas',          23),
+(5, 'Audi',          14),
+(27, 'Audi',          13),
+(14,  'Aston Martin',   7),
+(55, 'Williams',       7),
+(23, 'Williams',       5),
+(18, 'Aston Martin',   0),
+(77, 'Cadillac',       0),
+(11, 'Cadillac',       0),
+(51, 'Haas',           0);
 
 INSERT INTO gran_premio (id_gran_premio, pais, longitud_km, cantidad_vueltas, id_ultimo_ganador) VALUES
 ('albert_park',     'Australia',             5, 58, 63), -- George Russell

@@ -1,46 +1,49 @@
 package views
 
 import (
-	"fmt"
-	d "Proyecto_web/db/sqlc"
+    "fmt"
+    d "Proyecto_web/db/sqlc"
 )
 
-templ EscuderiasPage(escuderias []d.Escuderium,orden string) {
-	@Layout("Escuderías") {
-		<div class="page-container">
-			<div class="page-header">
-				<h1>Escuderías <span>2026</span></h1>
-				<p>Todos los equipos de la temporada.</p>
-				if orden == "asc" {
-					<a href="escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
-				} else {
-					<a href="/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
-				}
-			</div>
-			
-			<div class="grid-content teams-grid">
-				for _, e := range escuderias {
-					<article class="data-card">
-							<div class="team-img-box">
-								<img
-									src={ "/front/imagenes/escuderias/" + e.IDEscuderia + ".jpg" }
-									alt={ e.IDEscuderia }
-									onerror="this.parentElement.style.display='none'"
-								/>
-							</div>
-						<div class="data-card-header">
-							<span class="badge">Escudería</span>
-							<h3>{ e.IDEscuderia }</h3>
-						</div>
-						<div class="data-card-body">
-							<p><strong>TeamPrincipal:</strong> { e.TeamPrincipal }</p>
-							<p><strong>Titulo de constructores:</strong> { e.TitulosConstructores }</p>
-							<p><strong>Fecha de fundación:</strong> { e.FechaFundacion.Format("02/01/2006") }</p>
-							<p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
-						</div>
-					</article>
-				}
-			</div>
-		</div>
-	}
+templ EscuderiasPage(escuderias []d.Escuderium, orden string) {
+    @Layout("Escuderías") {
+        <div class="page-container">
+            <div class="page-header">
+                <h1>Escuderías <span>2026</span></h1>
+                <p>Todos los equipos de la temporada.</p>
+                
+                <div class="filter-container" style="margin-top: 1.5rem;">
+                    if orden == "asc" {
+                        <a href="escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
+                    } else {
+                        <a href="/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
+                    }
+                </div>
+            </div>
+            
+            <div class="grid-content teams-grid">
+                for _, e := range escuderias {
+                    <article class="data-card">
+                        <div class="team-img-box">
+                            <img
+                                src={ fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.IDEscuderia) }
+                                alt={ e.IDEscuderia }
+                                onerror="this.onerror=null; this.src='/front/imagenes/escuderias/default.jpg';"
+                            />
+                        </div>
+                        <div class="data-card-header">
+                            <span class="badge">Escudería</span>
+                            <h3>{ e.IDEscuderia }</h3>
+                        </div>
+                        <div class="data-card-body">
+                            <p><strong>Team Principal:</strong> { e.TeamPrincipal }</p>
+                            <p><strong>Título de constructores:</strong> { e.TitulosConstructores }</p>
+                            <p><strong>Fecha de fundación:</strong> { e.FechaFundacion.Format("02/01/2006") }</p>
+                            <p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    }
 }

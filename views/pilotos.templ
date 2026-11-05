@@ -5,21 +5,29 @@ import (
 	d "Proyecto_web/db/sqlc"
 )
 
-templ PilotosPage(pilotos []d.ListarPilotosRow) {
+templ PilotosPage(pilotos []d.ListarPilotosRow, orden string) {
 	@Layout("Pilotos") {
 		<div class="page-container">
 			<div class="page-header">
-				<h1>Los <span>Pilotos</span></h1>
-				<p>La parrilla completa de la temporada.</p>
+				<h1>Pilotos <span>2026</span></h1>
+				<p>La parrilla completa de la temporada 2026.</p>
+
+				<div class="filter-container" style="margin-top: 1.5rem;">
+                    if orden == "asc" {
+                        <a href="pilotos?orden=desc" class="btn-register">Ordenado: Menor a Mayor (Puntos Temporada) ⇅</a>
+                    } else {
+                        <a href="/pilotos?orden=asc" class="btn-register">Ordenado: Mayor a Menor (Puntos Temporada) ⇅</a>
+                    }
+                </div>
 			</div>
 			<div class="grid-content">
 				for _, p := range pilotos {
 					<article class="data-card driver-card">
 						<div class="driver-img-box">
 							<img
-								src={ fmt.Sprintf("/imagenes/pilotos/%d.jpg", p.IDPiloto) }
+								src={ fmt.Sprintf("/front/imagenes/pilotos/%d.jpg", p.IDPiloto) }
 								alt={ p.Nombre }
-								onerror="this.parentElement.style.display='none'"
+								onerror="this.onerror=null; this.src='/front/imagenes/pilotos/default.jpg';"
 							/>
 						</div>
 						<span class="driver-number">{ fmt.Sprint(p.IDPiloto) }</span>

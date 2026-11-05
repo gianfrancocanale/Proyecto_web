@@ -44,18 +44,19 @@ func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orden := r.URL.Query().Get("orden")
-	if orden != "desc" {
-		orden = "asc" // valor por defecto
+	if orden != "asc" {
+		orden = "desc" // Lo más habitual para puntos es de mayor a menor por defecto
 	}
 
+	// Ordenamiento por PuntosTemporada
 	sort.Slice(pilotos, func(i, j int) bool {
 		if orden == "desc" {
-			return pilotos[i].IDPiloto > pilotos[j].IDPiloto
+			return pilotos[i].PuntosTemporada > pilotos[j].PuntosTemporada
 		}
-		return pilotos[i].IDPiloto < pilotos[j].IDPiloto
+		return pilotos[i].PuntosTemporada < pilotos[j].PuntosTemporada
 	})
 
-	vista.PilotosPage(pilotos).Render(r.Context(), w)
+	vista.PilotosPage(pilotos, orden).Render(r.Context(), w)
 }
 
 func (h *PilotoHandler) CrearPiloto(w http.ResponseWriter, r *http.Request) {
