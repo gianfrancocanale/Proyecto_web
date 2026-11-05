@@ -24,7 +24,7 @@ func main() {
 	//hPilotoHistorico := h.NewPilotoHistoricoHandler(db)
 	hPiloto := h.NewPilotoHandler(db)
 	hEscuderia := h.NewEscuderiaHandler(db)
-	//hGranPremio := h.NewGranPremioHandler(db)
+	hGranPremio := h.NewGranPremioHandler(db)
 	//hApuesta := h.NewApuestaHandler(db)
 	//hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
 
@@ -33,6 +33,7 @@ func main() {
 	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
 	http.HandleFunc("GET /escuderias", hEscuderia.Pagina)
 	http.HandleFunc("GET /pilotos", hPiloto.Pagina)
+	http.HandleFunc("GET /gran_premios", hGranPremio.Pagina)
 
 	http.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
 	http.HandleFunc("/registrar", hUsuario.PaginaRegistrar)

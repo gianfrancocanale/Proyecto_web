@@ -17,7 +17,7 @@ templ PilotosPage(pilotos []d.ListarPilotosRow) {
 					<article class="data-card driver-card">
 						<div class="driver-img-box">
 							<img
-								src={ fmt.Sprintf("/imagenes/%d.jpg", p.IDPiloto) }
+								src={ fmt.Sprintf("/imagenes/pilotos/%d.jpg", p.IDPiloto) }
 								alt={ p.Nombre }
 								onerror="this.parentElement.style.display='none'"
 							/>
