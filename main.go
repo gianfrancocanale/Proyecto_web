@@ -25,7 +25,7 @@ func main() {
 	hPiloto := h.NewPilotoHandler(db)
 	hEscuderia := h.NewEscuderiaHandler(db)
 	hGranPremio := h.NewGranPremioHandler(db)
-	//hApuesta := h.NewApuestaHandler(db)
+	hApuesta := h.NewApuestaHandler(db)
 	//hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
 
 	http.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
@@ -38,6 +38,8 @@ func main() {
 	http.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
 	http.HandleFunc("/registrar", hUsuario.PaginaRegistrar)
 	http.HandleFunc("/salir", hUsuario.Salir)
+
+	http.HandleFunc("/apuestas", h.RequiereLogin(hApuesta.PaginaApuestas))
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")

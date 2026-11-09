@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	sqlc "Proyecto_web/db/sqlc"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+
+	sqlc "Proyecto_web/db/sqlc"
+	"Proyecto_web/views"
 )
 
 // ApuestaHandler agrupa los handlers de apuesta y guarda
@@ -25,289 +26,166 @@ func NewApuestaHandler(db *sql.DB) *ApuestaHandler {
 	}
 }
 
-// HandlerApuesta despacha según el método HTTP para la ruta /apuestas.
-func (h *ApuestaHandler) HandlerApuesta(w http.ResponseWriter, r *http.Request) {
+func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) {
+	usuario, ok := usuarioActual(r) // el usuario SIEMPRE sale de la cookie
+	if !ok {
+		http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
+		return
+	}
+
 	switch r.Method {
+	case http.MethodGet:
+		h.renderApuestas(w, r, usuario, "")
+
 	case http.MethodPost:
-		h.CrearApuesta(w, r)
-	case http.MethodGet:
-		h.ListarApuestas(w, r)
+		h.crearApuestaDesdeForm(w, r, usuario)
+
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
 }
 
-// HandlerApuestaIdUsuario despacha según el método HTTP para la ruta de una apuesta puntual de un usuario.
-func (h *ApuestaHandler) HandlerApuestaIdUsuario(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerApuestaPorIdUsuario(w, r)
-	case http.MethodPut:
-		h.ActualizarApuestaIdUsuario(w, r)
-	case http.MethodDelete:
-		h.EliminarApuesta(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func (h *ApuestaHandler) HandlerApuestaUsuario(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ObtenerApuestaUsuario(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-func (h *ApuestaHandler) CrearApuesta(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Request, usuario string) {
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderApuestas(w, r, usuario, "Formulario inválido")
 		return
 	}
 
-	var apuesta sqlc.CrearApuestaParams
+	q := h.queries
+	ctx := r.Context()
 
-	err := json.NewDecoder(r.Body).Decode(&apuesta)
+	// 1) Gran premio: "id|YYYY-MM-DD". Se valida contra los que realmente están disponibles.
+	idGP, fechaStr, ok := strings.Cut(r.FormValue("gran_premio"), "|")
+	fechaCarrera, errFecha := time.Parse("2006-01-02", fechaStr)
+	if !ok || errFecha != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderApuestas(w, r, usuario, "Elegí un gran premio")
+		return
+	}
+
+	gps, err := q.ListarGranPremiosProximos(ctx)
 	if err != nil {
-		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderApuestas(w, r, usuario, "Error interno")
 		return
 	}
-
-	// fecha_apuesta la asigna el servidor, por eso no se valida acá
-	if apuesta.NombreUsuario == "" || apuesta.IDGranPremio == "" || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	// Asignar la fecha actual como fecha de la apuesta
-	apuesta.FechaApuesta = time.Now()
-
-	// Verificar que el usuario existe
-	_, err = h.queries.RecuperarUsuarioPorId(r.Context(), apuesta.NombreUsuario)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "No existe el usuario", http.StatusBadRequest)
-		} else {
-			http.Error(w, "Error al verificar el usuario", http.StatusInternalServerError)
+	disponible := false
+	for _, gp := range gps {
+		if gp.IDGranPremio == idGP && gp.FechaCarrera.Format("2006-01-02") == fechaStr {
+			disponible = true
+			break
 		}
+	}
+	if !disponible {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderApuestas(w, r, usuario, "Ese gran premio no está disponible")
 		return
 	}
 
-	var granPremio sqlc.RecuperarGranPremioHistoricoParams
-	granPremio.IDGranPremio = apuesta.IDGranPremio
-	granPremio.FechaCarrera = apuesta.FechaCarrera
-
-	// Verificar que el gran premio existe
-	_, err = h.queries.RecuperarGranPremioHistorico(r.Context(), granPremio)
+	// 2) Pilotos: exactamente 10, existentes y sin repetir.
+	pilotosDB, err := q.ListarPilotosParaApuesta(ctx)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "No existe el gran premio", http.StatusBadRequest)
-		} else {
-			http.Error(w, "Error al verificar el gran premio", http.StatusInternalServerError)
-		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderApuestas(w, r, usuario, "Error interno")
+		return
+	}
+	existentes := make(map[int32]bool, len(pilotosDB))
+	for _, p := range pilotosDB {
+		existentes[p.IDPiloto] = true
+	}
+
+	valores := r.Form["piloto"]
+	if len(valores) != 10 {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderApuestas(w, r, usuario, "Tenés que elegir 10 pilotos")
 		return
 	}
 
-	// Verificar que todos los pilotos en la predicción existen
-	for _, pilotoID := range apuesta.Prediccion {
-		_, err = h.queries.RecuperarPiloto(r.Context(), pilotoID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				http.Error(w, "No existe el piloto en la predicción", http.StatusBadRequest)
-			} else {
-				http.Error(w, "Error al verificar el piloto en la predicción", http.StatusInternalServerError)
-			}
+	prediccion := make([]int32, 0, 10)
+	vistos := map[int32]bool{}
+	for _, v := range valores {
+		n, err := strconv.Atoi(v)
+		id := int32(n)
+		if err != nil || !existentes[id] {
+			w.WriteHeader(http.StatusBadRequest)
+			h.renderApuestas(w, r, usuario, "Piloto inválido")
 			return
 		}
-	}
-
-	devolver, err := h.queries.CrearApuesta(r.Context(), apuesta)
-	if err != nil {
-		http.Error(w, "Error al crear la apuesta", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(devolver)
-}
-
-func (h *ApuestaHandler) ListarApuestas(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	apuestas, err := h.queries.ListarApuestas(r.Context())
-	if err != nil {
-		http.Error(w, "Error al obtener las apuestas", http.StatusInternalServerError)
-		return
-	}
-	if len(apuestas) == 0 {
-		http.Error(w, "No se encontraron apuestas", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(apuestas)
-}
-
-func (h *ApuestaHandler) ObtenerApuestaUsuario(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	nombreUsuario := r.PathValue("usuario")
-	if nombreUsuario == "" {
-		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	_, err := h.queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "No existe el usuario", http.StatusBadRequest)
-		} else {
-			http.Error(w, "Error al verificar el usuario", http.StatusInternalServerError)
+		if vistos[id] {
+			w.WriteHeader(http.StatusBadRequest)
+			h.renderApuestas(w, r, usuario, "No podés repetir pilotos")
+			return
 		}
-		return
+		vistos[id] = true
+		prediccion = append(prediccion, id)
 	}
 
-	apuestas, err := h.queries.ListarApuestasPorUsuario(r.Context(), nombreUsuario)
+	// 3) Guardar
+	_, err = q.CrearApuesta(ctx, sqlc.CrearApuestaParams{
+		NombreUsuario: usuario,
+		IDGranPremio:  idGP,
+		FechaCarrera:  fechaCarrera,
+		Prediccion:    prediccion,
+		FechaApuesta:  time.Now(),
+	})
 	if err != nil {
-		http.Error(w, "Error al obtener las apuestas", http.StatusInternalServerError)
-		return
-	}
-	if len(apuestas) == 0 {
-		http.Error(w, "No se encontraron apuestas", http.StatusNotFound)
+		if strings.Contains(err.Error(), "unq_usuario_gran_premio_carrera") {
+			w.WriteHeader(http.StatusConflict)
+			h.renderApuestas(w, r, usuario, "Ya apostaste en ese gran premio")
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderApuestas(w, r, usuario, "No se pudo guardar la apuesta")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(apuestas)
+	// Redirect para que F5 no reenvíe el formulario.
+	http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 }
 
-func (h *ApuestaHandler) ObtenerApuestaPorIdUsuario(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
+func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
+	q := h.queries
+	ctx := r.Context()
+	data := views.ApuestasData{Usuario: usuario, Mensaje: mensaje}
 
-	idApuesta, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
-		return
-	}
-	nombreUsuario := r.PathValue("usuario")
-	if nombreUsuario == "" {
-		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.queries.RecuperarUsuarioPorId(r.Context(), nombreUsuario)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "No existe el usuario", http.StatusBadRequest)
-		} else {
-			http.Error(w, "Error al verificar el usuario", http.StatusInternalServerError)
+	if gps, err := q.ListarGranPremiosProximos(ctx); err == nil {
+		for _, gp := range gps {
+			fecha := gp.FechaCarrera.Format("2006-01-02")
+			data.GranPremios = append(data.GranPremios, views.OpcionGP{
+				Valor: gp.IDGranPremio + "|" + fecha,
+				Texto: gp.IDGranPremio + " — " + gp.FechaCarrera.Format("02/01/2006"),
+			})
 		}
-		return
 	}
-
-	var PK_apuesta sqlc.RecuperarApuestaPorIdUsuarioParams
-	PK_apuesta.IDApuesta = int32(idApuesta)
-	PK_apuesta.NombreUsuario = nombreUsuario
-
-	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(r.Context(), PK_apuesta)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al obtener la apuesta", http.StatusInternalServerError)
+	// Pilotos de la temporada para los selects
+	if ps, err := q.ListarPilotosParaApuesta(ctx); err == nil {
+		for _, p := range ps {
+			data.Pilotos = append(data.Pilotos, views.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
 		}
-		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(apuesta)
-}
-
-func (h *ApuestaHandler) ActualizarApuestaIdUsuario(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	idApuesta, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
-		return
-	}
-	nombreUsuario := r.PathValue("usuario")
-	if nombreUsuario == "" {
-		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	var apuesta sqlc.ModificarApuestaParams
-
-	err = json.NewDecoder(r.Body).Decode(&apuesta)
-	if err != nil {
-		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
-		return
-	}
-
-	// La identidad de la apuesta sale siempre de la URL, no del body
-	apuesta.IDApuesta = int32(idApuesta)
-	apuesta.NombreUsuario = nombreUsuario
-
-	if apuesta.IDGranPremio == "" || len(apuesta.Prediccion) == 0 || apuesta.FechaCarrera.IsZero() || apuesta.FechaApuesta.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	devolver, err := h.queries.ModificarApuesta(r.Context(), apuesta)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al actualizar la apuesta", http.StatusInternalServerError)
+	// Nombres de todos los pilotos, para mostrar apuestas viejas
+	nombres := map[int32]string{}
+	if ps, err := q.ListarPilotosHistoricos(ctx); err == nil {
+		for _, p := range ps {
+			nombres[p.IDPiloto] = p.Nombre
 		}
-		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(devolver)
-}
-
-func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
+	if aps, err := q.ListarApuestasPorUsuario(ctx, usuario); err == nil {
+		for _, a := range aps {
+			pos := make([]string, 0, len(a.Prediccion))
+			for _, id := range a.Prediccion {
+				pos = append(pos, nombres[id])
+			}
+			data.Apuestas = append(data.Apuestas, views.ApuestaVista{
+				GranPremio: a.IDGranPremio,
+				Fecha:      a.FechaCarrera.Format("02/01/2006"),
+				Posiciones: pos,
+			})
+		}
 	}
 
-	idApuesta, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-	if err != nil {
-		http.Error(w, "ID de apuesta inválido", http.StatusBadRequest)
-		return
-	}
-	nombreUsuario := r.PathValue("usuario")
-	if nombreUsuario == "" {
-		http.Error(w, "Nombre de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	var apuestaEliminada sqlc.EliminarApuestaParams
-	apuestaEliminada.IDApuesta = int32(idApuesta)
-	apuestaEliminada.NombreUsuario = nombreUsuario
-
-	err = h.queries.EliminarApuesta(r.Context(), apuestaEliminada)
-	if err != nil {
-		http.Error(w, "Error al eliminar la apuesta", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	views.ApuestasPage(data).Render(ctx, w)
 }

@@ -84,3 +84,11 @@ INSERT INTO gran_premio (id_gran_premio, pais, longitud_km, cantidad_vueltas, id
 ('Las Vegas',       'Estados Unidos',        6, 50, 3), -- Pendiente por disputar
 ('Losail',          'Catar',                 5, 57, 3), -- Pendiente por disputar
 ('Yas Marina',      'Emiratos Árabes Unidos',5, 58, 3); -- Pendiente por disputar
+
+INSERT INTO gran_premio_historico (id_gran_premio, fecha_carrera, resultado_carrera) VALUES
+('Las Vegas',     '2026-11-22',  null),
+('Losail',        '2026-11-29',  null),
+('Yas Marina',    '2026-12-06',  null);
+
+INSERT INTO usuario (nombre_usuario, contrasena) VALUES
+('admin', 'admin123');

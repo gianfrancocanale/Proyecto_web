@@ -128,18 +128,6 @@ INSERT INTO piloto_historico (
 )
 RETURNING *;
 
-
--- name: ListarPilotosHistoricos :many
--- Obtener catálogo histórico general de pilotos
-SELECT
-    id_piloto,
-    nombre,
-    pais,
-    fecha_nacimiento,
-    titulos_ganados
-FROM piloto_historico
-ORDER BY titulos_ganados DESC, nombre ASC;
-
 -- name: RecuperarPilotoHistorico :one
 -- Obtener datos de un piloto histórico por ID
 SELECT
@@ -444,3 +432,58 @@ RETURNING
 -- Eliminar una apuesta
 DELETE FROM apuesta
 WHERE id_apuesta = $1 AND nombre_usuario = $2;
+-- name: ListarGranPremiosProximos :many
+-- Ediciones sin resultado y todavía no corridas: se puede apostar
+SELECT id_gran_premio, fecha_carrera
+FROM gran_premio_historico
+WHERE resultado_carrera IS NULL
+  AND fecha_carrera > CURRENT_DATE
+ORDER BY fecha_carrera;
+
+-- name: ListarPilotosParaApuesta :many
+-- Solo los pilotos de la temporada actual, con su nombre
+SELECT p.id_piloto, ph.nombre
+FROM piloto p
+JOIN piloto_historico ph ON ph.id_piloto = p.id_piloto
+ORDER BY ph.nombre;
+
+-- name: ListarPilotosHistoricos :many
+-- Para mostrar nombres en apuestas viejas, aunque el piloto ya no corra
+SELECT id_piloto, nombre
+FROM piloto_historico;
+
+-- name: CrearEdicionGranPremio :one
+-- Programar una carrera futura (sin resultado todavía)
+INSERT INTO gran_premio_historico (id_gran_premio, fecha_carrera)
+VALUES ($1, $2)
+RETURNING id_gran_premio, fecha_carrera, resultado_carrera;
+
+-- name: CargarResultadoCarrera :one
+-- Cargar los 22 resultados: la edición pasa a ser histórica
+UPDATE gran_premio_historico
+SET resultado_carrera = $3
+WHERE id_gran_premio = $1
+  AND fecha_carrera = $2
+  AND resultado_carrera IS NULL
+RETURNING id_gran_premio, fecha_carrera, resultado_carrera;
+
+-- name: ListarGranPremiosHistoricos :many
+-- Carreras ya corridas, con su resultado
+SELECT id_gran_premio, fecha_carrera, resultado_carrera
+FROM gran_premio_historico
+WHERE resultado_carrera IS NOT NULL
+ORDER BY fecha_carrera DESC;
+
+-- name: ActualizarPrediccionApuesta :one
+-- Solo si la apuesta es del usuario y la carrera sigue abierta
+UPDATE apuesta a
+SET prediccion = $3,
+    fecha_apuesta = $4
+FROM gran_premio_historico g
+WHERE a.id_apuesta = $1
+  AND a.nombre_usuario = $2
+  AND g.id_gran_premio = a.id_gran_premio
+  AND g.fecha_carrera = a.fecha_carrera
+  AND g.resultado_carrera IS NULL
+  AND g.fecha_carrera > CURRENT_DATE
+RETURNING a.id_apuesta, a.nombre_usuario, a.id_gran_premio, a.fecha_carrera, a.prediccion, a.fecha_apuesta;
