@@ -82,6 +82,7 @@ El sitio se renderiza del lado del servidor. Los archivos estáticos (CSS, imág
 | `/apuestas` | Requiere sesión | Ver las apuestas propias y cargar una nueva eligiendo un Gran Premio y los 10 pilotos. |
 | `/apuestas/modificar` | Requiere sesión | Modificar una apuesta. |
 | `/apuestas/eliminar` | Requiere sesión | Eliminar una apuesta. |
+| Cualquier otra ruta | Público | Página de error 404, con código de estado 404. Su botón lleva a la página de inicio (`/`), no a `/ingresar`. |
 
 ### Sesiones
 
@@ -105,19 +106,10 @@ Al ingresar, el servidor crea una cookie `sesion` con un token asociado al nombr
 
 ---
 
-## Estructura del repositorio
+### Error 404
 
-```
-.
-├── db/                  # Esquema SQL, queries y código generado por sqlc
-├── handlers/            # Handlers HTTP y middleware de sesión
-├── views/               # Vistas templ
-├── front/               # Archivos estáticos (CSS, imágenes)
-├── main.go              # Rutas y arranque del servidor
-├── Makefile
-├── Dockerfile
-├── docker-compose.yml
-├── sqlc.yaml
-├── .env.example
-└── README.md
+Cualquier ruta que no coincida con ninguna de las anteriores muestra una página de error 404 (`NoEncontradoPage`). Esta página responde con el código de estado `404` y tiene un botón que redirige a la página de inicio (`/`).
+
+Se registra con el patrón `"/"`, que Go aplica solo a las rutas que ninguna otra captura; la raíz exacta sigue siendo atendida por `"GET /{$}"`.
+
 ```

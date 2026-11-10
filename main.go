@@ -31,6 +31,8 @@ func main() {
 	http.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
 
 	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
+	http.Handle("/", templ.Handler(v.NoEncontradoPage(), templ.WithStatus(http.StatusNotFound)))
+
 	http.HandleFunc("GET /escuderias", hEscuderia.Pagina)
 	http.HandleFunc("GET /pilotos", hPiloto.Pagina)
 	http.HandleFunc("GET /gran_premios", hGranPremio.Pagina)

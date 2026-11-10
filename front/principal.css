@@ -1091,3 +1091,24 @@ a {
 .bet-actions > .btn-login {
     flex: 1;
 }
+
+.error-page {
+    min-height: 100vh;
+}
+
+.error-box {
+    text-align: center;
+}
+
+.error-code {
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--rojo);
+    margin-bottom: 8px;
+}
+
+.error-box .btn-register {
+    display: inline-block;
+}

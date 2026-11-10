@@ -34,7 +34,7 @@ func crearSesion(w http.ResponseWriter, nombreUsuario string) error {
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  time.Now().Add(15 * time.Minute),
 	})
 	return nil
 }
