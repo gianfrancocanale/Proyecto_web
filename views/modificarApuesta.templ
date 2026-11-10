@@ -1,0 +1,51 @@
+package views
+
+import "strconv"
+
+type ModificarData struct {
+	Usuario         string
+	Mensaje         string
+	ID              int
+	GranPremioTexto string
+	Pilotos         []OpcionPiloto
+	Seleccion       []int // id_piloto actual en cada posición (índice 0 = P1)
+}
+
+templ ModificarApuestaPage(d ModificarData) {
+	@Layout("Modificar apuesta") {
+		<div class="page-header">
+			<h1>Modificar <span>apuesta</span></h1>
+			<p>{ d.GranPremioTexto }</p>
+		</div>
+		<div class="auth-container">
+			<div class="auth-box">
+				<h2>Tu nuevo <span>top 10</span></h2>
+				<p class="auth-subtitle">Un piloto por posición, sin repetir</p>
+				if d.Mensaje != "" {
+					<div class="alert-error">{ d.Mensaje }</div>
+				}
+				<form method="post" action="/apuestas/modificar" class="auth-form">
+					<input type="hidden" name="id_apuesta" value={ strconv.Itoa(d.ID) }/>
+					<div class="positions-form">
+						for i := range 10 {
+							<div class="position-row">
+								<span class="position-number">P{ strconv.Itoa(i + 1) }</span>
+								<select name="piloto" required>
+									<option value="">Elegí un piloto</option>
+									for _, p := range d.Pilotos {
+										<option
+											value={ strconv.Itoa(p.ID) }
+											selected?={ i < len(d.Seleccion) && d.Seleccion[i] == p.ID }
+										>{ p.Nombre }</option>
+									}
+								</select>
+							</div>
+						}
+					</div>
+					<button type="submit" class="btn-submit">Guardar cambios</button>
+				</form>
+				<p class="auth-footer-text"><a href="/apuestas">Cancelar y volver</a></p>
+			</div>
+		</div>
+	}
+}

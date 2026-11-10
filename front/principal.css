@@ -1055,3 +1055,39 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+.bet-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.bet-actions form {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+
+.bet-actions .btn-login,
+.bet-actions .btn-register {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 0;
+    height: 38px;
+    padding: 0 16px;
+    text-align: center;
+    text-decoration: none;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.bet-actions > .btn-login {
+    flex: 1;
+}

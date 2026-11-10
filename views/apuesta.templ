@@ -17,7 +17,7 @@ type ApuestaVista struct {
 	GranPremio string
 	Fecha      string
 	Posiciones []string
-	Editable   bool
+	Editable   bool // true si la carrera sigue abierta
 }
 
 type ApuestasData struct {
@@ -26,13 +26,6 @@ type ApuestasData struct {
 	Pilotos     []OpcionPiloto
 	Apuestas    []ApuestaVista
 	Mensaje     string
-
-	// Modo edición
-	Accion          string // a dónde hace POST el formulario
-	Editando        bool
-	EditandoID      int
-	GranPremioTexto string
-	Seleccion       []int // id_piloto elegido en cada posición
 }
 
 templ ApuestasPage(d ApuestasData) {
@@ -43,32 +36,23 @@ templ ApuestasPage(d ApuestasData) {
 		</div>
 		<div class="bets-layout">
 			<div class="auth-box bet-form-box">
-				if d.Editando {
-					<h2>Editar <span>apuesta</span></h2>
-					<p class="auth-subtitle">{ d.GranPremioTexto }</p>
-				} else {
-					<h2>Nueva <span>apuesta</span></h2>
-					<p class="auth-subtitle">Un piloto por posición, sin repetir</p>
-				}
+				<h2>Nueva <span>apuesta</span></h2>
+				<p class="auth-subtitle">Un piloto por posición, sin repetir</p>
 				if d.Mensaje != "" {
 					<div class="alert-error">{ d.Mensaje }</div>
 				}
-				if !d.Editando && len(d.GranPremios) == 0 {
+				if len(d.GranPremios) == 0 {
 					<p class="auth-subtitle">No hay grandes premios disponibles para apostar.</p>
 				} else {
-					<form method="post" action={ templ.URL(d.Accion) } class="auth-form">
-						if d.Editando {
-							<input type="hidden" name="id_apuesta" value={ strconv.Itoa(d.EditandoID) }/>
-						} else {
-							<div class="form-group">
-								<label for="gran_premio">Gran premio</label>
-								<select id="gran_premio" name="gran_premio" required>
-									for _, gp := range d.GranPremios {
-										<option value={ gp.Valor }>{ gp.Texto }</option>
-									}
-								</select>
-							</div>
-						}
+					<form method="post" action="/apuestas" class="auth-form">
+						<div class="form-group">
+							<label for="gran_premio">Gran premio</label>
+							<select id="gran_premio" name="gran_premio" required>
+								for _, gp := range d.GranPremios {
+									<option value={ gp.Valor }>{ gp.Texto }</option>
+								}
+							</select>
+						</div>
 						<div class="positions-form">
 							for i := range 10 {
 								<div class="position-row">
@@ -76,21 +60,13 @@ templ ApuestasPage(d ApuestasData) {
 									<select name="piloto" required>
 										<option value="">Elegí un piloto</option>
 										for _, p := range d.Pilotos {
-											<option
-												value={ strconv.Itoa(p.ID) }
-												selected?={ d.Editando && i < len(d.Seleccion) && d.Seleccion[i] == p.ID }
-											>{ p.Nombre }</option>
+											<option value={ strconv.Itoa(p.ID) }>{ p.Nombre }</option>
 										}
 									</select>
 								</div>
 							}
 						</div>
-						if d.Editando {
-							<button type="submit" class="btn-submit">Guardar cambios</button>
-							<a href="/web/apuestas" class="auth-footer-text">Cancelar</a>
-						} else {
-							<button type="submit" class="btn-submit">Guardar apuesta</button>
-						}
+						<button type="submit" class="btn-submit">Guardar apuesta</button>
 					</form>
 				}
 			</div>
@@ -117,9 +93,20 @@ templ ApuestasPage(d ApuestasData) {
 										</li>
 									}
 								</ol>
-								if a.Editable {
-									<a href={ templ.URL("/web/apuestas/editar?id=" + strconv.Itoa(a.ID)) } class="card-link bet-edit">Editar</a>
-								}
+									if a.Editable {
+										<div class="bet-actions">
+											<a href={ templ.URL("/apuestas/modificar?id=" + strconv.Itoa(a.ID)) } class="btn-login">
+												Modificar
+											</a>
+
+											<form method="post" action="/apuestas/eliminar">
+												<input type="hidden" name="id_apuesta" value={ strconv.Itoa(a.ID) }/>
+												<button type="submit" class="btn-register">
+													Borrar
+												</button>
+											</form>
+										</div>
+									}
 							</div>
 						</article>
 					}

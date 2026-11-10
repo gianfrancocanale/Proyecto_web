@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +28,10 @@ func NewApuestaHandler(db *sql.DB) *ApuestaHandler {
 		queries: sqlc.New(db),
 	}
 }
+
+// ---------------------------------------------------------------
+// Página principal: listar y crear
+// ---------------------------------------------------------------
 
 func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r) // el usuario SIEMPRE sale de la cookie
@@ -52,10 +59,9 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	q := h.queries
 	ctx := r.Context()
 
-	// 1) Gran premio: "id|YYYY-MM-DD". Se valida contra los que realmente están disponibles.
+	// 1) Gran premio: "id|YYYY-MM-DD". Se valida contra los que están abiertos.
 	idGP, fechaStr, ok := strings.Cut(r.FormValue("gran_premio"), "|")
 	fechaCarrera, errFecha := time.Parse("2006-01-02", fechaStr)
 	if !ok || errFecha != nil {
@@ -63,66 +69,22 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 		h.renderApuestas(w, r, usuario, "Elegí un gran premio")
 		return
 	}
-
-	gps, err := q.ListarGranPremiosProximos(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderApuestas(w, r, usuario, "Error interno")
-		return
-	}
-	disponible := false
-	for _, gp := range gps {
-		if gp.IDGranPremio == idGP && gp.FechaCarrera.Format("2006-01-02") == fechaStr {
-			disponible = true
-			break
-		}
-	}
-	if !disponible {
+	if !h.carreraAbierta(ctx, idGP, fechaCarrera) {
 		w.WriteHeader(http.StatusBadRequest)
 		h.renderApuestas(w, r, usuario, "Ese gran premio no está disponible")
 		return
 	}
 
 	// 2) Pilotos: exactamente 10, existentes y sin repetir.
-	pilotosDB, err := q.ListarPilotosParaApuesta(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderApuestas(w, r, usuario, "Error interno")
-		return
-	}
-	existentes := make(map[int32]bool, len(pilotosDB))
-	for _, p := range pilotosDB {
-		existentes[p.IDPiloto] = true
-	}
-
-	valores := r.Form["piloto"]
-	if len(valores) != 10 {
+	prediccion, msg := h.validarPrediccion(r)
+	if msg != "" {
 		w.WriteHeader(http.StatusBadRequest)
-		h.renderApuestas(w, r, usuario, "Tenés que elegir 10 pilotos")
+		h.renderApuestas(w, r, usuario, msg)
 		return
-	}
-
-	prediccion := make([]int32, 0, 10)
-	vistos := map[int32]bool{}
-	for _, v := range valores {
-		n, err := strconv.Atoi(v)
-		id := int32(n)
-		if err != nil || !existentes[id] {
-			w.WriteHeader(http.StatusBadRequest)
-			h.renderApuestas(w, r, usuario, "Piloto inválido")
-			return
-		}
-		if vistos[id] {
-			w.WriteHeader(http.StatusBadRequest)
-			h.renderApuestas(w, r, usuario, "No podés repetir pilotos")
-			return
-		}
-		vistos[id] = true
-		prediccion = append(prediccion, id)
 	}
 
 	// 3) Guardar
-	_, err = q.CrearApuesta(ctx, sqlc.CrearApuestaParams{
+	_, err := h.queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
 		NombreUsuario: usuario,
 		IDGranPremio:  idGP,
 		FechaCarrera:  fechaCarrera,
@@ -135,6 +97,7 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 			h.renderApuestas(w, r, usuario, "Ya apostaste en ese gran premio")
 			return
 		}
+		log.Println("CrearApuesta:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderApuestas(w, r, usuario, "No se pudo guardar la apuesta")
 		return
@@ -149,43 +112,271 @@ func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, 
 	ctx := r.Context()
 	data := views.ApuestasData{Usuario: usuario, Mensaje: mensaje}
 
-	if gps, err := q.ListarGranPremiosProximos(ctx); err == nil {
-		for _, gp := range gps {
-			fecha := gp.FechaCarrera.Format("2006-01-02")
-			data.GranPremios = append(data.GranPremios, views.OpcionGP{
-				Valor: gp.IDGranPremio + "|" + fecha,
-				Texto: gp.IDGranPremio + " — " + gp.FechaCarrera.Format("02/01/2006"),
-			})
-		}
+	// Carreras abiertas: para el select y para saber qué apuestas se pueden modificar
+	abiertas := map[string]bool{}
+	gps, err := q.ListarGranPremiosProximos(ctx)
+	if err != nil {
+		log.Println("ListarGranPremiosProximos:", err)
 	}
-	// Pilotos de la temporada para los selects
-	if ps, err := q.ListarPilotosParaApuesta(ctx); err == nil {
-		for _, p := range ps {
-			data.Pilotos = append(data.Pilotos, views.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
-		}
+	for _, gp := range gps {
+		clave := gp.IDGranPremio + "|" + gp.FechaCarrera.Format("2006-01-02")
+		abiertas[clave] = true
+		data.GranPremios = append(data.GranPremios, views.OpcionGP{
+			Valor: clave,
+			Texto: gp.IDGranPremio + " — " + gp.FechaCarrera.Format("02/01/2006"),
+		})
 	}
+
+	data.Pilotos = h.opcionesPilotos(ctx)
 
 	// Nombres de todos los pilotos, para mostrar apuestas viejas
 	nombres := map[int32]string{}
-	if ps, err := q.ListarPilotosHistoricos(ctx); err == nil {
-		for _, p := range ps {
-			nombres[p.IDPiloto] = p.Nombre
-		}
+	hist, err := q.ListarPilotosHistoricos(ctx)
+	if err != nil {
+		log.Println("ListarPilotosHistoricos:", err)
+	}
+	for _, p := range hist {
+		nombres[p.IDPiloto] = p.Nombre
 	}
 
-	if aps, err := q.ListarApuestasPorUsuario(ctx, usuario); err == nil {
-		for _, a := range aps {
-			pos := make([]string, 0, len(a.Prediccion))
-			for _, id := range a.Prediccion {
-				pos = append(pos, nombres[id])
-			}
-			data.Apuestas = append(data.Apuestas, views.ApuestaVista{
-				GranPremio: a.IDGranPremio,
-				Fecha:      a.FechaCarrera.Format("02/01/2006"),
-				Posiciones: pos,
-			})
+	aps, err := q.ListarApuestasPorUsuario(ctx, usuario)
+	if err != nil {
+		log.Println("ListarApuestasPorUsuario:", err)
+	}
+	for _, a := range aps {
+		pos := make([]string, 0, len(a.Prediccion))
+		for _, id := range a.Prediccion {
+			pos = append(pos, nombres[id])
 		}
+		clave := a.IDGranPremio + "|" + a.FechaCarrera.Format("2006-01-02")
+		data.Apuestas = append(data.Apuestas, views.ApuestaVista{
+			ID:         int(a.IDApuesta),
+			GranPremio: a.IDGranPremio,
+			Fecha:      a.FechaCarrera.Format("02/01/2006"),
+			Posiciones: pos,
+			Editable:   abiertas[clave],
+		})
 	}
 
 	views.ApuestasPage(data).Render(ctx, w)
+}
+
+// ---------------------------------------------------------------
+// Modificar una apuesta: /apuestas/modificar
+// ---------------------------------------------------------------
+
+func (h *ApuestaHandler) ModificarApuesta(w http.ResponseWriter, r *http.Request) {
+	usuario, ok := usuarioActual(r)
+	if !ok {
+		http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		id, err := strconv.Atoi(r.URL.Query().Get("id"))
+		if err != nil {
+			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+			return
+		}
+		h.renderModificar(w, r, usuario, int32(id), "", http.StatusOK)
+
+	case http.MethodPost:
+		if err := r.ParseForm(); err != nil {
+			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+			return
+		}
+		id, err := strconv.Atoi(r.FormValue("id_apuesta"))
+		if err != nil {
+			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+			return
+		}
+
+		prediccion, msg := h.validarPrediccion(r)
+		if msg != "" {
+			h.renderModificar(w, r, usuario, int32(id), msg, http.StatusBadRequest)
+			return
+		}
+
+		_, err = h.queries.ActualizarPrediccionApuesta(r.Context(), sqlc.ActualizarPrediccionApuestaParams{
+			IDApuesta:     int32(id),
+			NombreUsuario: usuario, // de la cookie, nunca del formulario
+			Prediccion:    prediccion,
+			FechaApuesta:  time.Now(),
+		})
+		if errors.Is(err, sql.ErrNoRows) {
+			// No es tuya, no existe o la carrera ya se cerró
+			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+			return
+		}
+		if err != nil {
+			log.Println("ActualizarPrediccionApuesta:", err)
+			h.renderModificar(w, r, usuario, int32(id), "No se pudo guardar el cambio", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+
+	default:
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func (h *ApuestaHandler) renderModificar(w http.ResponseWriter, r *http.Request, usuario string, id int32, mensaje string, status int) {
+	ctx := r.Context()
+
+	// Solo trae la apuesta si es de este usuario
+	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
+		NombreUsuario: usuario,
+		IDApuesta:     id,
+	})
+	if err != nil {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+
+	// Y solo si la carrera sigue abierta
+	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+
+	seleccion := make([]int, 0, len(apuesta.Prediccion))
+	for _, p := range apuesta.Prediccion {
+		seleccion = append(seleccion, int(p))
+	}
+
+	data := views.ModificarData{
+		Usuario:         usuario,
+		Mensaje:         mensaje,
+		ID:              int(id),
+		GranPremioTexto: apuesta.IDGranPremio + " — " + apuesta.FechaCarrera.Format("02/01/2006"),
+		Pilotos:         h.opcionesPilotos(ctx),
+		Seleccion:       seleccion,
+	}
+
+	w.WriteHeader(status)
+	views.ModificarApuestaPage(data).Render(ctx, w)
+}
+
+// ---------------------------------------------------------------
+// Reglas del negocio
+// ---------------------------------------------------------------
+
+// carreraAbierta dice si todavía se puede apostar (o modificar) en esa edición.
+func (h *ApuestaHandler) carreraAbierta(ctx context.Context, idGP string, fecha time.Time) bool {
+	gps, err := h.queries.ListarGranPremiosProximos(ctx)
+	if err != nil {
+		log.Println("ListarGranPremiosProximos:", err)
+		return false
+	}
+	f := fecha.Format("2006-01-02")
+	for _, gp := range gps {
+		if gp.IDGranPremio == idGP && gp.FechaCarrera.Format("2006-01-02") == f {
+			return true
+		}
+	}
+	return false
+}
+
+// opcionesPilotos devuelve los pilotos de la temporada para los selects.
+func (h *ApuestaHandler) opcionesPilotos(ctx context.Context) []views.OpcionPiloto {
+	ps, err := h.queries.ListarPilotosParaApuesta(ctx)
+	if err != nil {
+		log.Println("ListarPilotosParaApuesta:", err)
+		return nil
+	}
+	out := make([]views.OpcionPiloto, 0, len(ps))
+	for _, p := range ps {
+		out = append(out, views.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
+	}
+	return out
+}
+
+// validarPrediccion devuelve los 10 id_piloto en orden, o un mensaje de error.
+// Necesita que r.ParseForm() ya se haya llamado.
+func (h *ApuestaHandler) validarPrediccion(r *http.Request) ([]int32, string) {
+	pilotosDB, err := h.queries.ListarPilotosParaApuesta(r.Context())
+	if err != nil {
+		log.Println("ListarPilotosParaApuesta:", err)
+		return nil, "Error interno"
+	}
+	existentes := make(map[int32]bool, len(pilotosDB))
+	for _, p := range pilotosDB {
+		existentes[p.IDPiloto] = true
+	}
+
+	valores := r.Form["piloto"]
+	if len(valores) != 10 {
+		return nil, "Tenés que elegir 10 pilotos"
+	}
+
+	prediccion := make([]int32, 0, 10)
+	vistos := map[int32]bool{}
+	for _, v := range valores {
+		n, err := strconv.Atoi(v)
+		id := int32(n)
+		if err != nil || !existentes[id] {
+			return nil, "Piloto inválido"
+		}
+		if vistos[id] {
+			return nil, "No podés repetir pilotos"
+		}
+		vistos[id] = true
+		prediccion = append(prediccion, id)
+	}
+	return prediccion, ""
+}
+
+// ---------------------------------------------------------------
+// Eliminar una apuesta
+// ---------------------------------------------------------------
+
+func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request) {
+	usuario, ok := usuarioActual(r)
+	if !ok {
+		http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+	id, err := strconv.Atoi(r.FormValue("id_apuesta"))
+	if err != nil {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+
+	ctx := r.Context()
+
+	// La apuesta tiene que ser del usuario de la cookie...
+	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
+		NombreUsuario: usuario,
+		IDApuesta:     int32(id),
+	})
+	if err != nil {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+
+	// ...y la carrera tiene que seguir abierta (regla de negocio).
+	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
+		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		return
+	}
+
+	err = h.queries.EliminarApuesta(ctx, sqlc.EliminarApuestaParams{
+		IDApuesta:     int32(id),
+		NombreUsuario: usuario,
+	})
+	if err != nil {
+		log.Println("EliminarApuesta:", err)
+	}
+
+	http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 }

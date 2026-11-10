@@ -40,6 +40,8 @@ func main() {
 	http.HandleFunc("/salir", hUsuario.Salir)
 
 	http.HandleFunc("/apuestas", h.RequiereLogin(hApuesta.PaginaApuestas))
+	http.HandleFunc("/apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
+	http.HandleFunc("/apuestas/eliminar", h.RequiereLogin(hApuesta.EliminarApuesta))
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")

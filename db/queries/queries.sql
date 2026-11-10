@@ -476,14 +476,17 @@ ORDER BY fecha_carrera DESC;
 
 -- name: ActualizarPrediccionApuesta :one
 -- Solo si la apuesta es del usuario y la carrera sigue abierta
-UPDATE apuesta a
+UPDATE apuesta
 SET prediccion = $3,
     fecha_apuesta = $4
-FROM gran_premio_historico g
-WHERE a.id_apuesta = $1
-  AND a.nombre_usuario = $2
-  AND g.id_gran_premio = a.id_gran_premio
-  AND g.fecha_carrera = a.fecha_carrera
-  AND g.resultado_carrera IS NULL
-  AND g.fecha_carrera > CURRENT_DATE
-RETURNING a.id_apuesta, a.nombre_usuario, a.id_gran_premio, a.fecha_carrera, a.prediccion, a.fecha_apuesta;
+WHERE id_apuesta = $1
+  AND nombre_usuario = $2
+  AND EXISTS (
+    SELECT 1
+    FROM gran_premio_historico g
+    WHERE g.id_gran_premio = apuesta.id_gran_premio
+      AND g.fecha_carrera = apuesta.fecha_carrera
+      AND g.resultado_carrera IS NULL
+      AND g.fecha_carrera > CURRENT_DATE
+  )
+RETURNING id_apuesta, nombre_usuario, id_gran_premio, fecha_carrera, prediccion, fecha_apuesta;

@@ -22,9 +22,11 @@ type OpcionPiloto struct {
 }
 
 type ApuestaVista struct {
+	ID         int
 	GranPremio string
 	Fecha      string
-	Posiciones []string // nombres de pilotos, en orden (índice 0 = P1)
+	Posiciones []string
+	Editable   bool // true si la carrera sigue abierta
 }
 
 type ApuestasData struct {
@@ -71,7 +73,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(d.Usuario)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 33, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 35, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -89,7 +91,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(d.Mensaje)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 40, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 42, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -106,7 +108,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"post\" class=\"auth-form\"><div class=\"form-group\"><label for=\"gran_premio\">Gran premio</label> <select id=\"gran_premio\" name=\"gran_premio\" required>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"post\" action=\"/apuestas\" class=\"auth-form\"><div class=\"form-group\"><label for=\"gran_premio\">Gran premio</label> <select id=\"gran_premio\" name=\"gran_premio\" required>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -118,7 +120,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templruntime.NewAttributeExpression(gp.Valor).Resolve(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 50, Col: 33}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 52, Col: 33}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 					if templ_7745c5c3_Err != nil {
@@ -131,7 +133,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(gp.Texto)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 50, Col: 46}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 52, Col: 46}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -154,7 +156,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(i + 1))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 57, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 59, Col: 61}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
@@ -172,7 +174,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 						var templ_7745c5c3_Var8 string
 						templ_7745c5c3_Var8, templ_7745c5c3_Err = templruntime.NewAttributeExpression(strconv.Itoa(p.ID)).Resolve(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 61, Col: 45}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 63, Col: 45}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 						if templ_7745c5c3_Err != nil {
@@ -185,7 +187,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 						var templ_7745c5c3_Var9 string
 						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Nombre)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 61, Col: 58}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 63, Col: 58}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 						if templ_7745c5c3_Err != nil {
@@ -228,7 +230,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(a.Fecha)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 82, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 84, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -241,7 +243,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(a.GranPremio)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 83, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 85, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -259,7 +261,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(i + 1))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 89, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 91, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -272,7 +274,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					var templ_7745c5c3_Var13 string
 					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(nombre)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 90, Col: 19}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 92, Col: 19}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 					if templ_7745c5c3_Err != nil {
@@ -283,12 +285,48 @@ func ApuestasPage(d ApuestasData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</ol></div></article>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</ol>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if a.Editable {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"bet-actions\"><a href=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var14 string
+					templ_7745c5c3_Var14, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.URL("/apuestas/modificar?id=" + strconv.Itoa(a.ID))).ResolveURL(ctx)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 98, Col: 78}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"btn-login\">Modificar</a><form method=\"post\" action=\"/apuestas/eliminar\"><input type=\"hidden\" name=\"id_apuesta\" value=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var15 string
+					templ_7745c5c3_Var15, templ_7745c5c3_Err = templruntime.NewAttributeExpression(strconv.Itoa(a.ID)).Resolve(ctx)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/apuesta.templ`, Line: 103, Col: 77}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"> <button type=\"submit\" class=\"btn-register\">Borrar</button></form></div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></article>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></section></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></section></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
