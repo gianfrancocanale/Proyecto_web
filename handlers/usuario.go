@@ -69,11 +69,12 @@ func (h *UsuarioHandler) PaginaIngresar(w http.ResponseWriter, r *http.Request) 
 			views.IngresarPage("Error interno").Render(r.Context(), w)
 			return
 		}
-
+		if usuario.EsAdmin {
+			http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
 }
 
