@@ -344,23 +344,19 @@ func (h *ApuestaHandler) validarPrediccion(r *http.Request) ([]int32, string) {
 // Eliminar una apuesta
 // ---------------------------------------------------------------
 
+// DELETE /apuestas/{id}
+// Responde 200 vacío para que HTMX reemplace la tarjeta por nada.
+// Si no se puede borrar responde con un error 4xx: HTMX no toca el DOM y la tarjeta queda.
 func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r)
 	if !ok {
-		http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
+		http.Error(w, "No autenticado", http.StatusUnauthorized)
 		return
 	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-	if err := r.ParseForm(); err != nil {
-		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
-		return
-	}
-	id, err := strconv.Atoi(r.FormValue("id_apuesta"))
+
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		http.Error(w, "Id inválido", http.StatusBadRequest)
 		return
 	}
 
@@ -372,13 +368,13 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 		IDApuesta:     int32(id),
 	})
 	if err != nil {
-		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
 		return
 	}
 
 	// ...y la carrera tiene que seguir abierta (regla de negocio).
 	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
-		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+		http.Error(w, "La carrera ya se cerró", http.StatusConflict)
 		return
 	}
 
@@ -388,7 +384,10 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		log.Println("EliminarApuesta:", err)
+		http.Error(w, "No se pudo borrar", http.StatusInternalServerError)
+		return
 	}
 
-	http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+	// 200 con cuerpo vacío: HTMX reemplaza el target por nada.
+	w.WriteHeader(http.StatusOK)
 }

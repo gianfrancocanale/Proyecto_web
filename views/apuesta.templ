@@ -112,12 +112,16 @@ templ ApuestasLista(apuestas []ApuestaVista, mensaje string) {
 								<a href={ templ.URL("/apuestas/modificar?id=" + strconv.Itoa(a.ID)) } class="btn-login">
 									Modificar
 								</a>
-								<form method="post" action="/apuestas/eliminar">
-									<input type="hidden" name="id_apuesta" value={ strconv.Itoa(a.ID) }/>
-									<button type="submit" class="btn-register">
-										Borrar
-									</button>
-								</form>
+								<button
+									type="button"
+									class="btn-register"
+									hx-delete={ "/apuestas/" + strconv.Itoa(a.ID) }
+									hx-target="closest article"
+									hx-swap="outerHTML"
+									hx-confirm="¿Borrar esta apuesta?"
+								>
+									Borrar
+								</button>
 							</div>
 						}
 					</div>
