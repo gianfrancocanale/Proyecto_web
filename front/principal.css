@@ -1112,3 +1112,15 @@ a {
 .error-box .btn-register {
     display: inline-block;
 }
+
+.alert-ok {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background-color: rgba(46, 160, 67, 0.12);
+    border: 1px solid #2ea043;
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: #7ee2a8;
+    font-size: 0.9rem;
+    font-weight: 600;
+}

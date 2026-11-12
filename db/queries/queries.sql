@@ -19,7 +19,8 @@ RETURNING nombre_usuario, puntos_ganados;
 SELECT
     nombre_usuario,
     contrasena_hash,
-    puntos_ganados
+    puntos_ganados,
+    es_admin
 FROM usuario
 WHERE nombre_usuario = $1;
 
@@ -490,3 +491,27 @@ WHERE id_apuesta = $1
       AND g.fecha_carrera > CURRENT_DATE
   )
 RETURNING id_apuesta, nombre_usuario, id_gran_premio, fecha_carrera, prediccion, fecha_apuesta;
+
+
+-- name: EsAdmin :one
+SELECT es_admin FROM usuario WHERE nombre_usuario = $1;
+
+-- name: ListarCircuitosParaAdmin :many
+SELECT id_gran_premio FROM gran_premio ORDER BY id_gran_premio;
+
+-- name: ListarEdicionesPendientes :many
+-- Carreras sin resultado (incluye las ya corridas que faltan cargar)
+SELECT id_gran_premio, fecha_carrera
+FROM gran_premio_historico
+WHERE resultado_carrera IS NULL
+ORDER BY fecha_carrera;
+
+-- name: ListarApuestasPorGranPremio :many
+SELECT id_apuesta, nombre_usuario, prediccion
+FROM apuesta
+WHERE id_gran_premio = $1 AND fecha_carrera = $2;
+
+-- name: SumarPuntosUsuario :exec
+UPDATE usuario
+SET puntos_ganados = puntos_ganados + sqlc.arg(puntos)::int
+WHERE nombre_usuario = sqlc.arg(nombre_usuario);

@@ -89,3 +89,17 @@ INSERT INTO gran_premio_historico (id_gran_premio, fecha_carrera, resultado_carr
 ('Las Vegas',     '2026-11-22',  null),
 ('Losail',        '2026-11-29',  null),
 ('Yas Marina',    '2026-12-06',  null);
+
+
+INSERT INTO usuario (
+    nombre_usuario,
+    contrasena_hash,
+    puntos_ganados,
+    es_admin
+)
+VALUES (
+    'admin',
+    '$2a$10$YT.75oZO1R37EaYmsRXDR.IG5ooCMkthle4.xr4Qv1DA/nbuLWazK',
+    0,
+    TRUE
+);

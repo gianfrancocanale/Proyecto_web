@@ -21,12 +21,11 @@ func main() {
 	defer db.Close()
 
 	hUsuario := h.NewUsuarioHandler(db)
-	//hPilotoHistorico := h.NewPilotoHistoricoHandler(db)
+	adminHandler := h.NewAdminHandler(db)
 	hPiloto := h.NewPilotoHandler(db)
 	hEscuderia := h.NewEscuderiaHandler(db)
 	hGranPremio := h.NewGranPremioHandler(db)
 	hApuesta := h.NewApuestaHandler(db)
-	//hGranPremioHistorico := h.NewGranPremioHistoricoHandler(db)
 
 	http.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
 
@@ -45,6 +44,10 @@ func main() {
 	http.HandleFunc("GET /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
 	http.HandleFunc("POST /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
 	http.HandleFunc("DELETE /apuestas/{id}", h.RequiereLogin(hApuesta.EliminarApuesta))
+
+	http.HandleFunc("/admin", adminHandler.RequiereAdmin(adminHandler.PaginaAdmin))
+	http.HandleFunc("/admin/carrera", adminHandler.RequiereAdmin(adminHandler.ProgramarCarrera))
+	http.HandleFunc("/admin/resultado", adminHandler.RequiereAdmin(adminHandler.CargarResultado))
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")

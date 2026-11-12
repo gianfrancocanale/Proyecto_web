@@ -2,7 +2,8 @@
 CREATE TABLE usuario (
     nombre_usuario VARCHAR(50) PRIMARY KEY,
     contrasena_hash VARCHAR(255) NOT NULL,
-    puntos_ganados INT NOT NULL
+    puntos_ganados INT NOT NULL,
+    es_admin boolean NOT NULL DEFAULT FALSE
 );
 
 -- 2. Escuderías
