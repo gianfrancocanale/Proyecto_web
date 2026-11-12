@@ -38,13 +38,16 @@ templ ApuestasPage(d ApuestasData) {
 			<div class="auth-box bet-form-box">
 				<h2>Nueva <span>apuesta</span></h2>
 				<p class="auth-subtitle">Un piloto por posición, sin repetir</p>
-				if d.Mensaje != "" {
-					<div class="alert-error">{ d.Mensaje }</div>
-				}
 				if len(d.GranPremios) == 0 {
 					<p class="auth-subtitle">No hay grandes premios disponibles para apostar.</p>
 				} else {
-					<form method="post" action="/apuestas" class="auth-form">
+					<form
+						class="auth-form"
+						hx-post="/apuestas"
+						hx-target="#lista-apuestas"
+						hx-swap="outerHTML"
+						hx-on::after-request="if (event.detail.successful && !document.querySelector('#lista-apuestas .alert-error')) this.reset()"
+					>
 						<div class="form-group">
 							<label for="gran_premio">Gran premio</label>
 							<select id="gran_premio" name="gran_premio" required>
@@ -74,44 +77,52 @@ templ ApuestasPage(d ApuestasData) {
 				<div class="bets-list-header">
 					<h2>Tus <span>pronósticos</span></h2>
 				</div>
-				if len(d.Apuestas) == 0 {
-					<p class="auth-subtitle">Todavía no hiciste ninguna apuesta.</p>
-				}
-				<div class="grid-content">
-					for _, a := range d.Apuestas {
-						<article class="data-card">
-							<div class="data-card-header">
-								<span class="badge">{ a.Fecha }</span>
-								<h3>{ a.GranPremio }</h3>
-							</div>
-							<div class="data-card-body">
-								<ol class="bet-positions">
-									for i, nombre := range a.Posiciones {
-										<li>
-											<span class="position-number">P{ strconv.Itoa(i + 1) }</span>
-											{ nombre }
-										</li>
-									}
-								</ol>
-									if a.Editable {
-										<div class="bet-actions">
-											<a href={ templ.URL("/apuestas/modificar?id=" + strconv.Itoa(a.ID)) } class="btn-login">
-												Modificar
-											</a>
-
-											<form method="post" action="/apuestas/eliminar">
-												<input type="hidden" name="id_apuesta" value={ strconv.Itoa(a.ID) }/>
-												<button type="submit" class="btn-register">
-													Borrar
-												</button>
-											</form>
-										</div>
-									}
-							</div>
-						</article>
-					}
-				</div>
+				@ApuestasLista(d.Apuestas, d.Mensaje)
 			</section>
 		</div>
 	}
+}
+
+templ ApuestasLista(apuestas []ApuestaVista, mensaje string) {
+	<div id="lista-apuestas">
+		if mensaje != "" {
+			<div class="alert-error">{ mensaje }</div>
+		}
+		if len(apuestas) == 0 {
+			<p class="auth-subtitle">Todavía no hiciste ninguna apuesta.</p>
+		}
+		<div class="grid-content">
+			for _, a := range apuestas {
+				<article class="data-card">
+					<div class="data-card-header">
+						<span class="badge">{ a.Fecha }</span>
+						<h3>{ a.GranPremio }</h3>
+					</div>
+					<div class="data-card-body">
+						<ol class="bet-positions">
+							for i, nombre := range a.Posiciones {
+								<li>
+									<span class="position-number">P{ strconv.Itoa(i + 1) }</span>
+									{ nombre }
+								</li>
+							}
+						</ol>
+						if a.Editable {
+							<div class="bet-actions">
+								<a href={ templ.URL("/apuestas/modificar?id=" + strconv.Itoa(a.ID)) } class="btn-login">
+									Modificar
+								</a>
+								<form method="post" action="/apuestas/eliminar">
+									<input type="hidden" name="id_apuesta" value={ strconv.Itoa(a.ID) }/>
+									<button type="submit" class="btn-register">
+										Borrar
+									</button>
+								</form>
+							</div>
+						}
+					</div>
+				</article>
+			}
+		</div>
+	</div>
 }

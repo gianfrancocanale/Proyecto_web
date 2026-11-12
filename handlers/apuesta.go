@@ -52,10 +52,15 @@ func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// mostrarError devuelve la lista con un mensaje arriba.
+// Responde 200 a propósito: HTMX no reemplaza el contenido con 4xx/5xx.
+func (h *ApuestaHandler) mostrarError(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
+	h.renderLista(w, r, usuario, mensaje)
+}
+
 func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Request, usuario string) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderApuestas(w, r, usuario, "Formulario inválido")
+		h.mostrarError(w, r, usuario, "Formulario inválido")
 		return
 	}
 
@@ -65,21 +70,18 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 	idGP, fechaStr, ok := strings.Cut(r.FormValue("gran_premio"), "|")
 	fechaCarrera, errFecha := time.Parse("2006-01-02", fechaStr)
 	if !ok || errFecha != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderApuestas(w, r, usuario, "Elegí un gran premio")
+		h.mostrarError(w, r, usuario, "Elegí un gran premio")
 		return
 	}
 	if !h.carreraAbierta(ctx, idGP, fechaCarrera) {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderApuestas(w, r, usuario, "Ese gran premio no está disponible")
+		h.mostrarError(w, r, usuario, "Ese gran premio no está disponible")
 		return
 	}
 
 	// 2) Pilotos: exactamente 10, existentes y sin repetir.
 	prediccion, msg := h.validarPrediccion(r)
 	if msg != "" {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderApuestas(w, r, usuario, msg)
+		h.mostrarError(w, r, usuario, msg)
 		return
 	}
 
@@ -93,23 +95,21 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "unq_usuario_gran_premio_carrera") {
-			w.WriteHeader(http.StatusConflict)
-			h.renderApuestas(w, r, usuario, "Ya apostaste en ese gran premio")
+			h.mostrarError(w, r, usuario, "Ya apostaste en ese gran premio")
 			return
 		}
 		log.Println("CrearApuesta:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderApuestas(w, r, usuario, "No se pudo guardar la apuesta")
+		h.mostrarError(w, r, usuario, "No se pudo guardar la apuesta")
 		return
 	}
 
-	// Redirect para que F5 no reenvíe el formulario.
-	http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+	// Se vuelve a consultar la lista y se devuelve solo ese fragmento.
+	h.renderLista(w, r, usuario, "")
 }
 
-func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
+// datosApuestas arma todo lo que necesitan la página y la lista.
+func (h *ApuestaHandler) datosApuestas(ctx context.Context, usuario, mensaje string) views.ApuestasData {
 	q := h.queries
-	ctx := r.Context()
 	data := views.ApuestasData{Usuario: usuario, Mensaje: mensaje}
 
 	// Carreras abiertas: para el select y para saber qué apuestas se pueden modificar
@@ -158,7 +158,19 @@ func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, 
 		})
 	}
 
-	views.ApuestasPage(data).Render(ctx, w)
+	return data
+}
+
+// renderApuestas devuelve la página completa (solo para el GET).
+func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
+	data := h.datosApuestas(r.Context(), usuario, mensaje)
+	views.ApuestasPage(data).Render(r.Context(), w)
+}
+
+// renderLista devuelve solo el fragmento de la lista, para HTMX.
+func (h *ApuestaHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
+	data := h.datosApuestas(r.Context(), usuario, mensaje)
+	views.ApuestasLista(data.Apuestas, data.Mensaje).Render(r.Context(), w)
 }
 
 // ---------------------------------------------------------------
