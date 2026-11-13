@@ -49,6 +49,11 @@ func main() {
 	http.HandleFunc("/admin/carrera", adminHandler.RequiereAdmin(adminHandler.ProgramarCarrera))
 	http.HandleFunc("/admin/resultado", adminHandler.RequiereAdmin(adminHandler.CargarResultado))
 
+	http.HandleFunc("POST /pilotos", adminHandler.RequiereAdmin(hPiloto.Pagina))
+	http.HandleFunc("GET /pilotos/modificar", adminHandler.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("POST /pilotos/modificar", adminHandler.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("DELETE /pilotos/{id}", adminHandler.RequiereAdmin(hPiloto.EliminarPiloto))
+
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")
 	http.ListenAndServe(":8080", h.ConSesion(http.DefaultServeMux)) //la parte del mux es por que lo obliga a pasar por el middleware de sesion,

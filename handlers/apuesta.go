@@ -14,14 +14,11 @@ import (
 	"Proyecto_web/views"
 )
 
-// ApuestaHandler agrupa los handlers de apuesta y guarda
-// la conexión a la base de datos y las queries de sqlc.
 type ApuestaHandler struct {
 	DB      *sql.DB
 	queries *sqlc.Queries
 }
 
-// NewApuestaHandler es el constructor del handler.
 func NewApuestaHandler(db *sql.DB) *ApuestaHandler {
 	return &ApuestaHandler{
 		DB:      db,
@@ -29,10 +26,7 @@ func NewApuestaHandler(db *sql.DB) *ApuestaHandler {
 	}
 }
 
-// ---------------------------------------------------------------
 // Página principal: listar y crear
-// ---------------------------------------------------------------
-
 func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r) // el usuario SIEMPRE sale de la cookie
 	if !ok {
@@ -53,7 +47,6 @@ func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) 
 }
 
 // mostrarError devuelve la lista con un mensaje arriba.
-// Responde 200 a propósito: HTMX no reemplaza el contenido con 4xx/5xx.
 func (h *ApuestaHandler) mostrarError(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	h.renderLista(w, r, usuario, mensaje)
 }
@@ -66,7 +59,6 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 
 	ctx := r.Context()
 
-	// 1) Gran premio: "id|YYYY-MM-DD". Se valida contra los que están abiertos.
 	idGP, fechaStr, ok := strings.Cut(r.FormValue("gran_premio"), "|")
 	fechaCarrera, errFecha := time.Parse("2006-01-02", fechaStr)
 	if !ok || errFecha != nil {
@@ -78,14 +70,12 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// 2) Pilotos: exactamente 10, existentes y sin repetir.
 	prediccion, msg := h.validarPrediccion(r)
 	if msg != "" {
 		h.mostrarError(w, r, usuario, msg)
 		return
 	}
 
-	// 3) Guardar
 	_, err := h.queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
 		NombreUsuario: usuario,
 		IDGranPremio:  idGP,
@@ -161,22 +151,19 @@ func (h *ApuestaHandler) datosApuestas(ctx context.Context, usuario, mensaje str
 	return data
 }
 
-// renderApuestas devuelve la página completa (solo para el GET).
+// renderApuestas devuelve la página completa
 func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	data := h.datosApuestas(r.Context(), usuario, mensaje)
 	views.ApuestasPage(data).Render(r.Context(), w)
 }
 
-// renderLista devuelve solo el fragmento de la lista, para HTMX.
+// renderLista devuelve solo el fragmento de la lista
 func (h *ApuestaHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	data := h.datosApuestas(r.Context(), usuario, mensaje)
 	views.ApuestasLista(data.Apuestas, data.Mensaje).Render(r.Context(), w)
 }
 
-// ---------------------------------------------------------------
 // Modificar una apuesta: /apuestas/modificar
-// ---------------------------------------------------------------
-
 func (h *ApuestaHandler) ModificarApuesta(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r)
 	if !ok {
@@ -306,7 +293,6 @@ func (h *ApuestaHandler) opcionesPilotos(ctx context.Context) []views.OpcionPilo
 }
 
 // validarPrediccion devuelve los 10 id_piloto en orden, o un mensaje de error.
-// Necesita que r.ParseForm() ya se haya llamado.
 func (h *ApuestaHandler) validarPrediccion(r *http.Request) ([]int32, string) {
 	pilotosDB, err := h.queries.ListarPilotosParaApuesta(r.Context())
 	if err != nil {
@@ -340,13 +326,7 @@ func (h *ApuestaHandler) validarPrediccion(r *http.Request) ([]int32, string) {
 	return prediccion, ""
 }
 
-// ---------------------------------------------------------------
-// Eliminar una apuesta
-// ---------------------------------------------------------------
-
 // DELETE /apuestas/{id}
-// Responde 200 vacío para que HTMX reemplace la tarjeta por nada.
-// Si no se puede borrar responde con un error 4xx: HTMX no toca el DOM y la tarjeta queda.
 func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r)
 	if !ok {
@@ -362,7 +342,7 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 
 	ctx := r.Context()
 
-	// La apuesta tiene que ser del usuario de la cookie...
+	// La apuesta tiene que ser del usuario de la cookie
 	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
 		NombreUsuario: usuario,
 		IDApuesta:     int32(id),
@@ -372,7 +352,7 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// ...y la carrera tiene que seguir abierta (regla de negocio).
+	// La carrera tiene que seguir abierta (regla de negocio).
 	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
 		http.Error(w, "La carrera ya se cerró", http.StatusConflict)
 		return
@@ -388,6 +368,5 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// 200 con cuerpo vacío: HTMX reemplaza el target por nada.
 	w.WriteHeader(http.StatusOK)
 }

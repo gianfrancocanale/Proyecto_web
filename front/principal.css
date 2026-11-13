@@ -1124,3 +1124,172 @@ a {
     font-size: 0.9rem;
     font-weight: 600;
 }
+
+/* =========================================================
+   Panel de administración de pilotos
+   ========================================================= */
+
+/* Caja del formulario "Agregar piloto" */
+.admin-panel {
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  padding: 1.75rem;
+  background: var(--card-bg, #1a1a1f);
+  border: 1px solid var(--border, #2d2d35);
+  border-left: 4px solid var(--accent, #e10600);
+  border-radius: 12px;
+}
+
+.admin-panel h2 {
+  margin: 0 0 0.25rem;
+}
+
+.admin-panel .auth-subtitle {
+  margin-bottom: 1.25rem;
+  color: var(--muted, #9a9aa5);
+}
+
+.admin-panel .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-panel .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-panel label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #9a9aa5);
+}
+
+.admin-panel select,
+.admin-panel input[type="number"],
+.auth-form input[type="number"] {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: var(--input-bg, #111115);
+  border: 1px solid var(--border, #2d2d35);
+  border-radius: 8px;
+}
+
+.admin-panel select:focus,
+.admin-panel input:focus,
+.auth-form input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent, #e10600);
+  box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.25);
+}
+
+/* Mensaje de error de la lista */
+#lista-pilotos .alert-error {
+  max-width: 560px;
+  margin: 0 auto 1.25rem;
+  padding: 0.75rem 1rem;
+  color: #ffb4b0;
+  background: rgba(225, 6, 0, 0.12);
+  border: 1px solid rgba(225, 6, 0, 0.45);
+  border-radius: 8px;
+}
+
+/* Botones Modificar / Borrar dentro de cada tarjeta */
+.driver-card .bet-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border, #2d2d35);
+}
+
+.driver-card .bet-actions .btn-login,
+.driver-card .bet-actions .btn-register {
+  flex: 1;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.driver-card .bet-actions .btn-login {
+  color: #fff;
+  background: var(--accent, #e10600);
+  border: 1px solid var(--accent, #e10600);
+}
+
+.driver-card .bet-actions .btn-login:hover {
+  background: #b80500;
+}
+
+.driver-card .bet-actions .btn-register {
+  color: #ff6b66;
+  background: transparent;
+  border: 1px solid #ff6b66;
+}
+
+.driver-card .bet-actions .btn-register:hover {
+  color: #fff;
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.driver-card .bet-actions .btn-login:active,
+.driver-card .bet-actions .btn-register:active {
+  transform: scale(0.97);
+}
+
+/* HTMX: la tarjeta se atenúa mientras se borra */
+.driver-card.htmx-request {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Página "Modificar piloto" */
+.auth-box .auth-form a.btn-register {
+  display: block;
+  padding: 0.65rem;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .admin-panel {
+    margin-inline: 1rem;
+    padding: 1.25rem;
+  }
+
+  .driver-card .bet-actions {
+    flex-direction: column;
+  }
+}
+
+.admin-panel input[type="text"],
+.admin-panel input[type="date"] {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: inherit;
+  background: var(--input-bg, #111115);
+  border: 1px solid var(--border, #2d2d35);
+  border-radius: 8px;
+}
+
+.admin-panel input[type="text"]:focus,
+.admin-panel input[type="date"]:focus {
+  outline: none;
+  border-color: var(--accent, #e10600);
+  box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.25);
+}

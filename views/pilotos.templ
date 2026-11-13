@@ -2,48 +2,183 @@ package views
 
 import (
 	"fmt"
+	"strconv"
 	d "Proyecto_web/db/sqlc"
 )
 
-templ PilotosPage(pilotos []d.ListarPilotosRow, orden string) {
+type OpcionEscuderia struct {
+	ID string
+}
+
+type PilotosData struct {
+	Usuario     string
+	EsAdmin     bool
+	Orden       string
+	Mensaje     string
+	Pilotos     []d.ListarPilotosRow
+	Escuderias  []OpcionEscuderia
+}
+
+type ModificarPilotoData struct {
+	Usuario    string
+	Mensaje    string
+	ID         int
+	Nombre     string
+	Escuderia  string
+	Puntos     int
+	Escuderias []OpcionEscuderia
+}
+
+templ PilotosPage(data PilotosData) {
 	@Layout("Pilotos") {
 		<div class="page-container">
 			<div class="page-header">
 				<h1>Pilotos <span>2026</span></h1>
 				<p>La parrilla completa de la temporada 2026.</p>
-
 				<div class="filter-container" style="margin-top: 1.5rem;">
-                    if orden == "asc" {
-                        <a href="pilotos?orden=desc" class="btn-register">Ordenado: Menor a Mayor (Puntos Temporada) ⇅</a>
-                    } else {
-                        <a href="/pilotos?orden=asc" class="btn-register">Ordenado: Mayor a Menor (Puntos Temporada) ⇅</a>
-                    }
-                </div>
+					if data.Orden == "asc" {
+						<a href="/pilotos?orden=desc" class="btn-register">Ordenado: Menor a Mayor (Puntos Temporada) ⇅</a>
+					} else {
+						<a href="/pilotos?orden=asc" class="btn-register">Ordenado: Mayor a Menor (Puntos Temporada) ⇅</a>
+					}
+				</div>
 			</div>
-			<div class="grid-content">
-				for _, p := range pilotos {
-					<article class="data-card driver-card">
-						<div class="driver-img-box">
-							<img
-								src={ fmt.Sprintf("/front/imagenes/pilotos/%d.jpg", p.IDPiloto) }
-								alt={ p.Nombre }
-								onerror="this.onerror=null; this.src='/front/imagenes/pilotos/default.jpg';"
-							/>
+			if data.EsAdmin {
+				<div class="auth-box bet-form-box admin-panel">
+					<h2>Agregar <span>piloto</span></h2>
+					<p class="auth-subtitle">
+						Si el número ya existe en la base, se reutilizan sus datos y solo hace falta la escudería.
+					</p>
+					<form
+						class="auth-form"
+						hx-post="/pilotos"
+						hx-target="#lista-pilotos"
+						hx-swap="outerHTML"
+						hx-on::after-request="if (event.detail.successful && !document.querySelector('#lista-pilotos .alert-error')) this.reset()"
+					>
+						<div class="form-group">
+							<label for="id_piloto">Número de piloto</label>
+							<input type="number" id="id_piloto" name="id_piloto" min="1" required/>
 						</div>
-						<span class="driver-number">{ fmt.Sprint(p.IDPiloto) }</span>
-						<div class="data-card-header">
-							<h3>{ p.Nombre }</h3>
-							<p class="driver-team">{ p.IDEscuderia }</p>
+						<div class="form-group">
+							<label for="nombre">Nombre</label>
+							<input type="text" id="nombre" name="nombre"/>
 						</div>
-						<div class="data-card-body">
-							<p><strong>País:</strong> { p.Pais }</p>
-							<p><strong>Fecha de Nacimiento:</strong> { p.FechaNacimiento.Format("02/01/2006")}</p>
-							<p><strong>Títulos Ganados:</strong> { p.TitulosGanados }</p>
-							<p class="points">{ fmt.Sprint(p.PuntosTemporada) } pts</p>
+						<div class="form-group">
+							<label for="pais">País</label>
+							<input type="text" id="pais" name="pais"/>
 						</div>
-					</article>
-				}
-			</div>
+						<div class="form-group">
+							<label for="fecha_nacimiento">Fecha de nacimiento</label>
+							<input type="date" id="fecha_nacimiento" name="fecha_nacimiento"/>
+						</div>
+						<div class="form-group">
+							<label for="titulos_ganados">Títulos ganados</label>
+							<input type="number" id="titulos_ganados" name="titulos_ganados" min="0" value="0"/>
+						</div>
+						<div class="form-group">
+							<label for="id_escuderia">Escudería</label>
+							<select id="id_escuderia" name="id_escuderia" required>
+								for _, e := range data.Escuderias {
+									<option value={ e.ID }>{ e.ID }</option>
+								}
+							</select>
+						</div>
+						<button type="submit" class="btn-submit">Agregar piloto</button>
+					</form>
+				</div>
+			}
+			@PilotosLista(data.Pilotos, data.EsAdmin, data.Mensaje)
+		</div>
+	}
+}
+
+templ PilotosLista(pilotos []d.ListarPilotosRow, esAdmin bool, mensaje string) {
+	<div id="lista-pilotos">
+		if mensaje != "" {
+			<div class="alert-error">{ mensaje }</div>
+		}
+		if len(pilotos) == 0 {
+			<p class="auth-subtitle">Todavía no hay pilotos en la temporada.</p>
+		}
+		<div class="grid-content">
+			for _, p := range pilotos {
+				<article class="data-card driver-card">
+					<div class="driver-img-box">
+						<img
+							src={ fmt.Sprintf("/front/imagenes/pilotos/%d.jpg", p.IDPiloto) }
+							alt={ p.Nombre }
+							onerror="this.onerror=null; this.src='/front/imagenes/pilotos/default.jpg';"
+						/>
+					</div>
+					<span class="driver-number">{ fmt.Sprint(p.IDPiloto) }</span>
+					<div class="data-card-header">
+						<h3>{ p.Nombre }</h3>
+						<p class="driver-team">{ p.IDEscuderia }</p>
+					</div>
+					<div class="data-card-body">
+						<p><strong>País:</strong> { p.Pais }</p>
+						<p><strong>Fecha de Nacimiento:</strong> { p.FechaNacimiento.Format("02/01/2006") }</p>
+						<p><strong>Títulos Ganados:</strong> { p.TitulosGanados }</p>
+						<p class="points">{ fmt.Sprint(p.PuntosTemporada) } pts</p>
+						if esAdmin {
+							<div class="bet-actions">
+								<a href={ templ.URL("/pilotos/modificar?id=" + strconv.Itoa(int(p.IDPiloto))) } class="btn-login">
+									Modificar
+								</a>
+								<button
+									type="button"
+									class="btn-register"
+									hx-delete={ "/pilotos/" + strconv.Itoa(int(p.IDPiloto)) }
+									hx-target="closest article"
+									hx-swap="outerHTML"
+									hx-confirm="¿Eliminar a este piloto de la temporada?"
+								>
+									Borrar
+								</button>
+							</div>
+						}
+					</div>
+				</article>
+			}
+		</div>
+	</div>
+}
+
+templ ModificarPilotoPage(data ModificarPilotoData) {
+	@Layout("Modificar piloto") {
+		<div class="page-header">
+			<h1>Modificar <span>piloto</span></h1>
+			<p>{ data.Nombre }</p>
+		</div>
+		<div class="auth-box">
+			if data.Mensaje != "" {
+				<div class="alert-error">{ data.Mensaje }</div>
+			}
+			<form class="auth-form" method="POST" action="/pilotos/modificar">
+				<input type="hidden" name="id_piloto" value={ strconv.Itoa(data.ID) }/>
+				<div class="form-group">
+					<label for="id_escuderia">Escudería</label>
+					<select id="id_escuderia" name="id_escuderia" required>
+						for _, e := range data.Escuderias {
+							<option value={ e.ID } selected?={ e.ID == data.Escuderia }>{ e.ID }</option>
+						}
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="puntos_temporada">Puntos de temporada</label>
+					<input
+						type="number"
+						id="puntos_temporada"
+						name="puntos_temporada"
+						min="0"
+						value={ strconv.Itoa(data.Puntos) }
+						required
+					/>
+				</div>
+				<button type="submit" class="btn-submit">Guardar cambios</button>
+				<a href="/pilotos" class="btn-register">Cancelar</a>
+			</form>
 		</div>
 	}
 }
