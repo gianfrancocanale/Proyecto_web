@@ -118,7 +118,7 @@ func GranPremiosPage(data GranPremiosData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout("Grandes Premios").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutRol("Grandes Premios", data.EsAdmin).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

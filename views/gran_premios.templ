@@ -25,7 +25,7 @@ type ModificarGranPremioData struct {
 }
 
 templ GranPremiosPage(data GranPremiosData) {
-	@Layout("Grandes Premios") {
+	@LayoutRol("Grandes Premios", data.EsAdmin) {
 		<div class="page-container">
 			<div class="page-header">
 				<h1>Grandes <span>Premios</span></h1>
