@@ -59,8 +59,14 @@ func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 			orden = "desc"
 		}
 		data := h.datosPilotos(r.Context(), usuario, orden, "")
-		vista.PilotosPage(data).Render(r.Context(), w)
 
+		// La misma URL devuelve página completa o solo la lista, según quién pregunte.
+		w.Header().Add("Vary", "HX-Request")
+		if r.Header.Get("HX-Request") == "true" {
+			vista.PilotosLista(data.Pilotos, data.Orden, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
+			return
+		}
+		vista.PilotosPage(data).Render(r.Context(), w)
 	case http.MethodPost:
 		h.crearPilotoDesdeForm(w, r, usuario)
 
@@ -219,8 +225,12 @@ func (h *PilotoHandler) datosPilotos(ctx context.Context, usuario, orden, mensaj
 
 // renderLista devuelve solo el fragmento de la lista, para HTMX.
 func (h *PilotoHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
-	data := h.datosPilotos(r.Context(), usuario, "desc", mensaje)
-	vista.PilotosLista(data.Pilotos, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
+	orden := r.FormValue("orden")
+	if orden != "asc" {
+		orden = "desc"
+	}
+	data := h.datosPilotos(r.Context(), usuario, orden, mensaje)
+	vista.PilotosLista(data.Pilotos, orden, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
 }
 
 // opcionesEscuderias devuelve las escuderías para el select.

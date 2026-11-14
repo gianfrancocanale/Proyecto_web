@@ -1,37 +1,166 @@
 package views
 
-import d "Proyecto_web/db/sqlc"
+import (
+	d "Proyecto_web/db/sqlc"
+	"net/url"
+	"strconv"
+)
 
-templ GranPremiosPage(gps []d.ListarGrandesPremiosRow, orden string) {
+type GranPremiosData struct {
+	EsAdmin     bool
+	Orden       string
+	Mensaje     string
+	GranPremios []d.ListarGrandesPremiosRow
+	Pilotos     []OpcionPiloto // históricos, para elegir el último ganador
+}
+
+type ModificarGranPremioData struct {
+	Mensaje  string
+	ID       string
+	Pais     string
+	Longitud string
+	Vueltas  string
+	Ganador  string // id del piloto, como texto
+	Pilotos  []OpcionPiloto
+}
+
+templ GranPremiosPage(data GranPremiosData) {
 	@Layout("Grandes Premios") {
 		<div class="page-container">
 			<div class="page-header">
 				<h1>Grandes <span>Premios</span></h1>
 				<p>El calendario de carreras.</p>
 			</div>
-			<div class="grid-content">
-				for _, g := range gps {
-					<article class="data-card">
-						<div class="team-img-box">
-							<img
-								src={ "/front/imagenes/circuitos/" + g.IDGranPremio + ".jpg" }
-								alt={ g.IDGranPremio }
-								onerror="this.parentElement.style.display='none'"
-							/>
+			if data.EsAdmin {
+				<div class="auth-box bet-form-box admin-panel">
+					<h2>Agregar <span>gran premio</span></h2>
+					<p class="auth-subtitle">Panel de administración</p>
+					<form
+						class="auth-form"
+						hx-post="/gran_premios"
+						hx-target="#lista-gran-premios"
+						hx-swap="outerHTML"
+						hx-on::after-request="if (event.detail.successful && !document.querySelector('#lista-gran-premios .alert-error')) this.reset()"
+					>
+						<div class="form-group">
+							<label for="id_gran_premio">Nombre del gran premio</label>
+							<input type="text" id="id_gran_premio" name="id_gran_premio" required/>
 						</div>
-						<div class="data-card-header">
-							<span class="badge">GP</span>
-							<h3>{ g.IDGranPremio }</h3>
+						<div class="form-group">
+							<label for="pais">País</label>
+							<input type="text" id="pais" name="pais" required/>
 						</div>
-						<div class="data-granpremio-body">
-							<p><strong>Pais:</strong> { g.Pais }</p>
-							<p><strong>Longitud:</strong> { g.LongitudKm } km</p>
-							<p><strong>Cantidad de Vueltas:</strong> { g.CantidadVueltas }</p>
-							<p><strong>Ultimo Ganador:</strong> { g.IDUltimoGanador }</p>
+						<div class="form-group">
+							<label for="longitud_km">Longitud (km)</label>
+							<input type="number" id="longitud_km" name="longitud_km" min="0" step="0.001" required/>
 						</div>
-					</article>
-				}
-			</div>
+						<div class="form-group">
+							<label for="cantidad_vueltas">Cantidad de vueltas</label>
+							<input type="number" id="cantidad_vueltas" name="cantidad_vueltas" min="1" required/>
+						</div>
+						<div class="form-group">
+							<label for="id_ultimo_ganador">Último ganador</label>
+							<select id="id_ultimo_ganador" name="id_ultimo_ganador" required>
+								for _, p := range data.Pilotos {
+									<option value={ strconv.Itoa(p.ID) }>{ p.Nombre }</option>
+								}
+							</select>
+						</div>
+						<button type="submit" class="btn-submit">Agregar gran premio</button>
+					</form>
+				</div>
+			}
+			@GranPremiosLista(data.GranPremios, data.EsAdmin, data.Mensaje)
+		</div>
+	}
+}
+
+templ GranPremiosLista(gps []d.ListarGrandesPremiosRow, esAdmin bool, mensaje string) {
+	<div id="lista-gran-premios">
+		if mensaje != "" {
+			<div class="alert-error">{ mensaje }</div>
+		}
+		if len(gps) == 0 {
+			<p class="auth-subtitle">Todavía no hay grandes premios cargados.</p>
+		}
+		<div class="grid-content">
+			for _, g := range gps {
+				<article class="data-card gp-card">
+					<div class="team-img-box">
+						<img
+							src={ "/front/imagenes/circuitos/" + g.IDGranPremio + ".jpg" }
+							alt={ g.IDGranPremio }
+							onerror="this.parentElement.style.display='none'"
+						/>
+					</div>
+					<div class="data-card-header">
+						<span class="badge">GP</span>
+						<h3>{ g.IDGranPremio }</h3>
+					</div>
+					<div class="data-granpremio-body">
+						<p><strong>Pais:</strong> { g.Pais }</p>
+						<p><strong>Longitud:</strong> { g.LongitudKm } km</p>
+						<p><strong>Cantidad de Vueltas:</strong> { g.CantidadVueltas }</p>
+						<p><strong>Ultimo Ganador:</strong> { g.IDUltimoGanador }</p>
+						if esAdmin {
+							<div class="bet-actions">
+								<a href={ templ.URL("/gran_premios/modificar?id=" + url.QueryEscape(g.IDGranPremio)) } class="btn-login">
+									Modificar
+								</a>
+								<button
+									type="button"
+									class="btn-register"
+									hx-delete={ "/gran_premios/" + url.PathEscape(g.IDGranPremio) }
+									hx-target="#lista-gran-premios"
+									hx-swap="outerHTML"
+									hx-confirm="¿Eliminar este gran premio?"
+								>
+									Borrar
+								</button>
+							</div>
+						}
+					</div>
+				</article>
+			}
+		</div>
+	</div>
+}
+
+templ ModificarGranPremioPage(data ModificarGranPremioData) {
+	@Layout("Modificar gran premio") {
+		<div class="page-header">
+			<h1>Modificar <span>gran premio</span></h1>
+			<p>{ data.ID }</p>
+		</div>
+		<div class="auth-box">
+			if data.Mensaje != "" {
+				<div class="alert-error">{ data.Mensaje }</div>
+			}
+			<form class="auth-form" method="POST" action="/gran_premios/modificar">
+				<input type="hidden" name="id_gran_premio" value={ data.ID }/>
+				<div class="form-group">
+					<label for="pais">País</label>
+					<input type="text" id="pais" name="pais" value={ data.Pais } required/>
+				</div>
+				<div class="form-group">
+					<label for="longitud_km">Longitud (km)</label>
+					<input type="number" id="longitud_km" name="longitud_km" min="0" step="0.001" value={ data.Longitud } required/>
+				</div>
+				<div class="form-group">
+					<label for="cantidad_vueltas">Cantidad de vueltas</label>
+					<input type="number" id="cantidad_vueltas" name="cantidad_vueltas" min="1" value={ data.Vueltas } required/>
+				</div>
+				<div class="form-group">
+					<label for="id_ultimo_ganador">Último ganador</label>
+					<select id="id_ultimo_ganador" name="id_ultimo_ganador" required>
+						for _, p := range data.Pilotos {
+							<option value={ strconv.Itoa(p.ID) } selected?={ strconv.Itoa(p.ID) == data.Ganador }>{ p.Nombre }</option>
+						}
+					</select>
+				</div>
+				<button type="submit" class="btn-submit">Guardar cambios</button>
+				<a href="/gran_premios" class="btn-register">Cancelar</a>
+			</form>
 		</div>
 	}
 }

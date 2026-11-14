@@ -228,7 +228,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><section><div class=\"bets-list-header\"><h2>Tus <span>pronósticos</span></h2></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><section><div class=\"bets-list-header\"><h2>Tus <span>apuestas</span></h2></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
