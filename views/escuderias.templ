@@ -1,49 +1,177 @@
 package views
 
 import (
-    "fmt"
-    d "Proyecto_web/db/sqlc"
+	"fmt"
+	"net/url"
+	"strconv"
+
+	d "Proyecto_web/db/sqlc"
 )
 
-templ EscuderiasPage(escuderias []d.Escuderium, orden string) {
-    @Layout("Escuderías") {
-        <div class="page-container">
-            <div class="page-header">
-                <h1>Escuderías <span>2026</span></h1>
-                <p>Todos los equipos de la temporada.</p>
-                
-                <div class="filter-container" style="margin-top: 1.5rem;">
-                    if orden == "asc" {
-                        <a href="escuderias?orden=desc" class="btn-register">Ordenado: A → Z ⇅</a>
-                    } else {
-                        <a href="/escuderias?orden=asc" class="btn-register">Ordenado: Z → A ⇅</a>
-                    }
-                </div>
-            </div>
-            
-            <div class="grid-content teams-grid">
-                for _, e := range escuderias {
-                    <article class="data-card">
-                        <div class="team-img-box">
-                            <img
-                                src={ fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.IDEscuderia) }
-                                alt={ e.IDEscuderia }
-                                onerror="this.onerror=null; this.src='/front/imagenes/escuderias/default.jpg';"
-                            />
-                        </div>
-                        <div class="data-card-header">
-                            <span class="badge">Escudería</span>
-                            <h3>{ e.IDEscuderia }</h3>
-                        </div>
-                        <div class="data-card-body">
-                            <p><strong>Team Principal:</strong> { e.TeamPrincipal }</p>
-                            <p><strong>Título de constructores:</strong> { e.TitulosConstructores }</p>
-                            <p><strong>Fecha de fundación:</strong> { e.FechaFundacion.Format("02/01/2006") }</p>
-                            <p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
-                        </div>
-                    </article>
-                }
-            </div>
-        </div>
-    }
+type EscuderiasData struct {
+	EsAdmin    bool
+	Orden      string
+	Mensaje    string
+	Escuderias []d.Escuderium
+}
+
+type ModificarEscuderiaData struct {
+	Mensaje   string
+	ID        string
+	Principal string
+	Titulos   int
+	Fundacion string // YYYY-MM-DD
+	Puntos    int
+}
+
+templ EscuderiasPage(data EscuderiasData) {
+	@LayoutRol("Escuderías", data.EsAdmin) {
+		<div class="page-header">
+			<h1>Escuderías <span>2026</span></h1>
+			<p>Todos los equipos de la temporada.</p>
+		</div>
+		if data.EsAdmin {
+			<div class="auth-box bet-form-box admin-panel">
+				<h2>Agregar <span>escudería</span></h2>
+				<p class="auth-subtitle">Se agrega a la temporada y queda lista para asignarle pilotos.</p>
+				<form
+					class="auth-form"
+					hx-post="/escuderias"
+					hx-target="#lista-escuderias"
+					hx-swap="outerHTML"
+					hx-include="#orden-actual"
+					hx-on::after-request="if (event.detail.successful && !document.querySelector('#lista-escuderias .alert-error')) this.reset()"
+				>
+					<div class="form-group">
+						<label for="id_escuderia">Nombre</label>
+						<input type="text" id="id_escuderia" name="id_escuderia" required/>
+					</div>
+					<div class="form-group">
+						<label for="team_principal">Team Principal</label>
+						<input type="text" id="team_principal" name="team_principal" required/>
+					</div>
+					<div class="form-group">
+						<label for="titulos_constructores">Títulos de constructores</label>
+						<input type="number" id="titulos_constructores" name="titulos_constructores" min="0" value="0" required/>
+					</div>
+					<div class="form-group">
+						<label for="fecha_fundacion">Fecha de fundación</label>
+						<input type="date" id="fecha_fundacion" name="fecha_fundacion" required/>
+					</div>
+					<div class="form-group">
+						<label for="puntos_temporada">Puntos de temporada</label>
+						<input type="number" id="puntos_temporada" name="puntos_temporada" min="0" value="0" required/>
+					</div>
+					<button type="submit" class="btn-submit">Agregar escudería</button>
+				</form>
+			</div>
+		}
+		@EscuderiasLista(data.Escuderias, data.Orden, data.EsAdmin, data.Mensaje)
+	}
+}
+
+templ EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mensaje string) {
+	<div id="lista-escuderias">
+        <input type="hidden" id="orden-actual" name="orden" value={ orden }/>
+		<div class="filter-container" style="text-align: center; margin-bottom: 2rem;">
+			if orden == "asc" {
+				<a
+					href="/escuderias?orden=desc"
+					hx-get="/escuderias?orden=desc"
+					hx-target="#lista-escuderias"
+					hx-swap="outerHTML"
+					class="btn-register"
+				>Ordenado: A → Z ⇅</a>
+			} else {
+				<a
+					href="/escuderias?orden=asc"
+					hx-get="/escuderias?orden=asc"
+					hx-target="#lista-escuderias"
+					hx-swap="outerHTML"
+					class="btn-register"
+				>Ordenado: Z → A ⇅</a>
+			}
+		</div>
+		if mensaje != "" {
+			<div class="alert-error">{ mensaje }</div>
+		}
+		if len(escuderias) == 0 {
+			<p class="auth-subtitle">Todavía no hay escuderías en la temporada.</p>
+		}
+		<div class="grid-content teams-grid">
+			for _, e := range escuderias {
+				<article class="data-card">
+					<div class="team-img-box">
+						<img
+							src={ fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.IDEscuderia) }
+							alt={ e.IDEscuderia }
+							onerror="this.onerror=null; this.src='/front/imagenes/escuderias/default.jpg';"
+						/>
+					</div>
+					<div class="data-card-header">
+						<span class="badge">Escudería</span>
+						<h3>{ e.IDEscuderia }</h3>
+					</div>
+					<div class="data-card-body">
+						<p><strong>Team Principal:</strong> { e.TeamPrincipal }</p>
+						<p><strong>Título de constructores:</strong> { fmt.Sprint(e.TitulosConstructores) }</p>
+						<p><strong>Fecha de fundación:</strong> { e.FechaFundacion.Format("02/01/2006") }</p>
+						<p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
+						if esAdmin {
+							<div class="bet-actions">
+								<a href={ templ.URL("/escuderias/modificar?id=" + url.QueryEscape(e.IDEscuderia)) } class="btn-login">
+									Modificar
+								</a>
+								<button
+									type="button"
+									class="btn-register"
+									hx-delete={ "/escuderias/" + url.PathEscape(e.IDEscuderia) }
+									hx-target="closest article"
+									hx-swap="outerHTML"
+									hx-confirm="¿Eliminar esta escudería? También se eliminan sus pilotos de la temporada."
+								>
+									Borrar
+								</button>
+							</div>
+						}
+					</div>
+				</article>
+			}
+		</div>
+	</div>
+}
+
+templ ModificarEscuderiaPage(data ModificarEscuderiaData) {
+	@LayoutAdmin("Modificar escudería") {
+		<div class="page-header">
+			<h1>Modificar <span>escudería</span></h1>
+			<p>{ data.ID }</p>
+		</div>
+		<div class="auth-box">
+			if data.Mensaje != "" {
+				<div class="alert-error">{ data.Mensaje }</div>
+			}
+			<form class="auth-form" method="POST" action="/escuderias/modificar">
+				<input type="hidden" name="id_escuderia" value={ data.ID }/>
+				<div class="form-group">
+					<label for="team_principal">Team Principal</label>
+					<input type="text" id="team_principal" name="team_principal" value={ data.Principal } required/>
+				</div>
+				<div class="form-group">
+					<label for="titulos_constructores">Títulos de constructores</label>
+					<input type="number" id="titulos_constructores" name="titulos_constructores" min="0" value={ strconv.Itoa(data.Titulos) } required/>
+				</div>
+				<div class="form-group">
+					<label for="fecha_fundacion">Fecha de fundación</label>
+					<input type="date" id="fecha_fundacion" name="fecha_fundacion" value={ data.Fundacion } required/>
+				</div>
+				<div class="form-group">
+					<label for="puntos_temporada">Puntos de temporada</label>
+					<input type="number" id="puntos_temporada" name="puntos_temporada" min="0" value={ strconv.Itoa(data.Puntos) } required/>
+				</div>
+				<button type="submit" class="btn-submit">Guardar cambios</button>
+				<a href="/escuderias" class="btn-register">Cancelar</a>
+			</form>
+		</div>
+	}
 }

@@ -1,0 +1,36 @@
+package views
+
+templ LayoutAdmin(title string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } | PredictOne</title>
+
+			<link rel="icon" type="image/png" href="/front/imagenes/LogoPredictOne.png"/>
+			<link rel="stylesheet" href="/front/principal.css"/>
+			<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/htmx.min.js"
+					integrity="sha384-BvJpBiO8Kh31EqtJe5DRIeWrHWnCGkwytKs9NKFi86Hhw96dEqdEMzZDeK9iEGTc"
+					crossorigin="anonymous"></script>
+		</head>
+		<body>
+			<header class="navbar">
+				<a href="/admin" class="btn-register">Completar resultados</a>
+				<nav class="nav-auth">
+                <a href="/pilotos" class="btn-register">Pilotos</a>
+                <a href="/escuderias" class="btn-register">Escuderias</a>
+                <a href="/gran_premios" class="btn-register">Gran Premio</a>
+                <a href="/salir" class="btn-login">Cerrar sesión</a>
+				</nav>
+			</header>
+			<main class="page-container">
+				{ children... }
+			</main>
+			<footer class="footer">
+				<a href="/admin" class="logo">Predict<span>One</span></a>
+				<p>LA FÓRMULA 1, MÁS CERCA DE VOS</p>
+			</footer>
+		</body>
+	</html>
+}

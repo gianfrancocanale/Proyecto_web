@@ -80,7 +80,7 @@ func (h *UsuarioHandler) PaginaIngresar(w http.ResponseWriter, r *http.Request) 
 
 func (h *UsuarioHandler) Salir(w http.ResponseWriter, r *http.Request) {
 	cerrarSesion(w, r)
-	http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *UsuarioHandler) EliminarUsuario(w http.ResponseWriter, r *http.Request) {

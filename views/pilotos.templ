@@ -30,7 +30,7 @@ type ModificarPilotoData struct {
 }
 
 templ PilotosPage(data PilotosData) {
-	@Layout("Pilotos") {
+	@LayoutRol("Pilotos", data.EsAdmin) {
 		<div class="page-container">
 			<div class="page-header">
 				<h1>Pilotos <span>2026</span></h1>
@@ -146,7 +146,7 @@ templ PilotosLista(pilotos []d.ListarPilotosRow, esAdmin bool, mensaje string) {
 }
 
 templ ModificarPilotoPage(data ModificarPilotoData) {
-	@Layout("Modificar piloto") {
+	@LayoutAdmin("Modificar piloto") {
 		<div class="page-header">
 			<h1>Modificar <span>piloto</span></h1>
 			<p>{ data.Nombre }</p>

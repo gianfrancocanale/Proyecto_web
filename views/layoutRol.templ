@@ -1,0 +1,13 @@
+package views
+
+templ LayoutRol(title string, esAdmin bool) {
+	if esAdmin {
+		@LayoutAdmin(title) {
+			{ children... }
+		}
+	} else {
+		@Layout(title) {
+			{ children... }
+		}
+	}
+}

@@ -1,6 +1,9 @@
 package views
 
-import "strconv"
+import (
+	"strings"
+	"strconv"
+)
 
 type OpcionGP struct {
 	Valor string // "id_gran_premio|YYYY-MM-DD"
@@ -22,18 +25,40 @@ type ApuestaVista struct {
 
 type ApuestasData struct {
 	Usuario     string
+	Puntos      int
 	GranPremios []OpcionGP
 	Pilotos     []OpcionPiloto
 	Apuestas    []ApuestaVista
 	Mensaje     string
 }
 
+// inicial devuelve la primera letra del nombre, en mayúscula, para el avatar.
+func inicial(s string) string {
+	r := []rune(strings.TrimSpace(s))
+	if len(r) == 0 {
+		return "?"
+	}
+	return strings.ToUpper(string(r[0]))
+}
+
 templ ApuestasPage(d ApuestasData) {
 	@Layout("Apuestas") {
 		<div class="page-header">
 			<h1>Mis <span>apuestas</span></h1>
-			<p>Hola, { d.Usuario }. Elegí el gran premio y armá tu top 10.</p>
+			<p>Elegí el gran premio y armá tu top 10.</p>
+			<span class="player-rule">Posición exacta +3 · En el top 10 +1</span>
 		</div>
+		<section class="player-card">
+			<div class="player-avatar">{ inicial(d.Usuario) }</div>
+			<div class="player-info">
+				<span class="player-label">USUARIO</span>
+				<strong class="player-name">{ d.Usuario }</strong>
+			</div>
+			<div class="player-points">
+				<span class="player-points-value">{ strconv.Itoa(d.Puntos) }</span>
+				<span class="player-points-label">PUNTOS</span>
+			</div>
+		</section>
 		<div class="bets-layout">
 			<div class="auth-box bet-form-box">
 				<h2>Nueva <span>apuesta</span></h2>
@@ -75,7 +100,7 @@ templ ApuestasPage(d ApuestasData) {
 			</div>
 			<section>
 				<div class="bets-list-header">
-					<h2>Tus <span>pronósticos</span></h2>
+					<h2>Tus <span>apuestas</span></h2>
 				</div>
 				@ApuestasLista(d.Apuestas, d.Mensaje)
 			</section>

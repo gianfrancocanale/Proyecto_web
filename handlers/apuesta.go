@@ -152,9 +152,18 @@ func (h *ApuestaHandler) datosApuestas(ctx context.Context, usuario, mensaje str
 }
 
 // renderApuestas devuelve la página completa
+// renderApuestas devuelve la página completa
 func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
-	data := h.datosApuestas(r.Context(), usuario, mensaje)
-	views.ApuestasPage(data).Render(r.Context(), w)
+	ctx := r.Context()
+	data := h.datosApuestas(ctx, usuario, mensaje)
+
+	puntos, err := h.queries.ObtenerPuntosUsuario(ctx, usuario)
+	if err != nil {
+		log.Println("ObtenerPuntosUsuario:", err)
+	}
+	data.Puntos = int(puntos)
+
+	views.ApuestasPage(data).Render(ctx, w)
 }
 
 // renderLista devuelve solo el fragmento de la lista

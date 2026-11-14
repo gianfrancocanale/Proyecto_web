@@ -45,7 +45,7 @@ func Layout(title string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if logueado(ctx) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/apuestas\" class=\"btn-register\">Apuestas</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/salir\" class=\"btn-login\">Cerrar sesión</a> <a href=\"/apuestas\" class=\"btn-register\">Apuestas</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

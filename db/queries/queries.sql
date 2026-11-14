@@ -31,6 +31,10 @@ SELECT
     puntos_ganados
 FROM usuario;
 
+-- name: ObtenerPuntosUsuario :one
+-- Obtener los puntos de un usuario
+SELECT puntos_ganados FROM usuario WHERE nombre_usuario = $1;
+
 
 -- name: ModificarUsuario :one
 -- Modificar datos de usuario

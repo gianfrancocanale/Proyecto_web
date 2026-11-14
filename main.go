@@ -21,7 +21,7 @@ func main() {
 	defer db.Close()
 
 	hUsuario := h.NewUsuarioHandler(db)
-	adminHandler := h.NewAdminHandler(db)
+	hAdmin := h.NewAdminHandler(db)
 	hPiloto := h.NewPilotoHandler(db)
 	hEscuderia := h.NewEscuderiaHandler(db)
 	hGranPremio := h.NewGranPremioHandler(db)
@@ -38,21 +38,28 @@ func main() {
 
 	http.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
 	http.HandleFunc("/registrar", hUsuario.PaginaRegistrar)
-	http.HandleFunc("/salir", hUsuario.Salir)
+	http.HandleFunc("/salir", h.RequiereLogin(hUsuario.Salir))
 
 	http.HandleFunc("/apuestas", h.RequiereLogin(hApuesta.PaginaApuestas))
 	http.HandleFunc("GET /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
 	http.HandleFunc("POST /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
 	http.HandleFunc("DELETE /apuestas/{id}", h.RequiereLogin(hApuesta.EliminarApuesta))
 
-	http.HandleFunc("/admin", adminHandler.RequiereAdmin(adminHandler.PaginaAdmin))
-	http.HandleFunc("/admin/carrera", adminHandler.RequiereAdmin(adminHandler.ProgramarCarrera))
-	http.HandleFunc("/admin/resultado", adminHandler.RequiereAdmin(adminHandler.CargarResultado))
+	//ENDPINT DE ADMINISTRADOR
 
-	http.HandleFunc("POST /pilotos", adminHandler.RequiereAdmin(hPiloto.Pagina))
-	http.HandleFunc("GET /pilotos/modificar", adminHandler.RequiereAdmin(hPiloto.ModificarPiloto))
-	http.HandleFunc("POST /pilotos/modificar", adminHandler.RequiereAdmin(hPiloto.ModificarPiloto))
-	http.HandleFunc("DELETE /pilotos/{id}", adminHandler.RequiereAdmin(hPiloto.EliminarPiloto))
+	http.HandleFunc("/admin", hAdmin.RequiereAdmin(hAdmin.PaginaAdmin))
+	http.HandleFunc("/admin/carrera", hAdmin.RequiereAdmin(hAdmin.ProgramarCarrera))
+	http.HandleFunc("/admin/resultado", hAdmin.RequiereAdmin(hAdmin.CargarResultado))
+
+	http.HandleFunc("POST /pilotos", hAdmin.RequiereAdmin(hPiloto.Pagina))
+	http.HandleFunc("GET /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("POST /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("DELETE /pilotos/{id}", hAdmin.RequiereAdmin(hPiloto.EliminarPiloto))
+
+	http.HandleFunc("POST /escuderias", hAdmin.RequiereAdmin(hEscuderia.CrearEscuderia))
+	http.HandleFunc("DELETE /escuderias/{id}", hAdmin.RequiereAdmin(hEscuderia.EliminarEscuderia))
+	http.HandleFunc("GET /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.PaginaModificar))
+	http.HandleFunc("POST /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.ModificarEscuderia))
 
 	fmt.Println(" ")
 	fmt.Println("Servidor escuchando en :8080")

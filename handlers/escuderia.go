@@ -1,14 +1,17 @@
 package handlers
 
 import (
-	sqlc "Proyecto_web/db/sqlc"
-	vista "Proyecto_web/views"
-	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	sqlc "Proyecto_web/db/sqlc"
+	view "Proyecto_web/views"
 )
 
 // EscuderiaHandler agrupa los handlers de escudería y guarda
@@ -26,19 +29,20 @@ func NewEscuderiaHandler(db *sql.DB) *EscuderiaHandler {
 	}
 }
 
+// ---------------------------------------------------------------
+// GET /escuderias
+// ---------------------------------------------------------------
+
 func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
-	escuderias, err := h.ListarEscuderias(r.Context())
+	escuderias, err := h.queries.ListarEscuderias(r.Context())
 	if err != nil {
-		if errors.Is(err, errors.New("no se encontraron escuderías")) {
-			http.Error(w, "No se encontraron escuderías", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al obtener las escuderías", http.StatusInternalServerError)
-		}
+		log.Println("ListarEscuderias:", err)
+		http.Error(w, "Error al obtener las escuderías", http.StatusInternalServerError)
 		return
 	}
 
@@ -46,120 +50,78 @@ func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	if orden != "desc" {
 		orden = "asc" // valor por defecto
 	}
+	ordenarEscuderias(escuderias, orden)
+	esAdmin := usuarioEsAdmin(r, h.queries)
 
-	sort.Slice(escuderias, func(i, j int) bool {
-		if orden == "desc" {
-			return escuderias[i].IDEscuderia > escuderias[j].IDEscuderia
-		}
-		return escuderias[i].IDEscuderia < escuderias[j].IDEscuderia
-	})
-	vista.EscuderiasPage(escuderias, orden).Render(r.Context(), w)
+	// La misma URL devuelve página completa o fragmento según quién pregunte.
+	w.Header().Add("Vary", "HX-Request")
+	if r.Header.Get("HX-Request") == "true" {
+		view.EscuderiasLista(escuderias, orden, esAdmin, "").Render(r.Context(), w)
+		return
+	}
+
+	view.EscuderiasPage(view.EscuderiasData{
+		EsAdmin:    esAdmin,
+		Orden:      orden,
+		Escuderias: escuderias,
+	}).Render(r.Context(), w)
 }
+
+// ---------------------------------------------------------------
+// POST /escuderias (htmx): crear y devolver la lista actualizada
+// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) CrearEscuderia(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+	if err := r.ParseForm(); err != nil {
+		h.renderLista(w, r, "", "Formulario inválido")
+		return
+	}
+	orden := r.FormValue("orden")
+
+	f, msg := leerEscuderiaForm(r)
+	if msg != "" {
+		h.renderLista(w, r, orden, msg)
 		return
 	}
 
-	var escuderia sqlc.CrearEscuderiaParams
-
-	err := json.NewDecoder(r.Body).Decode(&escuderia)
-
+	_, err := h.queries.CrearEscuderia(r.Context(), sqlc.CrearEscuderiaParams{
+		IDEscuderia:          f.ID,
+		PuntosTemporada:      f.Puntos,
+		TitulosConstructores: f.Titulos,
+		FechaFundacion:       f.Fundacion,
+		TeamPrincipal:        f.Principal,
+	})
 	if err != nil {
-		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
-		return
-	}
-
-	if escuderia.IDEscuderia == "" || escuderia.TeamPrincipal == "" || escuderia.FechaFundacion.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	escuderia.PuntosTemporada = 0      //setea 0 puntos al crear una nueva escuderia
-	escuderia.TitulosConstructores = 0 //setea 0 titulos al crear una nueva escuderia
-
-	devolver, err := h.queries.CrearEscuderia(r.Context(), escuderia)
-	if err != nil {
-		http.Error(w, "Error al crear la escudería", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(devolver)
-}
-
-func (h *EscuderiaHandler) ListarEscuderias(ctx context.Context) ([]sqlc.Escuderium, error) {
-	escuderias, err := h.queries.ListarEscuderias(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(escuderias) == 0 {
-
-		return nil, sql.ErrNoRows
-	}
-
-	return escuderias, nil
-}
-
-func (h *EscuderiaHandler) ObtenerEscuderia(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	idEscuderia := r.PathValue("id")
-
-	escuderia, err := h.queries.RecuperarEscuderia(r.Context(), idEscuderia)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al obtener la escudería", http.StatusInternalServerError)
+		if strings.Contains(err.Error(), "duplicate key") {
+			h.renderLista(w, r, orden, "Ya existe una escudería con ese nombre")
+			return
 		}
+		log.Println("CrearEscuderia:", err)
+		h.renderLista(w, r, orden, "No se pudo crear la escudería")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(escuderia)
+	h.renderLista(w, r, orden, "")
 }
 
-func (h *EscuderiaHandler) ActualizarEscuderia(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	idEscuderia := r.PathValue("id")
-
-	var escuderia sqlc.ModificarEscuderiaParams
-
-	err := json.NewDecoder(r.Body).Decode(&escuderia)
+// renderLista devuelve solo el fragmento #lista-escuderias.
+func (h *EscuderiaHandler) renderLista(w http.ResponseWriter, r *http.Request, orden, mensaje string) {
+	es, err := h.queries.ListarEscuderias(r.Context())
 	if err != nil {
-		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
-		return
+		log.Println("ListarEscuderias:", err)
+		mensaje = "Error interno"
 	}
-
-	if escuderia.TeamPrincipal == "" || escuderia.FechaFundacion.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
+	if orden != "desc" {
+		orden = "asc"
 	}
+	ordenarEscuderias(es, orden)
 
-	escuderia.IDEscuderia = idEscuderia
-
-	devolver, err := h.queries.ModificarEscuderia(r.Context(), escuderia)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al actualizar la escudería", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(devolver)
+	view.EscuderiasLista(es, orden, true, mensaje).Render(r.Context(), w)
 }
+
+// ---------------------------------------------------------------
+// DELETE /escuderias/{id} (htmx): la tarjeta se reemplaza por nada
+// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) EliminarEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
@@ -168,16 +130,150 @@ func (h *EscuderiaHandler) EliminarEscuderia(w http.ResponseWriter, r *http.Requ
 	}
 
 	idEscuderia := r.PathValue("id")
-
-	err := h.queries.EliminarEscuderia(r.Context(), idEscuderia)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Escudería no encontrada", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al eliminar la escudería", http.StatusInternalServerError)
-		}
+	if idEscuderia == "" {
+		http.Error(w, "id inválido", http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if err := h.queries.EliminarEscuderia(r.Context(), idEscuderia); err != nil {
+		log.Println("EliminarEscuderia:", err)
+		http.Error(w, "Error al eliminar la escudería", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK) // cuerpo vacío: htmx saca la tarjeta
+}
+
+// ---------------------------------------------------------------
+// GET /escuderias/modificar?id=...
+// ---------------------------------------------------------------
+
+func (h *EscuderiaHandler) PaginaModificar(w http.ResponseWriter, r *http.Request) {
+	e, err := h.queries.RecuperarEscuderia(r.Context(), r.URL.Query().Get("id"))
+	if err != nil {
+		http.Redirect(w, r, "/escuderias", http.StatusSeeOther)
+		return
+	}
+
+	view.ModificarEscuderiaPage(view.ModificarEscuderiaData{
+		ID:        e.IDEscuderia,
+		Principal: e.TeamPrincipal,
+		Titulos:   int(e.TitulosConstructores),
+		Fundacion: e.FechaFundacion.Format("2006-01-02"),
+		Puntos:    int(e.PuntosTemporada),
+	}).Render(r.Context(), w)
+}
+
+// ---------------------------------------------------------------
+// POST /escuderias/modificar
+// ---------------------------------------------------------------
+
+func (h *EscuderiaHandler) ModificarEscuderia(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, "/escuderias", http.StatusSeeOther)
+		return
+	}
+
+	f, msg := leerEscuderiaForm(r)
+	if msg != "" {
+		w.WriteHeader(http.StatusBadRequest)
+		view.ModificarEscuderiaPage(view.ModificarEscuderiaData{
+			Mensaje:   msg,
+			ID:        f.ID,
+			Principal: r.FormValue("team_principal"),
+			Titulos:   atoiOCero(r.FormValue("titulos_constructores")),
+			Fundacion: r.FormValue("fecha_fundacion"),
+			Puntos:    atoiOCero(r.FormValue("puntos_temporada")),
+		}).Render(r.Context(), w)
+		return
+	}
+
+	_, err := h.queries.ModificarEscuderia(r.Context(), sqlc.ModificarEscuderiaParams{
+		IDEscuderia:          f.ID,
+		TeamPrincipal:        f.Principal,
+		TitulosConstructores: f.Titulos,
+		FechaFundacion:       f.Fundacion,
+		PuntosTemporada:      f.Puntos,
+	})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("ModificarEscuderia:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		view.ModificarEscuderiaPage(view.ModificarEscuderiaData{
+			Mensaje:   "No se pudo guardar el cambio",
+			ID:        f.ID,
+			Principal: f.Principal,
+			Titulos:   int(f.Titulos),
+			Fundacion: f.Fundacion.Format("2006-01-02"),
+			Puntos:    int(f.Puntos),
+		}).Render(r.Context(), w)
+		return
+	}
+
+	http.Redirect(w, r, "/escuderias", http.StatusSeeOther)
+}
+
+// ---------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------
+
+type escuderiaForm struct {
+	ID        string
+	Principal string
+	Titulos   int32
+	Puntos    int32
+	Fundacion time.Time
+}
+
+// leerEscuderiaForm valida el formulario. Devuelve un mensaje si algo está mal.
+func leerEscuderiaForm(r *http.Request) (escuderiaForm, string) {
+	f := escuderiaForm{
+		ID:        strings.TrimSpace(r.FormValue("id_escuderia")),
+		Principal: strings.TrimSpace(r.FormValue("team_principal")),
+	}
+	if f.ID == "" || f.Principal == "" {
+		return f, "El nombre y el Team Principal son obligatorios"
+	}
+
+	titulos, err := strconv.Atoi(r.FormValue("titulos_constructores"))
+	if err != nil || titulos < 0 {
+		return f, "Los títulos tienen que ser un número mayor o igual a 0"
+	}
+	puntos, err := strconv.Atoi(r.FormValue("puntos_temporada"))
+	if err != nil || puntos < 0 {
+		return f, "Los puntos tienen que ser un número mayor o igual a 0"
+	}
+	fecha, err := time.Parse("2006-01-02", r.FormValue("fecha_fundacion"))
+	if err != nil {
+		return f, "La fecha de fundación no es válida"
+	}
+
+	f.Titulos = int32(titulos)
+	f.Puntos = int32(puntos)
+	f.Fundacion = fecha
+	return f, ""
+}
+
+func ordenarEscuderias(es []sqlc.Escuderium, orden string) {
+	sort.Slice(es, func(i, j int) bool {
+		if orden == "desc" {
+			return es[i].IDEscuderia > es[j].IDEscuderia
+		}
+		return es[i].IDEscuderia < es[j].IDEscuderia
+	})
+}
+
+func atoiOCero(s string) int {
+	n, _ := strconv.Atoi(s)
+	return n
+}
+
+// usuarioEsAdmin dice si la sesión actual es de un administrador (el rol sale de la base).
+// Si ya tenés un helper así para pilotos, usá ese y borrá este.
+func usuarioEsAdmin(r *http.Request, q *sqlc.Queries) bool {
+	usuario, ok := usuarioActual(r)
+	if !ok {
+		return false
+	}
+	esAdmin, err := q.EsAdmin(r.Context(), usuario)
+	return err == nil && esAdmin
 }
