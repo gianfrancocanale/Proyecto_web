@@ -5,10 +5,6 @@
 
 ## Diagrama de navegación
 
-![Mapa de sitio](mapa_sitio.png)
-
-[También disponible como SVG](mapa_sitio.svg) · [Código Mermaid](MAPA_SITIO.md#diagrama-mermaid)
-
 ```mermaid
 flowchart TD
     A["Inicio<br/>/"] --> B["Escuderías<br/>/escuderias"]
@@ -67,25 +63,6 @@ flowchart TD
 | Sesión activa | `/ingresar` | Redirección a `/` |
 | Cualquier ruta inexistente | Página 404 | Código HTTP 404 + link al inicio |
 
-## Capturas de pantalla
-
-Todas las imágenes tienen 1440 px de ancho y son capturas reales de la página completa, tomadas con Chrome headless desde `http://localhost:8080`.
-
-| # | Pantalla | Ruta | Archivo |
-|---|---|---|---|
-| 01 | Inicio (visitante) | `/` | [01_inicio_publico.png](capturas/01_inicio_publico.png) |
-| 02 | Escuderías | `/escuderias` | [02_escuderias.png](capturas/02_escuderias.png) |
-| 03 | Pilotos | `/pilotos` | [03_pilotos.png](capturas/03_pilotos.png) |
-| 04 | Grandes Premios | `/gran_premios` | [04_grandes_premios.png](capturas/04_grandes_premios.png) |
-| 05 | Iniciar sesión | `/ingresar` | [05_ingresar.png](capturas/05_ingresar.png) |
-| 06 | Registrarse | `/registrar` | [06_registrar.png](capturas/06_registrar.png) |
-| 07 | Página 404 | `/no_existe` | [07_404.png](capturas/07_404.png) |
-| 08 | Inicio con sesión | `/` | [08_inicio_logueado.png](capturas/08_inicio_logueado.png) |
-| 09 | Mis apuestas | `/apuestas` | [09_apuestas.png](capturas/09_apuestas.png) |
-| 10 | Acceso denegado a admin | `/admin` | [10_admin_403.png](capturas/10_admin_403.png) |
-| 11 | Panel de administración | `/admin` | [11_admin.png](capturas/11_admin.png) |
-| 12 | Escuderías (vista admin) | `/escuderias` | [12_admin_escuderias.png](capturas/12_admin_escuderias.png) |
-| 13 | Modificar gran premio | `/gran_premios/modificar?id=Monza` | [13_modificar_gran_premio.png](capturas/13_modificar_gran_premio.png) |
 
 Los metadatos de cada captura (URL, título y altura) están en [`capturas/manifest.json`](capturas/manifest.json).
 
