@@ -95,3 +95,19 @@ func (r *UsuarioRepository) SumarPuntos(ctx context.Context, nombre string, punt
 		Puntos:        int32(puntos),
 	})
 }
+
+// repository/usuario.go
+func (r *UsuarioRepository) ListarJugadores(ctx context.Context) ([]dominio.Jugador, error) {
+	filas, err := r.q.ListarJugadores(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]dominio.Jugador, len(filas))
+	for i, f := range filas {
+		out[i] = dominio.Jugador{
+			Nombre: f.NombreUsuario,
+			Puntos: int(f.PuntosGanados),
+		}
+	}
+	return out, nil
+}

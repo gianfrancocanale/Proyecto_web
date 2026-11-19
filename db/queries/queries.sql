@@ -35,6 +35,11 @@ FROM usuario;
 -- Obtener los puntos de un usuario
 SELECT puntos_ganados FROM usuario WHERE nombre_usuario = $1;
 
+-- name: ListarJugadores :many
+SELECT nombre_usuario, puntos_ganados
+FROM usuario
+WHERE es_admin = FALSE;
+
 
 -- name: ModificarUsuario :one
 -- Modificar datos de usuario

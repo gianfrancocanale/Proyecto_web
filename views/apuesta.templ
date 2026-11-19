@@ -23,6 +23,13 @@ type ApuestaVista struct {
 	Editable   bool // true si la carrera sigue abierta
 }
 
+type JugadorVista struct {
+	Posicion int
+	Nombre   string
+	Puntos   int
+	EsYo     bool
+}
+
 type ApuestasData struct {
 	Usuario     string
 	Puntos      int
@@ -30,6 +37,7 @@ type ApuestasData struct {
 	Pilotos     []OpcionPiloto
 	Apuestas    []ApuestaVista
 	Mensaje     string
+	Jugadores []JugadorVista
 }
 
 // inicial devuelve la primera letra del nombre, en mayúscula, para el avatar.
@@ -104,8 +112,40 @@ templ ApuestasPage(d ApuestasData) {
 				</div>
 				@ApuestasLista(d.Apuestas, d.Mensaje)
 			</section>
+			@JugadoresLista(d.Jugadores)
 		</div>
 	}
+}
+
+templ JugadoresLista(jugadores []JugadorVista) {
+    <aside class="ranking-box">
+        <div class="bets-list-header">
+            <h2>Ranking de <span>jugadores</span></h2>
+        </div>
+
+        if len(jugadores) == 0 {
+            <p class="auth-subtitle">Todavía no hay jugadores.</p>
+        }
+
+        <ul class="ranking-list">
+            for _, j := range jugadores {
+                <li class={ "ranking-item", templ.KV("ranking-item--me", j.EsYo) }>
+                    <span class="player-avatar ranking-avatar">
+                        { inicial(j.Nombre) }
+                    </span>
+
+                    <strong class="player-name ranking-name">
+                        { j.Nombre }
+                    </strong>
+
+                    <span class="ranking-points">
+                        { strconv.Itoa(j.Puntos) }
+                        <small>PTS</small>
+                    </span>
+                </li>
+            }
+        </ul>
+    </aside>
 }
 
 templ ApuestasLista(apuestas []ApuestaVista, mensaje string) {

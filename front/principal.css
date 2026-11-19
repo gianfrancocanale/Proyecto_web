@@ -931,18 +931,187 @@ a {
 }
 
 /* ==========================================
-   APUESTAS
-========================================== */
+   APUESTAS*/
 
 .bets-layout {
     display: grid;
-    grid-template-columns: 380px minmax(0, 1fr);
-    gap: 32px;
+    grid-template-columns: 300px 380px minmax(0, 1fr);
+    gap: 28px;
     align-items: start;
 }
 
+/* Formulario */
+
 .bet-form-box {
     max-width: none;
+}
+
+/* Ranking */
+
+.ranking-box {
+    position: sticky;
+    top: 20px;
+    min-width: 0;
+}
+
+.ranking-box .bets-list-header h2 {
+    font-size: 1.4rem;
+}
+
+.ranking-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.ranking-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--rojo);
+}
+
+.ranking-item--me {
+    border-left: 4px solid var(--rojo);
+    background:
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(242, 13, 47, 0.18),
+            transparent 60%
+        ),
+        var(--fondo-secundario);
+}
+
+.ranking-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.05rem;
+    box-shadow: 0 0 0 3px rgba(242, 13, 47, 0.2);
+}
+
+.ranking-name {
+    font-size: 0.95rem;
+    min-width: 0;
+}
+
+.ranking-points {
+    font-size: 1.1rem;
+    font-weight: 900;
+    line-height: 1;
+    text-align: right;
+}
+
+.ranking-points small {
+    display: block;
+    margin-top: 4px;
+    color: var(--gris);
+    font-size: 0.6rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* Listado de apuestas */
+
+.bets-content {
+    min-width: 0;
+}
+
+/* ==========================================
+   RANKING DE JUGADORES (apuestas)
+========================================== */
+
+.ranking-box {
+    position: sticky;
+    top: 20px;
+}
+
+.ranking-box .bets-list-header h2 {
+    font-size: 1.4rem;
+}
+
+.ranking-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 24px 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.ranking-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--rojo);
+}
+
+/* Tu propio usuario resaltado, igual que la tarjeta del jugador */
+.ranking-item--me {
+    border-left: 4px solid var(--rojo);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(242, 13, 47, 0.18), transparent 60%),
+        var(--fondo-secundario);
+}
+
+.ranking-pos {
+    color: var(--gris);
+    font-weight: 800;
+    text-align: center;
+}
+
+.ranking-item:nth-child(1) .ranking-pos {
+    color: var(--rojo);
+    font-size: 1.1rem;
+}
+
+/* Reutiliza .player-avatar, solo más chico */
+.ranking-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.05rem;
+    box-shadow: 0 0 0 3px rgba(242, 13, 47, 0.2);
+}
+
+/* Reutiliza .player-name, más chico */
+.ranking-name {
+    font-size: 1rem;
+}
+
+.ranking-points {
+    font-size: 1.3rem;
+    font-weight: 900;
+    line-height: 1;
+    text-align: right;
+}
+
+.ranking-points small {
+    display: block;
+    margin-top: 2px;
+    color: var(--gris);
+    font-size: 0.6rem;
+    font-weight: bold;
+    letter-spacing: 2px;
 }
 
 /* Formulario: 10 posiciones */
@@ -1053,6 +1222,10 @@ a {
 @media (max-width: 900px) {
     .bets-layout {
         grid-template-columns: 1fr;
+    }
+
+    .ranking-box {
+        position: static;
     }
 }
 
@@ -1440,4 +1613,87 @@ a {
   background: rgba(225, 6, 0, 0.12);
   border: 1px solid rgba(225, 6, 0, 0.45);
   border-radius: 8px;
+}
+
+/* ==========================================
+   DISTRIBUCION DE APUESTAS
+========================================== */
+
+.bets-layout {
+    display: grid !important;
+    grid-template-columns: 380px minmax(0, 1fr) 300px !important;
+    gap: 28px;
+    align-items: start;
+}
+
+.bet-form-box {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+.bets-content {
+    min-width: 0;
+}
+
+.ranking-box {
+    position: sticky;
+    top: 20px;
+    min-width: 0;
+    grid-column: auto;
+}
+
+/* Ranking */
+
+.ranking-list {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+}
+
+.ranking-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.ranking-name {
+    font-size: 0.95rem;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+    .bets-layout {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .ranking-box {
+        grid-column: 1 / -1;
+        position: static;
+    }
+}
+
+@media (max-width: 700px) {
+    .bets-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ranking-box {
+        grid-column: auto;
+    }
 }

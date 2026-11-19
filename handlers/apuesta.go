@@ -134,6 +134,21 @@ func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, 
 		log.Println("Obtener puntos:", err)
 	}
 	data.Puntos = puntos
+
+	// Ranking de jugadores (no admin), ya ordenado por el servicio
+	jugadores, err := h.usuarios.ListarJugadores(ctx)
+	if err != nil {
+		log.Println("Listar jugadores:", err) // no rompemos la página por esto
+	}
+	for i, j := range jugadores {
+		data.Jugadores = append(data.Jugadores, views.JugadorVista{
+			Posicion: i + 1,
+			Nombre:   j.Nombre,
+			Puntos:   j.Puntos,
+			EsYo:     j.Nombre == usuario,
+		})
+	}
+
 	views.ApuestasPage(data).Render(ctx, w)
 }
 

@@ -3,6 +3,7 @@ package aplicacion
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"Proyecto_web/dominio"
 
@@ -93,4 +94,19 @@ func (s *UsuarioService) SumarPuntos(ctx context.Context, nombre string, puntos 
 		return nil
 	}
 	return s.repo.SumarPuntos(ctx, nombre, puntos)
+}
+
+func (s *UsuarioService) ListarJugadores(ctx context.Context) ([]dominio.Jugador, error) {
+	js, err := s.repo.ListarJugadores(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Más puntos primero; si empatan, por nombre.
+	sort.Slice(js, func(i, j int) bool {
+		if js[i].Puntos != js[j].Puntos {
+			return js[i].Puntos > js[j].Puntos
+		}
+		return js[i].Nombre < js[j].Nombre
+	})
+	return js, nil
 }

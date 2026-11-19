@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+type Jugador struct {
+	Nombre string
+	Puntos int
+}
+
 // Errores de dominio de Usuario.
 var (
 	ErrUsuarioDuplicado    = errors.New("ya existe un usuario con ese nombre")
@@ -43,4 +48,5 @@ type UsuarioRepository interface {
 	EsAdmin(ctx context.Context, nombre string) (bool, error)
 	ObtenerPuntos(ctx context.Context, nombre string) (int, error)
 	SumarPuntos(ctx context.Context, nombre string, puntos int) error
+	ListarJugadores(ctx context.Context) ([]Jugador, error)
 }
