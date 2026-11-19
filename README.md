@@ -51,10 +51,10 @@ git clone https://github.com/gianfrancocanale/Proyecto_web.git
 cd Proyecto_web
 ```
 
-### 2. Cambiar al branch del tp4
+### 2. Cambiar al branch del tp6
 
 ```bash
-git checkout tp4
+git checkout tp6
 ```
 
 ### 3. Configurar las variables de entorno
@@ -78,6 +78,8 @@ make run
 Esto genera el código de `sqlc` y `templ`, compila el proyecto y levanta PostgreSQL y la API en Docker. Cuando termina, el sitio queda disponible en:
 
 **http://localhost:8080**
+
+Si querés ingresar como administrador: Usuario: admin - Contraseña: admin123
 
 ---
 
@@ -290,7 +292,6 @@ Los métodos se indican tal como se registran en el `mux`. Cuando una ruta no de
 | — | `/gran_premios_historicos` | Público | Listar (GET) y crear (POST) Grandes Premios históricos. |
 | — | `/gran_premios_historicos/{id}/{fecha_carrera}` | Público | Consultar, actualizar y eliminar una edición histórica, identificada por Gran Premio y fecha de carrera. |
 
-> **Atención:** los endpoints de la API REST no pasan por `RequiereLogin` ni `RequiereAdmin`, por lo que cualquiera podría crear, modificar o borrar usuarios y datos históricos. Conviene protegerlos antes de un despliegue real.
 
 ---
 
