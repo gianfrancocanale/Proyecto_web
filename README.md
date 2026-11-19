@@ -21,6 +21,7 @@ Permite:
 5. [Sesiones y cookies](#sesiones-y-cookies)
 6. [Modelo de datos](#modelo-de-datos)
 7. [Error 404](#error-404)
+8. [Documentación de navegación](#documentación-de-navegación)
 
 ---
 
@@ -440,3 +441,15 @@ Restricciones adicionales:
 Cualquier ruta que no coincida con ninguna de las anteriores muestra una página de error 404 (`NoEncontradoPage`). Responde con código de estado `404` y tiene un botón que redirige a la página de inicio (`/`).
 
 Se registra con el patrón `"/"`, que Go aplica solo a las rutas que ninguna otra captura; la raíz exacta sigue siendo atendida por `"GET /{$}"`.
+
+---
+
+## Documentación de navegación
+
+Además del código, el proyecto incluye documentación sobre cómo se navega el sitio. Se elaboraron tres entregables:
+
+| Documento | Descripción | Enlace |
+| :--- | :--- | :--- |
+| **Informe de navegación** | Informe que describe los recorridos posibles dentro de la aplicación según el tipo de usuario (visitante, usuario con sesión y Admin): qué páginas puede visitar, cómo pasa de una a otra y qué acciones tiene disponibles en cada una. | [Ver informe](https://github.com/gianfrancocanale/Proyecto_web/blob/tp6/INFORME_NAVEGACION.md) |
+| **Capturas de pantalla de la navegación** | Capturas de las pantallas principales del sitio (inicio, listados, ingreso y registro, apuestas, panel de administración y error 404), ordenadas siguiendo el recorrido de navegación. | [Ver capturas](https://github.com/gianfrancocanale/Proyecto_web/tree/tp6/capturas) |
+| **Mapa del sitio** | Esquema jerárquico con todas las rutas de la aplicación, indicando el nivel de acceso de cada una (`Público`, `Sesión` o `Admin`). | [Ver mapa del sitio](https://github.com/gianfrancocanale/Proyecto_web/blob/tp6/MAPA_SITIO.md) |
