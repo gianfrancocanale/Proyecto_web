@@ -1,4 +1,4 @@
-# Mapa de sitio y capturas — PredictOne
+# Mapa de sitio — PredictOne
 
 **Fecha:** 2026-11-19  
 **Fuente:** recorrido real con Chrome headless sobre la API levantada con `make run`.
