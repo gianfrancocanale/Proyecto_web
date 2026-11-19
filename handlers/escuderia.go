@@ -1,4 +1,3 @@
-// handlers/escuderia.go
 package handlers
 
 import (
@@ -32,9 +31,7 @@ func (h *EscuderiaHandler) esAdmin(r *http.Request) bool {
 	return err == nil && esAdmin
 }
 
-// ---------------------------------------------------------------
 // GET /escuderias
-// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -65,9 +62,7 @@ func (h *EscuderiaHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	}).Render(r.Context(), w)
 }
 
-// ---------------------------------------------------------------
 // POST /escuderias (htmx)
-// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) CrearEscuderia(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -102,9 +97,7 @@ func (h *EscuderiaHandler) renderLista(w http.ResponseWriter, r *http.Request, o
 	view.EscuderiasLista(es, orden, true, mensaje).Render(r.Context(), w)
 }
 
-// ---------------------------------------------------------------
 // DELETE /escuderias/{id} (htmx)
-// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) EliminarEscuderia(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
@@ -127,9 +120,7 @@ func (h *EscuderiaHandler) EliminarEscuderia(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK) // cuerpo vacío: htmx saca la tarjeta
 }
 
-// ---------------------------------------------------------------
 // GET /escuderias/modificar?id=...
-// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) PaginaModificar(w http.ResponseWriter, r *http.Request) {
 	e, err := h.escuderias.Recuperar(r.Context(), r.URL.Query().Get("id"))
@@ -147,9 +138,7 @@ func (h *EscuderiaHandler) PaginaModificar(w http.ResponseWriter, r *http.Reques
 	}).Render(r.Context(), w)
 }
 
-// ---------------------------------------------------------------
 // POST /escuderias/modificar
-// ---------------------------------------------------------------
 
 func (h *EscuderiaHandler) ModificarEscuderia(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -186,9 +175,7 @@ func (h *EscuderiaHandler) ModificarEscuderia(w http.ResponseWriter, r *http.Req
 	}).Render(r.Context(), w)
 }
 
-// ---------------------------------------------------------------
 // Helpers (solo cosas de HTTP: parseo y traducción de errores)
-// ---------------------------------------------------------------
 
 func normalizarOrden(orden string) string {
 	if orden != "desc" {

@@ -1,4 +1,3 @@
-// handlers/granpremio.go
 package handlers
 
 import (
@@ -33,9 +32,7 @@ func (h *GranPremioHandler) esAdmin(ctx context.Context, usuario string) bool {
 	return err == nil && ok
 }
 
-// ---------------------------------------------------------------
 // Página principal: listar (todos) y crear (admin)
-// ---------------------------------------------------------------
 
 func (h *GranPremioHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	usuario, _ := usuarioActual(r) // listar es público
@@ -93,9 +90,7 @@ func (h *GranPremioHandler) crearDesdeForm(w http.ResponseWriter, r *http.Reques
 	h.renderLista(w, r, usuario, "")
 }
 
-// ---------------------------------------------------------------
 // Datos y render
-// ---------------------------------------------------------------
 
 func (h *GranPremioHandler) datosGranPremios(ctx context.Context, usuario, orden, mensaje string) vista.GranPremiosData {
 	adm := h.esAdmin(ctx, usuario)
@@ -155,9 +150,7 @@ func asignarLongitud(texto string, destino any) bool {
 	return err == nil
 }
 
-// ---------------------------------------------------------------
 // Modificar un gran premio: /gran_premios/modificar  (admin)
-// ---------------------------------------------------------------
 
 func (h *GranPremioHandler) ModificarGranPremio(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -238,9 +231,7 @@ func (h *GranPremioHandler) renderModificar(w http.ResponseWriter, r *http.Reque
 	vista.ModificarGranPremioPage(data).Render(ctx, w)
 }
 
-// ---------------------------------------------------------------
 // Eliminar un gran premio (admin)
-// ---------------------------------------------------------------
 
 func (h *GranPremioHandler) EliminarGranPremio(w http.ResponseWriter, r *http.Request) {
 	usuario, _ := usuarioActual(r)

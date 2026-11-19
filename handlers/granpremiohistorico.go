@@ -1,4 +1,3 @@
-// handlers/granpremiohistorico.go
 package handlers
 
 import (

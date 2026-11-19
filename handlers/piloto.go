@@ -1,4 +1,3 @@
-// handlers/piloto.go
 package handlers
 
 import (
@@ -32,9 +31,7 @@ func (h *PilotoHandler) esAdmin(ctx context.Context, usuario string) bool {
 	return err == nil && esAdmin
 }
 
-// ---------------------------------------------------------------
 // Página principal: listar (todos) y crear (admin)
-// ---------------------------------------------------------------
 
 func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	usuario, _ := usuarioActual(r) // listar es público: no redirige si no hay sesión
@@ -106,9 +103,7 @@ func (h *PilotoHandler) crearPilotoDesdeForm(w http.ResponseWriter, r *http.Requ
 	h.renderLista(w, r, usuario, "")
 }
 
-// ---------------------------------------------------------------
 // Datos y render
-// ---------------------------------------------------------------
 
 func (h *PilotoHandler) datosPilotos(ctx context.Context, usuario, orden, mensaje string) vista.PilotosData {
 	esAdm := h.esAdmin(ctx, usuario)
@@ -170,9 +165,7 @@ func mensajeErrorPiloto(err error) string {
 	}
 }
 
-// ---------------------------------------------------------------
 // Modificar un piloto: /pilotos/modificar  (admin)
-// ---------------------------------------------------------------
 
 func (h *PilotoHandler) ModificarPiloto(w http.ResponseWriter, r *http.Request) {
 	usuario, ok := usuarioActual(r)
@@ -244,9 +237,7 @@ func (h *PilotoHandler) renderModificar(w http.ResponseWriter, r *http.Request, 
 	vista.ModificarPilotoPage(data).Render(ctx, w)
 }
 
-// ---------------------------------------------------------------
 // Eliminar un piloto (admin)
-// ---------------------------------------------------------------
 
 // DELETE /pilotos/{id}: 200 vacío para que HTMX saque la tarjeta.
 func (h *PilotoHandler) EliminarPiloto(w http.ResponseWriter, r *http.Request) {

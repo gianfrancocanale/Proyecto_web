@@ -1,4 +1,3 @@
-// handlers/admin.go
 package handlers
 
 import (
@@ -38,9 +37,7 @@ func (h *AdminHandler) RequiereAdmin(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// ---------------------------------------------------------------
 // GET /admin
-// ---------------------------------------------------------------
 
 func (h *AdminHandler) PaginaAdmin(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -90,9 +87,7 @@ func (h *AdminHandler) renderAdmin(w http.ResponseWriter, r *http.Request, aviso
 	views.AdminPage(data).Render(ctx, w)
 }
 
-// ---------------------------------------------------------------
 // POST /admin/carrera: programar una carrera futura
-// ---------------------------------------------------------------
 
 func (h *AdminHandler) ProgramarCarrera(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -125,9 +120,7 @@ func (h *AdminHandler) ProgramarCarrera(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/admin?ok=carrera", http.StatusSeeOther)
 }
 
-// ---------------------------------------------------------------
 // POST /admin/resultado: cargar los 22 resultados y repartir puntos
-// ---------------------------------------------------------------
 
 func (h *AdminHandler) CargarResultado(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {

@@ -1,4 +1,3 @@
-// handlers/usuario.go
 package handlers
 
 import (

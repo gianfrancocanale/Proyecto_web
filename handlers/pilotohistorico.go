@@ -1,4 +1,3 @@
-// handlers/pilotohistorico.go
 package handlers
 
 import (

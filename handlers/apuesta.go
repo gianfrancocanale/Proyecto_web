@@ -1,4 +1,3 @@
-// handlers/apuesta.go
 package handlers
 
 import (
