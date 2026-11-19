@@ -49,63 +49,61 @@ func main() {
 	hPilotoHistorico := h.NewPilotoHistoricoHandler(pilotoHistoricoSvc)
 	hGranPremioHistorico := h.NewGranPremioHistoricoHandler(granPremioHistoricoSvc)
 
-	mux := http.NewServeMux()
+	http.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
 
-	mux.Handle("GET /front/", http.StripPrefix("/front/", http.FileServer(http.Dir("front"))))
-
-	mux.Handle("GET /{$}", templ.Handler(v.IndexPage()))
-	mux.Handle("/", templ.Handler(v.NoEncontradoPage(), templ.WithStatus(http.StatusNotFound)))
+	http.Handle("GET /{$}", templ.Handler(v.IndexPage()))
+	http.Handle("/", templ.Handler(v.NoEncontradoPage(), templ.WithStatus(http.StatusNotFound)))
 
 	// Páginas HTML
-	mux.HandleFunc("GET /escuderias", hEscuderia.Pagina)
-	mux.HandleFunc("GET /pilotos", hPiloto.Pagina)
-	mux.HandleFunc("GET /gran_premios", hGranPremio.Pagina)
+	http.HandleFunc("GET /escuderias", hEscuderia.Pagina)
+	http.HandleFunc("GET /pilotos", hPiloto.Pagina)
+	http.HandleFunc("GET /gran_premios", hGranPremio.Pagina)
 
-	mux.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
-	mux.HandleFunc("/registrar", hUsuario.PaginaRegistrar)
-	mux.HandleFunc("/salir", h.RequiereLogin(hUsuario.Salir))
+	http.HandleFunc("/ingresar", hUsuario.PaginaIngresar)
+	http.HandleFunc("/registrar", hUsuario.PaginaRegistrar)
+	http.HandleFunc("/salir", h.RequiereLogin(hUsuario.Salir))
 
-	mux.HandleFunc("/apuestas", h.RequiereLogin(hApuesta.PaginaApuestas))
-	mux.HandleFunc("GET /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
-	mux.HandleFunc("POST /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
-	mux.HandleFunc("DELETE /apuestas/{id}", h.RequiereLogin(hApuesta.EliminarApuesta))
+	http.HandleFunc("/apuestas", h.RequiereLogin(hApuesta.PaginaApuestas))
+	http.HandleFunc("GET /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
+	http.HandleFunc("POST /apuestas/modificar", h.RequiereLogin(hApuesta.ModificarApuesta))
+	http.HandleFunc("DELETE /apuestas/{id}", h.RequiereLogin(hApuesta.EliminarApuesta))
 
 	// Panel de administración
-	mux.HandleFunc("/admin", hAdmin.RequiereAdmin(hAdmin.PaginaAdmin))
-	mux.HandleFunc("/admin/carrera", hAdmin.RequiereAdmin(hAdmin.ProgramarCarrera))
-	mux.HandleFunc("/admin/resultado", hAdmin.RequiereAdmin(hAdmin.CargarResultado))
+	http.HandleFunc("/admin", hAdmin.RequiereAdmin(hAdmin.PaginaAdmin))
+	http.HandleFunc("/admin/carrera", hAdmin.RequiereAdmin(hAdmin.ProgramarCarrera))
+	http.HandleFunc("/admin/resultado", hAdmin.RequiereAdmin(hAdmin.CargarResultado))
 
-	mux.HandleFunc("POST /pilotos", hAdmin.RequiereAdmin(hPiloto.Pagina))
-	mux.HandleFunc("GET /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
-	mux.HandleFunc("POST /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
-	mux.HandleFunc("DELETE /pilotos/{id}", hAdmin.RequiereAdmin(hPiloto.EliminarPiloto))
+	http.HandleFunc("POST /pilotos", hAdmin.RequiereAdmin(hPiloto.Pagina))
+	http.HandleFunc("GET /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("POST /pilotos/modificar", hAdmin.RequiereAdmin(hPiloto.ModificarPiloto))
+	http.HandleFunc("DELETE /pilotos/{id}", hAdmin.RequiereAdmin(hPiloto.EliminarPiloto))
 
-	mux.HandleFunc("POST /escuderias", hAdmin.RequiereAdmin(hEscuderia.CrearEscuderia))
-	mux.HandleFunc("DELETE /escuderias/{id}", hAdmin.RequiereAdmin(hEscuderia.EliminarEscuderia))
-	mux.HandleFunc("GET /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.PaginaModificar))
-	mux.HandleFunc("POST /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.ModificarEscuderia))
+	http.HandleFunc("POST /escuderias", hAdmin.RequiereAdmin(hEscuderia.CrearEscuderia))
+	http.HandleFunc("DELETE /escuderias/{id}", hAdmin.RequiereAdmin(hEscuderia.EliminarEscuderia))
+	http.HandleFunc("GET /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.PaginaModificar))
+	http.HandleFunc("POST /escuderias/modificar", hAdmin.RequiereAdmin(hEscuderia.ModificarEscuderia))
 
-	mux.HandleFunc("POST /gran_premios", hAdmin.RequiereAdmin(hGranPremio.Pagina))
-	mux.HandleFunc("GET /gran_premios/modificar", hAdmin.RequiereAdmin(hGranPremio.ModificarGranPremio))
-	mux.HandleFunc("POST /gran_premios/modificar", hAdmin.RequiereAdmin(hGranPremio.ModificarGranPremio))
-	mux.HandleFunc("DELETE /gran_premios/{id}", hAdmin.RequiereAdmin(hGranPremio.EliminarGranPremio))
+	http.HandleFunc("POST /gran_premios", hAdmin.RequiereAdmin(hGranPremio.Pagina))
+	http.HandleFunc("GET /gran_premios/modificar", hAdmin.RequiereAdmin(hGranPremio.ModificarGranPremio))
+	http.HandleFunc("POST /gran_premios/modificar", hAdmin.RequiereAdmin(hGranPremio.ModificarGranPremio))
+	http.HandleFunc("DELETE /gran_premios/{id}", hAdmin.RequiereAdmin(hGranPremio.EliminarGranPremio))
 
 	// API REST (los handlers ya existían, ahora detrás de servicios)
-	mux.HandleFunc("GET /usuarios", hUsuario.ListarUsuarios)
-	mux.HandleFunc("POST /usuarios", hUsuario.CrearUsuario)
-	mux.HandleFunc("PUT /usuarios/{nombre}", hUsuario.ActualizarUsuario)
-	mux.HandleFunc("DELETE /usuarios/{nombre}", hUsuario.EliminarUsuario)
+	http.HandleFunc("GET /usuarios", hUsuario.ListarUsuarios)
+	http.HandleFunc("POST /usuarios", hUsuario.CrearUsuario)
+	http.HandleFunc("PUT /usuarios/{nombre}", hUsuario.ActualizarUsuario)
+	http.HandleFunc("DELETE /usuarios/{nombre}", hUsuario.EliminarUsuario)
 
-	mux.HandleFunc("/pilotos_historicos", hPilotoHistorico.HandlerPilotoHistorico)
-	mux.HandleFunc("/pilotos_historicos/{id}", hPilotoHistorico.HandlerPilotoHistoricoId)
+	http.HandleFunc("/pilotos_historicos", hPilotoHistorico.HandlerPilotoHistorico)
+	http.HandleFunc("/pilotos_historicos/{id}", hPilotoHistorico.HandlerPilotoHistoricoId)
 
-	mux.HandleFunc("/gran_premios_historicos", hGranPremioHistorico.HandlerGranPremioHistorico)
-	mux.HandleFunc("/gran_premios_historicos/{id}/{fecha_carrera}", hGranPremioHistorico.HandlerGranPremioHistoricoId)
+	http.HandleFunc("/gran_premios_historicos", hGranPremioHistorico.HandlerGranPremioHistorico)
+	http.HandleFunc("/gran_premios_historicos/{id}/{fecha_carrera}", hGranPremioHistorico.HandlerGranPremioHistoricoId)
 
 	fmt.Println(" ")
 	log.Println("Servidor escuchando en :8080")
 	// ConSesion pone el nombre de usuario en el contexto para las vistas.
-	log.Fatal(http.ListenAndServe(":8080", h.ConSesion(mux)))
+	log.Fatal(http.ListenAndServe(":8080", h.ConSesion(http.DefaultServeMux)))
 }
 
 func conectarBase() *sql.DB {
