@@ -341,90 +341,97 @@ sequenceDiagram
 ```mermaid
 erDiagram
     USUARIO {
-        string nombre_usuario PK
-        string contrasena
-        int puntos
+        varchar nombre_usuario PK
+        varchar contrasena_hash
+        int puntos_ganados
+        boolean es_admin
     }
 
     ESCUDERIA {
-        int id PK
-        string nombre
+        varchar id_escuderia PK
         int puntos_temporada
         int titulos_constructores
-        string jefe_equipo
+        date fecha_fundacion
+        varchar team_principal
     }
 
     PILOTO_HISTORICO {
-        int id PK
-        string nombre
-        string pais
+        int id_piloto PK
+        varchar nombre
+        varchar pais
         date fecha_nacimiento
         int titulos_ganados
     }
 
     PILOTO {
-        int id PK
-        int temporada
-        int numero
-        int piloto_historico_id FK
-        int escuderia_id FK
+        int id_piloto PK, FK
+        varchar id_escuderia FK
+        int puntos_temporada
     }
 
     GRAN_PREMIO {
-        int id PK
-        string pais
-        string circuito
-        float longitud
-        int vueltas
-        string ultimo_ganador
+        varchar id_gran_premio PK
+        varchar pais
+        int longitud_km
+        int cantidad_vueltas
+        int id_ultimo_ganador FK
     }
 
     GRAN_PREMIO_HISTORICO {
-        int gran_premio_id PK, FK
+        varchar id_gran_premio PK, FK
         date fecha_carrera PK
-        int pos_1_a_22 FK
+        int[] resultado_carrera "22 posiciones"
     }
 
     APUESTA {
-        int id PK
-        string nombre_usuario FK
-        int gran_premio_id FK
-        date fecha_carrera
+        serial id_apuesta PK
+        varchar nombre_usuario PK, FK
+        varchar id_gran_premio FK
+        date fecha_carrera FK
+        int[] prediccion "10 posiciones"
         date fecha_apuesta
-        int pos_1_a_10 FK
     }
 
-    ESCUDERIA ||--o{ PILOTO : tiene
-    PILOTO_HISTORICO ||--o{ PILOTO : ficha_de
-    GRAN_PREMIO ||--o{ GRAN_PREMIO_HISTORICO : ediciones
-    GRAN_PREMIO ||--o{ APUESTA : apuesta_sobre
-    USUARIO ||--o{ APUESTA : realiza
-    PILOTO ||--o{ APUESTA : elegido_en
-    PILOTO ||--o{ GRAN_PREMIO_HISTORICO : termina_en
+    ESCUDERIA ||--o{ PILOTO : "tiene"
+    PILOTO_HISTORICO ||--o| PILOTO : "ficha de"
+    PILOTO_HISTORICO ||--o{ GRAN_PREMIO : "último ganador"
+    GRAN_PREMIO ||--o{ GRAN_PREMIO_HISTORICO : "ediciones"
+    GRAN_PREMIO_HISTORICO ||--o{ APUESTA : "se apuesta sobre"
+    USUARIO ||--o{ APUESTA : "realiza"
 ```
 
-> **Nota:** los nombres exactos de columnas pueden diferir de `schema.sql`. `pos_1_a_10` y `pos_1_a_22` representan en el diagrama a las columnas de posiciones (`pos_1`, `pos_2`, …), cada una con clave foránea a `PILOTO`.
 
 ### Restricciones principales
 
-| Restricción | Detalle |
-| :--- | :--- |
-| **Claves primarias** | `usuario.nombre_usuario`; `id` en el resto, salvo el histórico de Gran Premio (Gran Premio + fecha de carrera). |
-| **Claves foráneas** | `piloto → escuderia`, `piloto → piloto_historico`, `gran_premio_historico → gran_premio`, `apuesta → usuario`, `apuesta → gran_premio`. |
-| **Unicidad** | Una apuesta es única por **usuario + Gran Premio + fecha de carrera**. |
-| **Integridad** | Una apuesta tiene 10 posiciones; un resultado histórico, 22. |
+| Tabla | Clave primaria | Claves foráneas y comportamiento |
+| :--- | :--- | :--- |
+| `usuario` | `nombre_usuario` | Ninguna. |
+| `escuderia` | `id_escuderia` (el nombre del equipo) | Ninguna. |
+| `piloto_historico` | `id_piloto` | Ninguna. |
+| `piloto` | `id_piloto` | `id_piloto → piloto_historico` (CASCADE al actualizar y borrar); `id_escuderia → escuderia` (CASCADE al actualizar y borrar). |
+| `gran_premio` | `id_gran_premio` (el nombre del GP) | `id_ultimo_ganador → piloto_historico` (SET NULL al borrar). |
+| `gran_premio_historico` | `(id_gran_premio, fecha_carrera)` | `id_gran_premio → gran_premio` (CASCADE al borrar). |
+| `apuesta` | `(id_apuesta, nombre_usuario)` | `nombre_usuario → usuario` (CASCADE al borrar); `(id_gran_premio, fecha_carrera) → gran_premio_historico` (RESTRICT al borrar). |
+
+Restricciones adicionales:
+
+* **Una apuesta por usuario y carrera:** `UNIQUE (nombre_usuario, id_gran_premio, fecha_carrera)`.
+* **Piloto = ficha histórica + temporada:** `piloto.id_piloto` es a la vez PK y FK de `piloto_historico`, por lo que cada piloto actual tiene exactamente una ficha histórica.
+* **Arreglos de posiciones:** `resultado_carrera` (22 posiciones) y `prediccion` (10 posiciones) guardan IDs de piloto, pero PostgreSQL no permite claves foráneas sobre elementos de un arreglo. Esa validación la hace la capa de aplicación.
+* **Administrador:** se identifica con la columna booleana `es_admin` de `usuario`.
+
 
 ### Entidades y qué se puede hacer con cada una
 
 | Entidad | Descripción | Qué se puede hacer |
 | :--- | :--- | :--- |
-| **Usuario** | Usuarios registrados. Clave primaria: `nombre_usuario`. Guarda los puntos ganados. | Registrarse, ingresar y salir. Vía API REST: listar, crear, actualizar y eliminar. |
-| **Apuesta** | Predicción de un usuario para un Gran Premio y una fecha de carrera: 10 posiciones y fecha de apuesta. | Con sesión: **crear**, **ver**, **modificar** y **eliminar** las propias. |
-| **Escudería** | Equipos: puntos de temporada, títulos de constructores y jefe de equipo. | **Consultar** el listado en orden ascendente o descendente. El **Admin** puede **crear**, **modificar** y **eliminar**. |
-| **Piloto** | Pilotos actuales (por temporada), asociados a una escudería y a su ficha histórica. | **Consultar** el listado; se usan como opciones al apostar. El **Admin** puede **crear** (formulario libre: número, nombre, país, nacimiento, títulos, escudería), **modificar** y **eliminar**, con actualización inmediata vía HTMX. |
-| **Piloto histórico** | Datos de pilotos: país, fecha de nacimiento y títulos ganados. | Vía API REST: listar, crear, consultar, actualizar y eliminar. |
-| **Gran Premio** | País, circuito, longitud, cantidad de vueltas y último ganador. | **Consultar** el listado; es el evento sobre el que se apuesta. El **Admin** puede **crear**, **modificar** y **eliminar**. |
-| **Gran Premio histórico** | Ediciones pasadas: fecha de carrera y resultado (22 posiciones). | Vía API REST: listar, crear, consultar, actualizar y eliminar. El **Admin** programa carreras y carga resultados desde `/admin`. |
+| **Usuario** | Usuarios registrados. Guarda el hash de la contraseña, los puntos ganados y si es administrador (`es_admin`). | Registrarse, ingresar y salir. Vía API REST: listar, crear, actualizar y eliminar. Al borrar un usuario se borran sus apuestas. |
+| **Apuesta** | Predicción de un usuario (10 posiciones) para una edición concreta de un Gran Premio. Única por usuario y carrera. | Con sesión: **crear**, **ver**, **modificar** y **eliminar** las propias. |
+| **Escudería** | Equipo identificado por su nombre, con puntos de temporada, títulos de constructores, fecha de fundación y team principal. | **Consultar** el listado, en orden ascendente o descendente. El **Admin** puede **crear**, **modificar** y **eliminar**. Al borrarla se borran sus pilotos. |
+| **Piloto** | Piloto de la temporada: escudería y puntos de temporada, ligado a su ficha histórica. | **Consultar** el listado; se usan como opciones al apostar. El **Admin** puede **crear**, **modificar** y **eliminar**. |
+| **Piloto histórico** | Ficha del piloto: nombre, país, fecha de nacimiento y títulos ganados. | Vía API REST: listar, crear, consultar, actualizar y eliminar. |
+| **Gran Premio** | Circuito identificado por su nombre, con país, longitud en km, cantidad de vueltas y último ganador. | **Consultar** el listado. El **Admin** puede **crear**, **modificar** y **eliminar**. |
+| **Gran Premio histórico** | Edición concreta de un Gran Premio (por fecha de carrera) con su resultado de 22 posiciones. | Vía API REST: listar, crear, consultar, actualizar y eliminar. El **Admin** programa carreras y carga resultados desde `/admin`. |
 
 ---
 
