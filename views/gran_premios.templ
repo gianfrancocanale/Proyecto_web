@@ -128,7 +128,7 @@ templ GranPremiosLista(gps []dominio.GranPremio, esAdmin bool, mensaje string) {
 }
 
 templ ModificarGranPremioPage(data ModificarGranPremioData) {
-	@Layout("Modificar gran premio", "forms.css", "contenido.css", "admin.css") {
+	@LayoutAdmin("Modificar gran premio", "forms.css", "contenido.css", "admin.css") {
 		<div class="page-header">
 			<h1>Modificar <span>gran premio</span></h1>
 			<p>{ data.ID }</p>

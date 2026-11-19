@@ -1,0 +1,80 @@
+[
+  {
+    "archivo": "01_inicio_publico.png",
+    "url": "/",
+    "titulo": "Inicio | PredictOne",
+    "alto_px": 2021
+  },
+  {
+    "archivo": "02_escuderias.png",
+    "url": "/escuderias",
+    "titulo": "Escuderías | PredictOne",
+    "alto_px": 3202
+  },
+  {
+    "archivo": "03_pilotos.png",
+    "url": "/pilotos",
+    "titulo": "Pilotos | PredictOne",
+    "alto_px": 6315
+  },
+  {
+    "archivo": "04_grandes_premios.png",
+    "url": "/gran_premios",
+    "titulo": "Grandes Premios | PredictOne",
+    "alto_px": 4951
+  },
+  {
+    "archivo": "05_ingresar.png",
+    "url": "/ingresar",
+    "titulo": "Ingresar | PredictOne",
+    "alto_px": 981
+  },
+  {
+    "archivo": "06_registrar.png",
+    "url": "/registrar",
+    "titulo": "Registrarse | PredictOne",
+    "alto_px": 929
+  },
+  {
+    "archivo": "07_404.png",
+    "url": "/no_existe",
+    "titulo": "Error 404 | PredictOne",
+    "alto_px": 441
+  },
+  {
+    "archivo": "08_inicio_logueado.png",
+    "url": "/",
+    "titulo": "Inicio | PredictOne",
+    "alto_px": 1975
+  },
+  {
+    "archivo": "09_apuestas.png",
+    "url": "/apuestas",
+    "titulo": "Apuestas | PredictOne",
+    "alto_px": 1620
+  },
+  {
+    "archivo": "10_admin_403.png",
+    "url": "/admin",
+    "titulo": "",
+    "alto_px": 441
+  },
+  {
+    "archivo": "11_admin.png",
+    "url": "/admin",
+    "titulo": "Administración | PredictOne",
+    "alto_px": 1972
+  },
+  {
+    "archivo": "12_admin_escuderias.png",
+    "url": "/escuderias",
+    "titulo": "Escuderías | PredictOne",
+    "alto_px": 4311
+  },
+  {
+    "archivo": "13_modificar_gran_premio.png",
+    "url": "/gran_premios/modificar?id=Monza",
+    "titulo": "Modificar gran premio | PredictOne",
+    "alto_px": 1004
+  }
+]
