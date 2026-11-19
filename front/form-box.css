@@ -1,0 +1,10 @@
+/* ==========================================
+   CAJA DE FORMULARIO ANCHA (COMPARTIDA)
+   (extraído de principal.css)
+========================================== */
+
+.bet-form-box {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}

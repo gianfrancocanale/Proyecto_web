@@ -1,0 +1,96 @@
+/* ==========================================
+   SECCIONES DE CONTENIDO (BASE)
+   (extraído de principal.css)
+========================================== */
+
+/* ==========================================
+   SECCIONES DE CONTENIDO (ESCUDERÍAS, PILOTOS, GPS)
+========================================== */
+
+.page-header {
+    text-align: center;
+    margin-bottom: 45px;
+}
+
+.page-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 10px;
+}
+
+.page-header h1 span {
+    color: var(--rojo);
+}
+
+.page-header p {
+    color: var(--gris);
+    font-size: 1.1rem;
+}
+
+.grid-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.data-card {
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.data-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--rojo);
+}
+
+.data-card-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--borde);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.data-card-header h3 {
+    margin-top: 5px;
+    font-size: 1.3rem;
+}
+
+.badge {
+    background-color: var(--rojo);
+    color: var(--blanco);
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.data-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.data-card-body p {
+    color: var(--gris);
+    font-size: 0.95rem;
+}
+
+.data-card-body p strong {
+    color: var(--blanco);
+}
+
+.data-card-body hr {
+    border: none;
+    border-top: 1px solid var(--borde);
+    margin: 5px 0;
+}
+
+.points {
+    margin-top: 8px;
+    font-weight: bold;
+    color: var(--rojo) !important;
+}

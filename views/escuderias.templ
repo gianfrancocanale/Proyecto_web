@@ -25,7 +25,7 @@ type ModificarEscuderiaData struct {
 }
 
 templ EscuderiasPage(data EscuderiasData) {
-	@LayoutRol("Escuderías", data.EsAdmin) {
+	@LayoutRol("Escuderías", data.EsAdmin, "forms.css", "contenido.css", "escuderias.css", "admin.css", "form-box.css") {
 		<div class="page-header">
 			<h1>Escuderías <span>2026</span></h1>
 			<p>Todos los equipos de la temporada.</p>
@@ -142,7 +142,7 @@ templ EscuderiasLista(escuderias []dominio.Escuderia, orden string, esAdmin bool
 }
 
 templ ModificarEscuderiaPage(data ModificarEscuderiaData) {
-	@LayoutAdmin("Modificar escudería") {
+	@LayoutAdmin("Modificar escudería", "forms.css", "contenido.css") {
 		<div class="page-header">
 			<h1>Modificar <span>escudería</span></h1>
 			<p>{ data.ID }</p>

@@ -12,7 +12,7 @@ type ModificarData struct {
 }
 
 templ ModificarApuestaPage(d ModificarData) {
-	@Layout("Modificar apuesta") {
+	@Layout("Modificar apuesta", "forms.css", "contenido.css", "apuestas.css") {
 		<div class="page-header">
 			<h1>Modificar <span>apuesta</span></h1>
 			<p>{ d.GranPremioTexto }</p>

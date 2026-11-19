@@ -82,7 +82,7 @@ func EscuderiasPage(data EscuderiasData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutRol("Escuderías", data.EsAdmin).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutRol("Escuderías", data.EsAdmin, "forms.css", "contenido.css", "escuderias.css", "admin.css", "form-box.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -445,7 +445,7 @@ func ModificarEscuderiaPage(data ModificarEscuderiaData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutAdmin("Modificar escudería").Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutAdmin("Modificar escudería", "forms.css", "contenido.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

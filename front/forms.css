@@ -1,0 +1,126 @@
+/* ==========================================
+   FORMULARIOS BASE (COMPARTIDOS)
+   (extraído de principal.css)
+========================================== */
+
+/* ==========================================
+   FORMULARIOS BASE (compartidos)
+========================================== */
+
+.auth-container {
+    min-height: calc(100vh - 176px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.auth-box {
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.auth-box h2 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.auth-box h2 span {
+    color: var(--rojo);
+}
+
+.auth-subtitle {
+    color: var(--gris);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--blanco);
+    font-weight: bold;
+}
+
+.form-group input {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--rojo);
+}
+
+.form-group select {
+    background-color: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--blanco);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group select:focus {
+    border-color: var(--rojo);
+}
+
+.btn-submit {
+    background-color: var(--rojo);
+    color: var(--blanco);
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    margin-top: 10px;
+}
+
+.btn-submit:hover {
+    background-color: #c90025;
+    transform: translateY(-2px);
+}
+
+.auth-footer-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--gris);
+}
+
+.auth-footer-text a {
+    color: var(--rojo);
+    font-weight: bold;
+}
+
+.auth-footer-text a:hover {
+    text-decoration: underline;
+}
+

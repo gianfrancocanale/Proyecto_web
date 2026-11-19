@@ -1,0 +1,108 @@
+/* ==========================================
+   INGRESAR (TARJETA PARTIDA)
+   (extraído de principal.css)
+========================================== */
+
+/* ==========================================
+   INGRESAR (tarjeta partida)
+========================================== */
+
+.login {
+    max-width: 980px;
+    min-height: 560px;
+    margin: 10px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+}
+
+.login-aside {
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background:
+        linear-gradient(
+            0deg,
+            rgba(4, 13, 24, 0.96) 0%,
+            rgba(4, 13, 24, 0.55) 55%,
+            rgba(4, 13, 24, 0.25) 100%
+        ),
+        url("imagenes/portada.jpg") center / cover no-repeat;
+}
+
+.login-aside h1 {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+}
+
+.login-aside h1 span {
+    color: var(--rojo);
+}
+
+.login-aside p:last-child {
+    color: #d2d9e4;
+    max-width: 330px;
+}
+
+.login-panel {
+    padding: 52px 44px;
+    background-color: var(--fondo-secundario);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-panel h2 {
+    font-size: 2rem;
+    margin-bottom: 6px;
+}
+
+.login-sub {
+    color: var(--gris);
+    margin-bottom: 26px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.login .form-group input {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background-color: #08141f;
+}
+
+.login .form-group input:focus {
+    box-shadow: 0 0 0 3px rgba(242, 13, 47, 0.18);
+}
+
+.login .btn-submit {
+    padding: 14px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+}
+
+
+@media (max-width: 800px) {
+    .login {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .login-aside {
+        padding: 32px 28px;
+        min-height: 200px;
+    }
+
+    .login-panel {
+        padding: 36px 28px;
+    }
+}

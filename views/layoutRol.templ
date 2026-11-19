@@ -1,12 +1,12 @@
 package views
 
-templ LayoutRol(title string, esAdmin bool) {
+templ LayoutRol(title string, esAdmin bool, estilos ...string) {
 	if esAdmin {
-		@LayoutAdmin(title) {
+		@LayoutAdmin(title, estilos...) {
 			{ children... }
 		}
 	} else {
-		@Layout(title) {
+		@Layout(title, estilos...) {
 			{ children... }
 		}
 	}

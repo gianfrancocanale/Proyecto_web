@@ -1,0 +1,13 @@
+package views
+
+// estilosBase se cargan en todas las vistas: variables, reset, botones,
+// mensajes, contenedor principal y navbar/footer.
+var estilosBase = []string{"base.css", "nav-footer.css"}
+
+// Estilos carga los módulos de CSS que necesita cada vista, precedidos
+// siempre por los estilos base. El orden respeta la cascada del CSS original.
+templ Estilos(archivos ...string) {
+	for _, archivo := range append(append([]string{}, estilosBase...), archivos...) {
+		<link rel="stylesheet" href={ "/front/" + archivo }/>
+	}
+}

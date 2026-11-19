@@ -50,7 +50,7 @@ func inicial(s string) string {
 }
 
 templ ApuestasPage(d ApuestasData) {
-	@Layout("Apuestas") {
+	@Layout("Apuestas", "forms.css", "contenido.css", "apuestas.css", "jugador.css", "apuestas-grid.css", "form-box.css") {
 		<div class="page-header">
 			<h1>Mis <span>apuestas</span></h1>
 			<p>Elegí el gran premio y armá tu top 10.</p>

@@ -26,7 +26,15 @@ func NoEncontradoPage() templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Error 404 | PredictOne</title><link rel=\"stylesheet\" href=\"/front/principal.css\"></head><body><main class=\"auth-container error-page\"><section class=\"auth-box error-box\"><p class=\"error-code\">404</p><h2>Página <span>no encontrada</span></h2><p class=\"auth-subtitle\">La dirección que buscás no existe o fue movida.</p><a class=\"btn-register\" href=\"/\">Volver al inicio</a></section></main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Error 404 | PredictOne</title>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Estilos("forms.css", "error.css").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</head><body><main class=\"auth-container error-page\"><section class=\"auth-box error-box\"><p class=\"error-code\">404</p><h2>Página <span>no encontrada</span></h2><p class=\"auth-subtitle\">La dirección que buscás no existe o fue movida.</p><a class=\"btn-register\" href=\"/\">Volver al inicio</a></section></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,0 +1,210 @@
+/* ==========================================
+   PORTADA PRINCIPAL, EXPLORACIÓN Y TARJETAS
+   (extraído de principal.css)
+========================================== */
+
+/* ==========================================
+   PORTADA PRINCIPAL
+========================================== */
+
+.hero {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    padding: 70px 6%;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(4, 13, 24, 0.98) 0%,
+            rgba(4, 13, 24, 0.90) 42%,
+            rgba(4, 13, 24, 0.20) 100%
+        ),
+        url("imagenes/portada.jpg")
+        center 55% / cover no-repeat;
+}
+
+.hero-content {
+    max-width: 650px;
+    position: relative;
+    z-index: 1;
+}
+
+.hero h1 {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.08;
+    margin-bottom: 24px;
+    font-weight: 800;
+    letter-spacing: -2px;
+}
+
+.hero h1 span {
+    color: var(--rojo);
+}
+
+.hero-description {
+    max-width: 540px;
+    color: #d2d9e4;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+/* ==========================================
+   EXPLORACIÓN
+========================================== */
+
+.explore {
+    width: 100%;
+    padding: 65px 3% 80px;
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+.section-heading {
+    text-align: center;
+    max-width: 750px;
+    margin: 0 auto 42px;
+}
+
+.section-heading h2 {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+.section-heading h2 span {
+    color: var(--rojo);
+}
+
+.section-heading p {
+    color: var(--gris);
+    font-size: 1.05rem;
+}
+
+/* ==========================================
+   TARJETAS
+========================================== */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 35px;
+}
+
+.card-image {
+    height: 260px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 2px solid var(--rojo);
+}
+
+.card {
+    background-color: var(--fondo-secundario);
+    border: 1px solid var(--borde);
+    border-radius: 13px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    border-color: var(--rojo);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.escuderias-image {
+    background-image:
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
+        url("imagenes/escuderia.jpg");
+}
+
+.pilotos-image {
+    background-image:
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
+        url("imagenes/piloto.jpg");
+    background-position: center 0%;
+}
+
+.premios-image {
+    background-image:
+        linear-gradient(0deg, rgba(6, 17, 31, 0.2), transparent),
+        url("imagenes/gran-premio.jpg");
+}
+
+.card-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.card-content h3 {
+    font-size: 1.55rem;
+    margin-bottom: 12px;
+}
+
+.card-content p {
+    color: var(--gris);
+    margin-bottom: 22px;
+    line-height: 1.7;
+}
+
+.card-link {
+    margin-top: auto;
+    color: var(--blanco);
+    font-weight: bold;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--rojo);
+    transition: color 0.2s ease;
+}
+
+.card-link:hover {
+    color: var(--rojo);
+}
+
+@media (max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero {
+        min-height: 380px;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero {
+        min-height: 400px;
+        padding: 55px 6%;
+        background-position: 60% center;
+    }
+
+    .hero h1 {
+        letter-spacing: -1px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+    }
+
+    .explore {
+        padding: 45px 5%;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .card-image {
+        height: 200px;
+    }
+}

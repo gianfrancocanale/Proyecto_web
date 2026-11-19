@@ -11,7 +11,7 @@ type AdminData struct {
 }
 
 templ AdminPage(d AdminData) {
-	@LayoutAdmin("Administración") {
+	@LayoutAdmin("Administración", "forms.css", "contenido.css", "apuestas.css", "apuestas-grid.css", "form-box.css") {
 		<div class="page-header">
 			<h1>Panel de <span>administración</span></h1>
 			<p>Programá carreras y cargá resultados.</p>

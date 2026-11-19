@@ -1,0 +1,88 @@
+/* ==========================================
+   NAVEGACIÓN Y PIE DE PÁGINA
+   (extraído de principal.css)
+========================================== */
+
+/* ==========================================
+   NAVEGACIÓN
+========================================== */
+
+.navbar {
+    min-height: 67px;
+    padding: 16px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #040d18;
+    border-bottom: 1px solid var(--borde);
+}
+
+.logo {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--blanco);
+}
+
+.logo span {
+    color: var(--rojo);
+}
+
+.nav-auth {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* ==========================================
+   PIE DE PÁGINA
+========================================== */
+
+.footer {
+    min-height: 100px;
+    padding: 24px 5%;
+    border-top: 1px solid var(--borde);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    background-color: #040d18;
+}
+
+.footer .logo {
+    font-size: 1.6rem;
+}
+
+.footer p {
+    color: #8795aa;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        padding: 14px 5%;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .logo {
+        font-size: 1.55rem;
+    }
+
+    .nav-auth {
+        gap: 8px;
+    }
+
+    .btn-login,
+    .btn-register {
+        padding: 9px 12px;
+        font-size: 0.85rem;
+    }
+    .footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+}

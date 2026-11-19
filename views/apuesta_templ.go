@@ -258,7 +258,7 @@ func ApuestasPage(d ApuestasData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout("Apuestas").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout("Apuestas", "forms.css", "contenido.css", "apuestas.css", "jugador.css", "apuestas-grid.css", "form-box.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

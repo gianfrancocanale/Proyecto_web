@@ -1,0 +1,149 @@
+/* ==========================================
+   BASE: VARIABLES, RESET Y ESTILOS GLOBALES
+   (extraído de principal.css)
+========================================== */
+
+:root {
+    --fondo: #06111f;
+    --fondo-secundario: #0b192b;
+    --rojo: #f20d2f;
+    --blanco: #f5f7fb;
+    --gris: #b7c1d1;
+    --borde: #263b55;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--fondo);
+    color: var(--blanco);
+    line-height: 1.6;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* ---------- Botones y acciones compartidas ---------- */
+
+.btn-login,
+.btn-register {
+    padding: 10px 20px;
+    border-radius: 7px;
+    font-weight: bold;
+    transition: 0.25s ease;
+}
+
+.btn-login {
+    border: 1px solid var(--gris);
+}
+
+.btn-login:hover {
+    background-color: #17283d;
+}
+
+.btn-register {
+    background-color: var(--rojo);
+    border: 1px solid var(--rojo);
+}
+
+.btn-register:hover {
+    background-color: #c90025;
+    border-color: #c90025;
+    transform: translateY(-2px);
+}
+
+.bet-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.bet-actions form {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+
+.bet-actions .btn-login,
+.bet-actions .btn-register {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 0;
+    height: 38px;
+    padding: 0 16px;
+    text-align: center;
+    text-decoration: none;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.bet-actions > .btn-login {
+    flex: 1;
+}
+
+/* ---------- Estructura y etiquetas compartidas ---------- */
+
+.page-container {
+    width: 100%;
+    max-width: none;
+    padding: 40px 4% 80px;
+    margin: 0 auto;
+    min-height: calc(100vh - 176px);
+}
+
+.eyebrow {
+    color: var(--rojo);
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+}
+
+/* ---------- Mensajes de feedback compartidos ---------- */
+
+.form-error {
+    color: #e10600;
+    font-weight: 600;
+}
+
+.alert-error {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background-color: rgba(242, 13, 47, 0.1);
+    border: 1px solid var(--rojo);
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: #ff8a9a;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.alert-ok {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background-color: rgba(46, 160, 67, 0.12);
+    border: 1px solid #2ea043;
+    border-left-width: 4px;
+    border-radius: 8px;
+    color: #7ee2a8;
+    font-size: 0.9rem;
+    font-weight: 600;
+}

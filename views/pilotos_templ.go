@@ -123,7 +123,7 @@ func PilotosPage(data PilotosData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutRol("Pilotos", data.EsAdmin).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutRol("Pilotos", data.EsAdmin, "forms.css", "contenido.css", "pilotos.css", "admin.css", "form-box.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -519,7 +519,7 @@ func ModificarPilotoPage(data ModificarPilotoData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutAdmin("Modificar piloto").Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutAdmin("Modificar piloto", "forms.css", "contenido.css", "admin.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
