@@ -403,7 +403,7 @@ erDiagram
 
 ### Restricciones principales
 
-| Tabla | Clave primaria | Claves foráneas y comportamiento |
+| Tabla | Primary Key | Foreign Key y comportamiento |
 | :--- | :--- | :--- |
 | `usuario` | `nombre_usuario` | Ninguna. |
 | `escuderia` | `id_escuderia` (el nombre del equipo) | Ninguna. |
@@ -417,7 +417,7 @@ Restricciones adicionales:
 
 * **Una apuesta por usuario y carrera:** `UNIQUE (nombre_usuario, id_gran_premio, fecha_carrera)`.
 * **Piloto = ficha histórica + temporada:** `piloto.id_piloto` es a la vez PK y FK de `piloto_historico`, por lo que cada piloto actual tiene exactamente una ficha histórica.
-* **Arreglos de posiciones:** `resultado_carrera` (22 posiciones) y `prediccion` (10 posiciones) guardan IDs de piloto, pero PostgreSQL no permite claves foráneas sobre elementos de un arreglo. Esa validación la hace la capa de aplicación.
+* **Arreglos de posiciones:** `resultado_carrera` (22 posiciones) y `prediccion` (10 posiciones) guardan IDs de piloto, pero PostgreSQL no permite foreign keys sobre elementos de un arreglo. Esa validación la hace la capa de aplicación.
 * **Administrador:** se identifica con la columna booleana `es_admin` de `usuario`.
 
 
