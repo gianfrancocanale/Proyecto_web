@@ -1,8 +1,8 @@
+// handlers/apuesta.go
 package handlers
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -10,20 +10,25 @@ import (
 	"strings"
 	"time"
 
-	sqlc "Proyecto_web/db/sqlc"
+	"Proyecto_web/aplicacion"
+	"Proyecto_web/dominio"
 	"Proyecto_web/views"
 )
 
 type ApuestaHandler struct {
-	DB      *sql.DB
-	queries *sqlc.Queries
+	apuestas *aplicacion.ApuestaService
+	usuarios *aplicacion.UsuarioService
+	carreras *aplicacion.GranPremioHistoricoService
+	pilotos  *aplicacion.PilotoService
 }
 
-func NewApuestaHandler(db *sql.DB) *ApuestaHandler {
-	return &ApuestaHandler{
-		DB:      db,
-		queries: sqlc.New(db),
-	}
+func NewApuestaHandler(
+	a *aplicacion.ApuestaService,
+	u *aplicacion.UsuarioService,
+	c *aplicacion.GranPremioHistoricoService,
+	p *aplicacion.PilotoService,
+) *ApuestaHandler {
+	return &ApuestaHandler{apuestas: a, usuarios: u, carreras: c, pilotos: p}
 }
 
 // Página principal: listar y crear
@@ -37,16 +42,13 @@ func (h *ApuestaHandler) PaginaApuestas(w http.ResponseWriter, r *http.Request) 
 	switch r.Method {
 	case http.MethodGet:
 		h.renderApuestas(w, r, usuario, "")
-
 	case http.MethodPost:
 		h.crearApuestaDesdeForm(w, r, usuario)
-
 	default:
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
 }
 
-// mostrarError devuelve la lista con un mensaje arriba.
 func (h *ApuestaHandler) mostrarError(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	h.renderLista(w, r, usuario, mensaje)
 }
@@ -57,116 +59,84 @@ func (h *ApuestaHandler) crearApuestaDesdeForm(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ctx := r.Context()
-
 	idGP, fechaStr, ok := strings.Cut(r.FormValue("gran_premio"), "|")
-	fechaCarrera, errFecha := time.Parse("2006-01-02", fechaStr)
-	if !ok || errFecha != nil {
+	fechaCarrera, err := time.Parse("2006-01-02", fechaStr)
+	if !ok || err != nil {
 		h.mostrarError(w, r, usuario, "Elegí un gran premio")
 		return
 	}
-	if !h.carreraAbierta(ctx, idGP, fechaCarrera) {
-		h.mostrarError(w, r, usuario, "Ese gran premio no está disponible")
+	prediccion := parsearPrediccion(r)
+
+	if err := h.apuestas.Crear(r.Context(), usuario, idGP, fechaCarrera, prediccion); err != nil {
+		h.mostrarError(w, r, usuario, mensajeErrorApuesta(err))
 		return
 	}
-
-	prediccion, msg := h.validarPrediccion(r)
-	if msg != "" {
-		h.mostrarError(w, r, usuario, msg)
-		return
-	}
-
-	_, err := h.queries.CrearApuesta(ctx, sqlc.CrearApuestaParams{
-		NombreUsuario: usuario,
-		IDGranPremio:  idGP,
-		FechaCarrera:  fechaCarrera,
-		Prediccion:    prediccion,
-		FechaApuesta:  time.Now(),
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "unq_usuario_gran_premio_carrera") {
-			h.mostrarError(w, r, usuario, "Ya apostaste en ese gran premio")
-			return
-		}
-		log.Println("CrearApuesta:", err)
-		h.mostrarError(w, r, usuario, "No se pudo guardar la apuesta")
-		return
-	}
-
-	// Se vuelve a consultar la lista y se devuelve solo ese fragmento.
 	h.renderLista(w, r, usuario, "")
 }
 
 // datosApuestas arma todo lo que necesitan la página y la lista.
 func (h *ApuestaHandler) datosApuestas(ctx context.Context, usuario, mensaje string) views.ApuestasData {
-	q := h.queries
 	data := views.ApuestasData{Usuario: usuario, Mensaje: mensaje}
 
-	// Carreras abiertas: para el select y para saber qué apuestas se pueden modificar
 	abiertas := map[string]bool{}
-	gps, err := q.ListarGranPremiosProximos(ctx)
+	carreras, err := h.apuestas.CarrerasAbiertas(ctx)
 	if err != nil {
-		log.Println("ListarGranPremiosProximos:", err)
+		log.Println("Listar carreras próximas:", err)
 	}
-	for _, gp := range gps {
-		clave := gp.IDGranPremio + "|" + gp.FechaCarrera.Format("2006-01-02")
+	for _, g := range carreras {
+		clave := g.ID + "|" + g.Fecha.Format("2006-01-02")
 		abiertas[clave] = true
 		data.GranPremios = append(data.GranPremios, views.OpcionGP{
 			Valor: clave,
-			Texto: gp.IDGranPremio + " — " + gp.FechaCarrera.Format("02/01/2006"),
+			Texto: g.ID + " — " + g.Fecha.Format("02/01/2006"),
 		})
 	}
 
-	data.Pilotos = h.opcionesPilotos(ctx)
-
-	// Nombres de todos los pilotos, para mostrar apuestas viejas
-	nombres := map[int32]string{}
-	hist, err := q.ListarPilotosHistoricos(ctx)
+	pilotos, err := h.apuestas.PilotosDisponibles(ctx)
 	if err != nil {
-		log.Println("ListarPilotosHistoricos:", err)
+		log.Println("Listar pilotos para apuesta:", err)
 	}
-	for _, p := range hist {
-		nombres[p.IDPiloto] = p.Nombre
+	for _, p := range pilotos {
+		data.Pilotos = append(data.Pilotos, views.OpcionPiloto{ID: p.ID, Nombre: p.Nombre})
 	}
 
-	aps, err := q.ListarApuestasPorUsuario(ctx, usuario)
+	nombres, err := h.apuestas.NombresPilotos(ctx)
 	if err != nil {
-		log.Println("ListarApuestasPorUsuario:", err)
+		log.Println("Listar pilotos históricos:", err)
+	}
+	aps, err := h.apuestas.ListarPorUsuario(ctx, usuario)
+	if err != nil {
+		log.Println("Listar apuestas por usuario:", err)
 	}
 	for _, a := range aps {
 		pos := make([]string, 0, len(a.Prediccion))
 		for _, id := range a.Prediccion {
 			pos = append(pos, nombres[id])
 		}
-		clave := a.IDGranPremio + "|" + a.FechaCarrera.Format("2006-01-02")
+		clave := a.GranPremio + "|" + a.FechaCarrera.Format("2006-01-02")
 		data.Apuestas = append(data.Apuestas, views.ApuestaVista{
-			ID:         int(a.IDApuesta),
-			GranPremio: a.IDGranPremio,
+			ID:         a.ID,
+			GranPremio: a.GranPremio,
 			Fecha:      a.FechaCarrera.Format("02/01/2006"),
 			Posiciones: pos,
 			Editable:   abiertas[clave],
 		})
 	}
-
 	return data
 }
 
-// renderApuestas devuelve la página completa
-// renderApuestas devuelve la página completa
 func (h *ApuestaHandler) renderApuestas(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	ctx := r.Context()
 	data := h.datosApuestas(ctx, usuario, mensaje)
 
-	puntos, err := h.queries.ObtenerPuntosUsuario(ctx, usuario)
+	puntos, err := h.usuarios.ObtenerPuntos(ctx, usuario)
 	if err != nil {
-		log.Println("ObtenerPuntosUsuario:", err)
+		log.Println("Obtener puntos:", err)
 	}
-	data.Puntos = int(puntos)
-
+	data.Puntos = puntos
 	views.ApuestasPage(data).Render(ctx, w)
 }
 
-// renderLista devuelve solo el fragmento de la lista
 func (h *ApuestaHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	data := h.datosApuestas(r.Context(), usuario, mensaje)
 	views.ApuestasLista(data.Apuestas, data.Mensaje).Render(r.Context(), w)
@@ -187,7 +157,7 @@ func (h *ApuestaHandler) ModificarApuesta(w http.ResponseWriter, r *http.Request
 			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 			return
 		}
-		h.renderModificar(w, r, usuario, int32(id), "", http.StatusOK)
+		h.renderModificar(w, r, usuario, id, "", http.StatusOK)
 
 	case http.MethodPost:
 		if err := r.ParseForm(); err != nil {
@@ -199,30 +169,23 @@ func (h *ApuestaHandler) ModificarApuesta(w http.ResponseWriter, r *http.Request
 			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 			return
 		}
-
-		prediccion, msg := h.validarPrediccion(r)
-		if msg != "" {
-			h.renderModificar(w, r, usuario, int32(id), msg, http.StatusBadRequest)
+		if err := h.apuestas.Modificar(r.Context(), id, usuario, parsearPrediccion(r)); err != nil {
+			mensaje := "No se pudo guardar el cambio"
+			status := http.StatusInternalServerError
+			var ev dominio.ErrValidacion
+			switch {
+			case errors.As(err, &ev):
+				mensaje, status = ev.Error(), http.StatusBadRequest
+			case errors.Is(err, dominio.ErrCarreraCerrada):
+				http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+				return
+			case errors.Is(err, dominio.ErrApuestaNoEncontrada):
+				http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
+				return
+			}
+			h.renderModificar(w, r, usuario, id, mensaje, status)
 			return
 		}
-
-		_, err = h.queries.ActualizarPrediccionApuesta(r.Context(), sqlc.ActualizarPrediccionApuestaParams{
-			IDApuesta:     int32(id),
-			NombreUsuario: usuario, // de la cookie, nunca del formulario
-			Prediccion:    prediccion,
-			FechaApuesta:  time.Now(),
-		})
-		if errors.Is(err, sql.ErrNoRows) {
-			// No es tuya, no existe o la carrera ya se cerró
-			http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
-			return
-		}
-		if err != nil {
-			log.Println("ActualizarPrediccionApuesta:", err)
-			h.renderModificar(w, r, usuario, int32(id), "No se pudo guardar el cambio", http.StatusInternalServerError)
-			return
-		}
-
 		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 
 	default:
@@ -230,109 +193,67 @@ func (h *ApuestaHandler) ModificarApuesta(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (h *ApuestaHandler) renderModificar(w http.ResponseWriter, r *http.Request, usuario string, id int32, mensaje string, status int) {
+func (h *ApuestaHandler) renderModificar(w http.ResponseWriter, r *http.Request, usuario string, id int, mensaje string, status int) {
 	ctx := r.Context()
 
-	// Solo trae la apuesta si es de este usuario
-	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
-		NombreUsuario: usuario,
-		IDApuesta:     id,
-	})
+	a, err := h.apuestas.RecuperarEditable(ctx, id, usuario)
 	if err != nil {
 		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
 		return
 	}
 
-	// Y solo si la carrera sigue abierta
-	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
-		http.Redirect(w, r, "/apuestas", http.StatusSeeOther)
-		return
+	seleccion := make([]int, 0, len(a.Prediccion))
+	for _, p := range a.Prediccion {
+		seleccion = append(seleccion, p)
 	}
-
-	seleccion := make([]int, 0, len(apuesta.Prediccion))
-	for _, p := range apuesta.Prediccion {
-		seleccion = append(seleccion, int(p))
+	pilotos, err := h.pilotos.ListarParaApuesta(ctx)
+	if err != nil {
+		log.Println("Listar pilotos para apuesta:", err)
+	}
+	opciones := make([]views.OpcionPiloto, 0, len(pilotos))
+	for _, p := range pilotos {
+		opciones = append(opciones, views.OpcionPiloto{ID: p.ID, Nombre: p.Nombre})
 	}
 
 	data := views.ModificarData{
 		Usuario:         usuario,
 		Mensaje:         mensaje,
-		ID:              int(id),
-		GranPremioTexto: apuesta.IDGranPremio + " — " + apuesta.FechaCarrera.Format("02/01/2006"),
-		Pilotos:         h.opcionesPilotos(ctx),
+		ID:              id,
+		GranPremioTexto: a.GranPremio + " — " + a.FechaCarrera.Format("02/01/2006"),
+		Pilotos:         opciones,
 		Seleccion:       seleccion,
 	}
-
 	w.WriteHeader(status)
 	views.ModificarApuestaPage(data).Render(ctx, w)
 }
 
-// ---------------------------------------------------------------
-// Reglas del negocio
-// ---------------------------------------------------------------
-
-// carreraAbierta dice si todavía se puede apostar (o modificar) en esa edición.
-func (h *ApuestaHandler) carreraAbierta(ctx context.Context, idGP string, fecha time.Time) bool {
-	gps, err := h.queries.ListarGranPremiosProximos(ctx)
-	if err != nil {
-		log.Println("ListarGranPremiosProximos:", err)
-		return false
-	}
-	f := fecha.Format("2006-01-02")
-	for _, gp := range gps {
-		if gp.IDGranPremio == idGP && gp.FechaCarrera.Format("2006-01-02") == f {
-			return true
-		}
-	}
-	return false
-}
-
-// opcionesPilotos devuelve los pilotos de la temporada para los selects.
-func (h *ApuestaHandler) opcionesPilotos(ctx context.Context) []views.OpcionPiloto {
-	ps, err := h.queries.ListarPilotosParaApuesta(ctx)
-	if err != nil {
-		log.Println("ListarPilotosParaApuesta:", err)
-		return nil
-	}
-	out := make([]views.OpcionPiloto, 0, len(ps))
-	for _, p := range ps {
-		out = append(out, views.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
-	}
-	return out
-}
-
-// validarPrediccion devuelve los 10 id_piloto en orden, o un mensaje de error.
-func (h *ApuestaHandler) validarPrediccion(r *http.Request) ([]int32, string) {
-	pilotosDB, err := h.queries.ListarPilotosParaApuesta(r.Context())
-	if err != nil {
-		log.Println("ListarPilotosParaApuesta:", err)
-		return nil, "Error interno"
-	}
-	existentes := make(map[int32]bool, len(pilotosDB))
-	for _, p := range pilotosDB {
-		existentes[p.IDPiloto] = true
-	}
-
+// parsearPrediccion convierte los valores del form a IDs (las reglas las valida el dominio).
+func parsearPrediccion(r *http.Request) []int {
 	valores := r.Form["piloto"]
-	if len(valores) != 10 {
-		return nil, "Tenés que elegir 10 pilotos"
-	}
-
-	prediccion := make([]int32, 0, 10)
-	vistos := map[int32]bool{}
+	prediccion := make([]int, 0, len(valores))
 	for _, v := range valores {
 		n, err := strconv.Atoi(v)
-		id := int32(n)
-		if err != nil || !existentes[id] {
-			return nil, "Piloto inválido"
+		if err != nil {
+			return nil
 		}
-		if vistos[id] {
-			return nil, "No podés repetir pilotos"
-		}
-		vistos[id] = true
-		prediccion = append(prediccion, id)
+		prediccion = append(prediccion, n)
 	}
-	return prediccion, ""
+	return prediccion
+}
+
+func mensajeErrorApuesta(err error) string {
+	var ev dominio.ErrValidacion
+	switch {
+	case errors.As(err, &ev):
+		return ev.Error()
+	case errors.Is(err, dominio.ErrApuestaDuplicada):
+		return "Ya apostaste en ese gran premio"
+	case errors.Is(err, dominio.ErrCarreraCerrada):
+		return "Ese gran premio no está disponible"
+	default:
+		log.Println("apuesta:", err)
+		return "No se pudo guardar la apuesta"
+	}
 }
 
 // DELETE /apuestas/{id}
@@ -342,40 +263,22 @@ func (h *ApuestaHandler) EliminarApuesta(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "No autenticado", http.StatusUnauthorized)
 		return
 	}
-
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Id inválido", http.StatusBadRequest)
 		return
 	}
-
-	ctx := r.Context()
-
-	// La apuesta tiene que ser del usuario de la cookie
-	apuesta, err := h.queries.RecuperarApuestaPorIdUsuario(ctx, sqlc.RecuperarApuestaPorIdUsuarioParams{
-		NombreUsuario: usuario,
-		IDApuesta:     int32(id),
-	})
-	if err != nil {
-		http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
+	if err := h.apuestas.Eliminar(r.Context(), id, usuario); err != nil {
+		switch {
+		case errors.Is(err, dominio.ErrApuestaNoEncontrada):
+			http.Error(w, "Apuesta no encontrada", http.StatusNotFound)
+		case errors.Is(err, dominio.ErrCarreraCerrada):
+			http.Error(w, "La carrera ya se cerró", http.StatusConflict)
+		default:
+			log.Println("Eliminar apuesta:", err)
+			http.Error(w, "No se pudo borrar", http.StatusInternalServerError)
+		}
 		return
 	}
-
-	// La carrera tiene que seguir abierta (regla de negocio).
-	if !h.carreraAbierta(ctx, apuesta.IDGranPremio, apuesta.FechaCarrera) {
-		http.Error(w, "La carrera ya se cerró", http.StatusConflict)
-		return
-	}
-
-	err = h.queries.EliminarApuesta(ctx, sqlc.EliminarApuestaParams{
-		IDApuesta:     int32(id),
-		NombreUsuario: usuario,
-	})
-	if err != nil {
-		log.Println("EliminarApuesta:", err)
-		http.Error(w, "No se pudo borrar", http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 }

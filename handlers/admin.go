@@ -1,7 +1,7 @@
+// handlers/admin.go
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -9,26 +9,20 @@ import (
 	"strings"
 	"time"
 
-	sqlc "Proyecto_web/db/sqlc"
+	"Proyecto_web/aplicacion"
+	"Proyecto_web/dominio"
 	"Proyecto_web/views"
 )
 
-// Puntaje de las apuestas: editá estos valores para cambiar la regla.
-const (
-	puntosPosicionExacta = 3 // el piloto terminó justo en la posición apostada
-	puntosEnTop10        = 1 // terminó en el top 10, pero en otra posición
-)
-
 type AdminHandler struct {
-	DB      *sql.DB
-	queries *sqlc.Queries
+	admin *aplicacion.AdminService
 }
 
-func NewAdminHandler(db *sql.DB) *AdminHandler {
-	return &AdminHandler{DB: db, queries: sqlc.New(db)}
+func NewAdminHandler(s *aplicacion.AdminService) *AdminHandler {
+	return &AdminHandler{admin: s}
 }
 
-// RequiereAdmin: exige sesión Y rol de admin, consultado en la base.
+// RequiereAdmin: exige sesión y rol de admin, consultado a través del servicio.
 func (h *AdminHandler) RequiereAdmin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		usuario, ok := usuarioActual(r)
@@ -36,8 +30,7 @@ func (h *AdminHandler) RequiereAdmin(next http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, "/ingresar", http.StatusSeeOther)
 			return
 		}
-		esAdmin, err := h.queries.EsAdmin(r.Context(), usuario)
-		if err != nil || !esAdmin {
+		if !h.admin.EsAdmin(r.Context(), usuario) {
 			http.Error(w, "No autorizado", http.StatusForbidden)
 			return
 		}
@@ -68,29 +61,29 @@ func (h *AdminHandler) renderAdmin(w http.ResponseWriter, r *http.Request, aviso
 	ctx := r.Context()
 	data := views.AdminData{Aviso: aviso, Mensaje: mensaje}
 
-	circuitos, err := h.queries.ListarCircuitosParaAdmin(ctx)
+	circuitos, err := h.admin.Circuitos(ctx)
 	if err != nil {
-		log.Println("ListarCircuitosParaAdmin:", err)
+		log.Println("Listar circuitos:", err)
 	}
 	data.Circuitos = circuitos
 
-	pend, err := h.queries.ListarEdicionesPendientes(ctx)
+	pendientes, err := h.admin.Pendientes(ctx)
 	if err != nil {
-		log.Println("ListarEdicionesPendientes:", err)
+		log.Println("Listar carreras pendientes:", err)
 	}
-	for _, p := range pend {
+	for _, p := range pendientes {
 		data.Pendientes = append(data.Pendientes, views.OpcionGP{
-			Valor: p.IDGranPremio + "|" + p.FechaCarrera.Format("2006-01-02"),
-			Texto: p.IDGranPremio + " — " + p.FechaCarrera.Format("02/01/2006"),
+			Valor: p.ID + "|" + p.Fecha.Format("2006-01-02"),
+			Texto: p.ID + " — " + p.Fecha.Format("02/01/2006"),
 		})
 	}
 
-	pilotos, err := h.queries.ListarPilotosParaApuesta(ctx)
+	pilotos, err := h.admin.Pilotos(ctx)
 	if err != nil {
-		log.Println("ListarPilotosParaApuesta:", err)
+		log.Println("Listar pilotos:", err)
 	}
 	for _, p := range pilotos {
-		data.Pilotos = append(data.Pilotos, views.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
+		data.Pilotos = append(data.Pilotos, views.OpcionPiloto{ID: p.ID, Nombre: p.Nombre})
 	}
 
 	w.WriteHeader(status)
@@ -113,25 +106,22 @@ func (h *AdminHandler) ProgramarCarrera(w http.ResponseWriter, r *http.Request) 
 
 	circuito := r.FormValue("circuito")
 	fecha, err := time.Parse("2006-01-02", r.FormValue("fecha"))
-	if circuito == "" || err != nil {
+	if err != nil {
 		h.renderAdmin(w, r, "", "Elegí un circuito y una fecha válida", http.StatusBadRequest)
 		return
 	}
-
-	_, err = h.queries.CrearEdicionGranPremio(r.Context(), sqlc.CrearEdicionGranPremioParams{
-		IDGranPremio: circuito,
-		FechaCarrera: fecha,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "pk_gran_premio_historico") {
-			h.renderAdmin(w, r, "", "Esa carrera ya está programada", http.StatusConflict)
-			return
+	if err := h.admin.ProgramarCarrera(r.Context(), circuito, fecha); err != nil {
+		mensaje, status := "No se pudo programar la carrera", http.StatusInternalServerError
+		var ev dominio.ErrValidacion
+		switch {
+		case errors.As(err, &ev):
+			mensaje, status = ev.Error(), http.StatusBadRequest
+		case errors.Is(err, dominio.ErrEdicionDuplicada):
+			mensaje, status = "Esa carrera ya está programada", http.StatusConflict
 		}
-		log.Println("CrearEdicionGranPremio:", err)
-		h.renderAdmin(w, r, "", "No se pudo programar la carrera", http.StatusInternalServerError)
+		h.renderAdmin(w, r, "", mensaje, status)
 		return
 	}
-
 	http.Redirect(w, r, "/admin?ok=carrera", http.StatusSeeOther)
 }
 
@@ -151,131 +141,45 @@ func (h *AdminHandler) CargarResultado(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	idGP, fechaStr, ok := strings.Cut(r.FormValue("edicion"), "|")
-	fecha, errFecha := time.Parse("2006-01-02", fechaStr)
-	if !ok || errFecha != nil {
+	fecha, err := time.Parse("2006-01-02", fechaStr)
+	if !ok || err != nil {
 		h.renderAdmin(w, r, "", "Elegí una carrera", http.StatusBadRequest)
 		return
 	}
-
-	orden, msg := h.validarResultado(r)
+	orden, msg := parsearResultado(r)
 	if msg != "" {
 		h.renderAdmin(w, r, "", msg, http.StatusBadRequest)
 		return
 	}
 
-	// Todo o nada: resultado + puntos de todos los usuarios en una transacción.
-	tx, err := h.DB.BeginTx(ctx, nil)
-	if err != nil {
-		log.Println("BeginTx:", err)
-		h.renderAdmin(w, r, "", "Error interno", http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback()
-	qtx := h.queries.WithTx(tx)
-
-	_, err = qtx.CargarResultadoCarrera(ctx, sqlc.CargarResultadoCarreraParams{
-		IDGranPremio:     idGP,
-		FechaCarrera:     fecha,
-		ResultadoCarrera: orden,
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		h.renderAdmin(w, r, "", "Esa carrera no existe o ya tiene resultado", http.StatusConflict)
-		return
-	}
-	if err != nil {
-		log.Println("CargarResultadoCarrera:", err)
-		h.renderAdmin(w, r, "", "No se pudo cargar el resultado", http.StatusInternalServerError)
-		return
-	}
-
-	apuestas, err := qtx.ListarApuestasPorGranPremio(ctx, sqlc.ListarApuestasPorGranPremioParams{
-		IDGranPremio: idGP,
-		FechaCarrera: fecha,
-	})
-	if err != nil {
-		log.Println("ListarApuestasPorGranPremio:", err)
-		h.renderAdmin(w, r, "", "No se pudieron leer las apuestas", http.StatusInternalServerError)
-		return
-	}
-
-	for _, a := range apuestas {
-		pts := calcularPuntos(a.Prediccion, orden)
-		if pts == 0 {
-			continue
+	if err := h.admin.CargarResultado(ctx, idGP, fecha, orden); err != nil {
+		mensaje, status := "No se pudo cargar el resultado", http.StatusInternalServerError
+		var ev dominio.ErrValidacion
+		switch {
+		case errors.As(err, &ev):
+			mensaje, status = ev.Error(), http.StatusBadRequest
+		case errors.Is(err, dominio.ErrCarreraNoEncontrada):
+			mensaje, status = "Esa carrera no existe o ya tiene resultado", http.StatusConflict
 		}
-		err := qtx.SumarPuntosUsuario(ctx, sqlc.SumarPuntosUsuarioParams{
-			NombreUsuario: a.NombreUsuario,
-			Puntos:        int32(pts),
-		})
-		if err != nil {
-			log.Println("SumarPuntosUsuario:", err)
-			h.renderAdmin(w, r, "", "No se pudieron sumar los puntos", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		log.Println("Commit:", err)
-		h.renderAdmin(w, r, "", "No se pudo guardar", http.StatusInternalServerError)
+		h.renderAdmin(w, r, "", mensaje, status)
 		return
 	}
-
 	http.Redirect(w, r, "/admin?ok=resultado", http.StatusSeeOther)
 }
 
-// validarResultado: exactamente 22 pilotos de la temporada, sin repetir, en orden de llegada.
-func (h *AdminHandler) validarResultado(r *http.Request) ([]int32, string) {
-	pilotos, err := h.queries.ListarPilotosParaApuesta(r.Context())
-	if err != nil {
-		log.Println("ListarPilotosParaApuesta:", err)
-		return nil, "Error interno"
-	}
-	existentes := make(map[int32]bool, len(pilotos))
-	for _, p := range pilotos {
-		existentes[p.IDPiloto] = true
-	}
-
+// parsearResultado lee el orden de llegada del formulario; las reglas las valida el dominio.
+func parsearResultado(r *http.Request) ([]int, string) {
 	valores := r.Form["piloto"]
 	if len(valores) != 22 {
 		return nil, "Tenés que ordenar los 22 pilotos"
 	}
-
-	orden := make([]int32, 0, 22)
-	vistos := map[int32]bool{}
+	orden := make([]int, 0, 22)
 	for _, v := range valores {
 		n, err := strconv.Atoi(v)
-		id := int32(n)
-		if err != nil || !existentes[id] {
+		if err != nil {
 			return nil, "Piloto inválido"
 		}
-		if vistos[id] {
-			return nil, "No podés repetir pilotos"
-		}
-		vistos[id] = true
-		orden = append(orden, id)
+		orden = append(orden, n)
 	}
 	return orden, ""
-}
-
-// calcularPuntos compara el top 10 apostado contra los primeros 10 del resultado.
-func calcularPuntos(prediccion, resultado []int32) int {
-	top10 := resultado
-	if len(top10) > 10 {
-		top10 = top10[:10]
-	}
-	estaEnTop10 := make(map[int32]bool, len(top10))
-	for _, id := range top10 {
-		estaEnTop10[id] = true
-	}
-
-	pts := 0
-	for i, id := range prediccion {
-		switch {
-		case i < len(top10) && top10[i] == id:
-			pts += puntosPosicionExacta
-		case estaEnTop10[id]:
-			pts += puntosEnTop10
-		}
-	}
-	return pts
 }

@@ -14,14 +14,14 @@ import (
 	"net/url"
 	"strconv"
 
-	d "Proyecto_web/db/sqlc"
+	"Proyecto_web/dominio"
 )
 
 type EscuderiasData struct {
 	EsAdmin    bool
 	Orden      string
 	Mensaje    string
-	Escuderias []d.Escuderium
+	Escuderias []dominio.Escuderia
 }
 
 type ModificarEscuderiaData struct {
@@ -90,7 +90,7 @@ func EscuderiasPage(data EscuderiasData) templ.Component {
 	})
 }
 
-func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mensaje string) templ.Component {
+func EscuderiasLista(escuderias []dominio.Escuderia, orden string, esAdmin bool, mensaje string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -174,9 +174,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.NewAttributeExpression(fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.IDEscuderia)).ResolveURL(ctx)
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.NewAttributeExpression(fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.ID)).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 106, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 106, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
@@ -187,9 +187,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression(e.IDEscuderia).Resolve(ctx)
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression(e.ID).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 107, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 107, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
@@ -200,9 +200,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(e.IDEscuderia)
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(e.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 113, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 113, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -213,9 +213,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.TeamPrincipal)
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.Principal)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 116, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 116, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -226,9 +226,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(e.TitulosConstructores))
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(e.Titulos))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 117, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 117, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -239,9 +239,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(e.FechaFundacion.Format("02/01/2006"))
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(e.Fundacion.Format("02/01/2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 118, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 118, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -252,9 +252,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(e.PuntosTemporada))
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(e.Puntos))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 119, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 119, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -270,9 +270,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.URL("/escuderias/modificar?id=" + url.QueryEscape(e.IDEscuderia))).ResolveURL(ctx)
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.URL("/escuderias/modificar?id=" + url.QueryEscape(e.ID))).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 122, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 122, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 				if templ_7745c5c3_Err != nil {
@@ -283,9 +283,9 @@ func EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mens
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
-				templ_7745c5c3_Var14, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/escuderias/" + url.PathEscape(e.IDEscuderia)).Resolve(ctx)
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/escuderias/" + url.PathEscape(e.ID)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 128, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/escuderias.templ`, Line: 128, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 				if templ_7745c5c3_Err != nil {

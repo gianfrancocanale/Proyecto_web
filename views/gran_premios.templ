@@ -1,7 +1,8 @@
 package views
 
 import (
-	d "Proyecto_web/db/sqlc"
+	"fmt"
+	"Proyecto_web/dominio"
 	"net/url"
 	"strconv"
 )
@@ -10,7 +11,7 @@ type GranPremiosData struct {
 	EsAdmin     bool
 	Orden       string
 	Mensaje     string
-	GranPremios []d.ListarGrandesPremiosRow
+	GranPremios []dominio.GranPremio
 	Pilotos     []OpcionPiloto // históricos, para elegir el último ganador
 }
 
@@ -75,7 +76,7 @@ templ GranPremiosPage(data GranPremiosData) {
 	}
 }
 
-templ GranPremiosLista(gps []d.ListarGrandesPremiosRow, esAdmin bool, mensaje string) {
+templ GranPremiosLista(gps []dominio.GranPremio, esAdmin bool, mensaje string) {
 	<div id="lista-gran-premios">
 		if mensaje != "" {
 			<div class="alert-error">{ mensaje }</div>
@@ -88,29 +89,29 @@ templ GranPremiosLista(gps []d.ListarGrandesPremiosRow, esAdmin bool, mensaje st
 				<article class="data-card gp-card">
 					<div class="team-img-box">
 						<img
-							src={ "/front/imagenes/circuitos/" + g.IDGranPremio + ".jpg" }
-							alt={ g.IDGranPremio }
+							src={ "/front/imagenes/circuitos/" + g.ID + ".jpg" }
+							alt={ g.ID }
 							onerror="this.parentElement.style.display='none'"
 						/>
 					</div>
 					<div class="data-card-header">
 						<span class="badge">GP</span>
-						<h3>{ g.IDGranPremio }</h3>
+						<h3>{ g.ID }</h3>
 					</div>
 					<div class="data-granpremio-body">
 						<p><strong>Pais:</strong> { g.Pais }</p>
-						<p><strong>Longitud:</strong> { g.LongitudKm } km</p>
-						<p><strong>Cantidad de Vueltas:</strong> { g.CantidadVueltas }</p>
-						<p><strong>Ultimo Ganador:</strong> { g.IDUltimoGanador }</p>
+						<p><strong>Longitud:</strong> { fmt.Sprint(g.Longitud) } km</p>
+						<p><strong>Cantidad de Vueltas:</strong> { fmt.Sprint(g.Vueltas) }</p>
+						<p><strong>Ultimo Ganador:</strong> { fmt.Sprint(g.UltimoGanador) }</p>
 						if esAdmin {
 							<div class="bet-actions">
-								<a href={ templ.URL("/gran_premios/modificar?id=" + url.QueryEscape(g.IDGranPremio)) } class="btn-login">
+								<a href={ templ.URL("/gran_premios/modificar?id=" + url.QueryEscape(g.ID)) } class="btn-login">
 									Modificar
 								</a>
 								<button
 									type="button"
 									class="btn-register"
-									hx-delete={ "/gran_premios/" + url.PathEscape(g.IDGranPremio) }
+									hx-delete={ "/gran_premios/" + url.PathEscape(g.ID) }
 									hx-target="#lista-gran-premios"
 									hx-swap="outerHTML"
 									hx-confirm="¿Eliminar este gran premio?"

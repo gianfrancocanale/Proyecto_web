@@ -1,30 +1,24 @@
+// handlers/pilotohistorico.go
 package handlers
 
 import (
-	sqlc "Proyecto_web/db/sqlc"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+
+	"Proyecto_web/aplicacion"
+	"Proyecto_web/dominio"
 )
 
-// PilotoHistoricoHandler agrupa los handlers de piloto histórico y guarda
-// la conexión a la base de datos y las queries de sqlc.
 type PilotoHistoricoHandler struct {
-	DB      *sql.DB
-	queries *sqlc.Queries
+	pilotos *aplicacion.PilotoHistoricoService
 }
 
-// NewPilotoHistoricoHandler es el constructor del handler.
-func NewPilotoHistoricoHandler(db *sql.DB) *PilotoHistoricoHandler {
-	return &PilotoHistoricoHandler{
-		DB:      db,
-		queries: sqlc.New(db),
-	}
+func NewPilotoHistoricoHandler(s *aplicacion.PilotoHistoricoService) *PilotoHistoricoHandler {
+	return &PilotoHistoricoHandler{pilotos: s}
 }
 
-// HandlerPilotoHistorico despacha según el método HTTP para la ruta /pilotos-historicos.
 func (h *PilotoHistoricoHandler) HandlerPilotoHistorico(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -36,7 +30,6 @@ func (h *PilotoHistoricoHandler) HandlerPilotoHistorico(w http.ResponseWriter, r
 	}
 }
 
-// HandlerPilotoHistoricoId despacha según el método HTTP para la ruta /pilotos-historicos/{id}.
 func (h *PilotoHistoricoHandler) HandlerPilotoHistoricoId(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -56,30 +49,20 @@ func (h *PilotoHistoricoHandler) CrearPilotoHistorico(w http.ResponseWriter, r *
 		return
 	}
 
-	var pilotoHistorico sqlc.CrearPilotoHistoricoParams
-
-	err := json.NewDecoder(r.Body).Decode(&pilotoHistorico)
-	if err != nil {
+	var p dominio.PilotoHistorico
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
 		return
 	}
-
-	pilotoHistorico.TitulosGanados = 0 // setea 0 títulos ganados al crear un nuevo piloto histórico
-
-	if pilotoHistorico.Nombre == "" || pilotoHistorico.Pais == "" || pilotoHistorico.FechaNacimiento.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	devolver, err := h.queries.CrearPilotoHistorico(r.Context(), pilotoHistorico)
-	if err != nil {
-		http.Error(w, "Error al crear el piloto histórico", http.StatusInternalServerError)
+	p.Titulos = 0 // los pilotos nuevos arrancan sin títulos
+	if err := h.pilotos.Crear(r.Context(), p); err != nil {
+		escribirError(w, err, "Error al crear el piloto histórico")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(devolver)
+	json.NewEncoder(w).Encode(p)
 }
 
 func (h *PilotoHistoricoHandler) ListarPilotosHistoricos(w http.ResponseWriter, r *http.Request) {
@@ -88,18 +71,18 @@ func (h *PilotoHistoricoHandler) ListarPilotosHistoricos(w http.ResponseWriter, 
 		return
 	}
 
-	pilotosHistoricos, err := h.queries.ListarPilotosHistoricos(r.Context())
+	pilotos, err := h.pilotos.Listar(r.Context())
 	if err != nil {
 		http.Error(w, "Error al obtener los pilotos históricos", http.StatusInternalServerError)
 		return
 	}
-	if len(pilotosHistoricos) == 0 {
+	if len(pilotos) == 0 {
 		http.Error(w, "No se encontraron pilotos históricos", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pilotosHistoricos)
+	json.NewEncoder(w).Encode(pilotos)
 }
 
 func (h *PilotoHistoricoHandler) ObtenerPilotoHistorico(w http.ResponseWriter, r *http.Request) {
@@ -108,24 +91,19 @@ func (h *PilotoHistoricoHandler) ObtenerPilotoHistorico(w http.ResponseWriter, r
 		return
 	}
 
-	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
 	if err != nil {
 		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
 		return
 	}
-
-	pilotoHistorico, err := h.queries.RecuperarPilotoHistorico(r.Context(), int32(idPiloto))
+	p, err := h.pilotos.Recuperar(r.Context(), int(id))
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Piloto histórico no encontrado", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al obtener el piloto histórico", http.StatusInternalServerError)
-		}
+		escribirError(w, err, "Error al obtener el piloto histórico")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pilotoHistorico)
+	json.NewEncoder(w).Encode(p)
 }
 
 func (h *PilotoHistoricoHandler) ActualizarPilotoHistorico(w http.ResponseWriter, r *http.Request) {
@@ -134,40 +112,26 @@ func (h *PilotoHistoricoHandler) ActualizarPilotoHistorico(w http.ResponseWriter
 		return
 	}
 
-	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
 	if err != nil {
 		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
 		return
 	}
-
-	var pilotoHistorico sqlc.ModificarPilotoHistoricoParams
-
-	err = json.NewDecoder(r.Body).Decode(&pilotoHistorico)
-	if err != nil {
+	var p dominio.PilotoHistorico
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
 		return
 	}
+	// La identidad sale de la URL, nunca del body.
+	p.ID = int(id)
 
-	// La identidad del piloto histórico sale siempre de la URL, no del body
-	pilotoHistorico.IDPiloto = int32(idPiloto)
-
-	if pilotoHistorico.Nombre == "" || pilotoHistorico.Pais == "" || pilotoHistorico.FechaNacimiento.IsZero() {
-		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	devolver, err := h.queries.ModificarPilotoHistorico(r.Context(), pilotoHistorico)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Piloto histórico no encontrado", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al actualizar el piloto histórico", http.StatusInternalServerError)
-		}
+	if err := h.pilotos.Modificar(r.Context(), p); err != nil {
+		escribirError(w, err, "Error al actualizar el piloto histórico")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(devolver)
+	json.NewEncoder(w).Encode(p)
 }
 
 func (h *PilotoHistoricoHandler) EliminarPilotoHistorico(w http.ResponseWriter, r *http.Request) {
@@ -176,21 +140,36 @@ func (h *PilotoHistoricoHandler) EliminarPilotoHistorico(w http.ResponseWriter, 
 		return
 	}
 
-	idPiloto, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
 	if err != nil {
 		http.Error(w, "ID de piloto histórico inválido", http.StatusBadRequest)
 		return
 	}
-
-	err = h.queries.EliminarPilotoHistorico(r.Context(), int32(idPiloto))
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Piloto histórico no encontrado", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error al eliminar el piloto histórico", http.StatusInternalServerError)
-		}
+	if err := h.pilotos.Eliminar(r.Context(), int(id)); err != nil {
+		escribirError(w, err, "Error al eliminar el piloto histórico")
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
+}
+
+// escribirError traduce errores de dominio a respuestas HTTP.
+func escribirError(w http.ResponseWriter, err error, mensajeGenerico string) {
+	var ev dominio.ErrValidacion
+	switch {
+	case errors.As(err, &ev):
+		http.Error(w, ev.Error(), http.StatusBadRequest)
+	case errors.Is(err, dominio.ErrPilotoHistoricoNoEncontrado),
+		errors.Is(err, dominio.ErrPilotoNoEncontrado),
+		errors.Is(err, dominio.ErrCarreraNoEncontrada),
+		errors.Is(err, dominio.ErrApuestaNoEncontrada),
+		errors.Is(err, dominio.ErrUsuarioNoEncontrado):
+		http.Error(w, err.Error(), http.StatusNotFound)
+	case errors.Is(err, dominio.ErrPilotoHistoricoDuplicado),
+		errors.Is(err, dominio.ErrPilotoDuplicado),
+		errors.Is(err, dominio.ErrApuestaDuplicada),
+		errors.Is(err, dominio.ErrEdicionDuplicada):
+		http.Error(w, err.Error(), http.StatusConflict)
+	default:
+		http.Error(w, mensajeGenerico, http.StatusInternalServerError)
+	}
 }

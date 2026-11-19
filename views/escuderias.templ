@@ -5,14 +5,14 @@ import (
 	"net/url"
 	"strconv"
 
-	d "Proyecto_web/db/sqlc"
+	"Proyecto_web/dominio"
 )
 
 type EscuderiasData struct {
 	EsAdmin    bool
 	Orden      string
 	Mensaje    string
-	Escuderias []d.Escuderium
+	Escuderias []dominio.Escuderia
 }
 
 type ModificarEscuderiaData struct {
@@ -70,7 +70,7 @@ templ EscuderiasPage(data EscuderiasData) {
 	}
 }
 
-templ EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, mensaje string) {
+templ EscuderiasLista(escuderias []dominio.Escuderia, orden string, esAdmin bool, mensaje string) {
 	<div id="lista-escuderias">
         <input type="hidden" id="orden-actual" name="orden" value={ orden }/>
 		<div class="filter-container" style="text-align: center; margin-bottom: 2rem;">
@@ -103,29 +103,29 @@ templ EscuderiasLista(escuderias []d.Escuderium, orden string, esAdmin bool, men
 				<article class="data-card">
 					<div class="team-img-box">
 						<img
-							src={ fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.IDEscuderia) }
-							alt={ e.IDEscuderia }
+							src={ fmt.Sprintf("/front/imagenes/escuderias/%v.jpg", e.ID) }
+							alt={ e.ID }
 							onerror="this.onerror=null; this.src='/front/imagenes/escuderias/default.jpg';"
 						/>
 					</div>
 					<div class="data-card-header">
 						<span class="badge">Escudería</span>
-						<h3>{ e.IDEscuderia }</h3>
+						<h3>{ e.ID }</h3>
 					</div>
 					<div class="data-card-body">
-						<p><strong>Team Principal:</strong> { e.TeamPrincipal }</p>
-						<p><strong>Título de constructores:</strong> { fmt.Sprint(e.TitulosConstructores) }</p>
-						<p><strong>Fecha de fundación:</strong> { e.FechaFundacion.Format("02/01/2006") }</p>
-						<p class="points">{ fmt.Sprint(e.PuntosTemporada) } pts</p>
+						<p><strong>Team Principal:</strong> { e.Principal }</p>
+						<p><strong>Título de constructores:</strong> { fmt.Sprint(e.Titulos) }</p>
+						<p><strong>Fecha de fundación:</strong> { e.Fundacion.Format("02/01/2006") }</p>
+						<p class="points">{ fmt.Sprint(e.Puntos) } pts</p>
 						if esAdmin {
 							<div class="bet-actions">
-								<a href={ templ.URL("/escuderias/modificar?id=" + url.QueryEscape(e.IDEscuderia)) } class="btn-login">
+								<a href={ templ.URL("/escuderias/modificar?id=" + url.QueryEscape(e.ID)) } class="btn-login">
 									Modificar
 								</a>
 								<button
 									type="button"
 									class="btn-register"
-									hx-delete={ "/escuderias/" + url.PathEscape(e.IDEscuderia) }
+									hx-delete={ "/escuderias/" + url.PathEscape(e.ID) }
 									hx-target="closest article"
 									hx-swap="outerHTML"
 									hx-confirm="¿Eliminar esta escudería? También se eliminan sus pilotos de la temporada."

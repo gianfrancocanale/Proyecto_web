@@ -10,7 +10,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	d "Proyecto_web/db/sqlc"
+	"Proyecto_web/dominio"
 	"fmt"
 	"strconv"
 )
@@ -24,7 +24,7 @@ type PilotosData struct {
 	EsAdmin    bool
 	Orden      string
 	Mensaje    string
-	Pilotos    []d.ListarPilotosRow
+	Pilotos    []dominio.Piloto
 	Escuderias []OpcionEscuderia
 }
 
@@ -131,7 +131,7 @@ func PilotosPage(data PilotosData) templ.Component {
 	})
 }
 
-func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mensaje string) templ.Component {
+func PilotosLista(pilotos []dominio.Piloto, orden string, esAdmin bool, mensaje string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -215,9 +215,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templruntime.NewAttributeExpression(fmt.Sprintf("/front/imagenes/pilotos/%d.jpg", p.IDPiloto)).ResolveURL(ctx)
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templruntime.NewAttributeExpression(fmt.Sprintf("/front/imagenes/pilotos/%d.jpg", p.ID)).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 123, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 123, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {
@@ -241,9 +241,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.IDPiloto))
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 128, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 128, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -267,9 +267,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(p.IDEscuderia)
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(p.Escuderia)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 131, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 131, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -293,9 +293,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(p.FechaNacimiento.Format("02/01/2006"))
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(p.Nacimiento.Format("02/01/2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 135, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 135, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -306,9 +306,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.TitulosGanados))
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.Titulos))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 136, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 136, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -319,9 +319,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.PuntosTemporada))
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(p.Puntos))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 137, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 137, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -337,9 +337,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
-				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.URL("/pilotos/modificar?id=" + strconv.Itoa(int(p.IDPiloto)))).ResolveURL(ctx)
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.URL("/pilotos/modificar?id=" + strconv.Itoa(p.ID))).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 140, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 140, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 				if templ_7745c5c3_Err != nil {
@@ -350,9 +350,9 @@ func PilotosLista(pilotos []d.ListarPilotosRow, orden string, esAdmin bool, mens
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/pilotos/" + strconv.Itoa(int(p.IDPiloto))).Resolve(ctx)
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/pilotos/" + strconv.Itoa(p.ID)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 146, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pilotos.templ`, Line: 146, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 				if templ_7745c5c3_Err != nil {

@@ -1,48 +1,36 @@
+// handlers/granpremio.go
 package handlers
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
-	sqlc "Proyecto_web/db/sqlc"
+	"Proyecto_web/aplicacion"
+	"Proyecto_web/dominio"
 	vista "Proyecto_web/views"
 )
 
-// GranPremioHandler agrupa los handlers de gran premio y guarda
-// la conexión a la base de datos y las queries de sqlc.
 type GranPremioHandler struct {
-	DB      *sql.DB
-	queries *sqlc.Queries
+	granPremios *aplicacion.GranPremioService
+	historicos  *aplicacion.PilotoHistoricoService
+	usuarios    *aplicacion.UsuarioService
 }
 
-// NewGranPremioHandler es el constructor del handler.
-func NewGranPremioHandler(db *sql.DB) *GranPremioHandler {
-	return &GranPremioHandler{
-		DB:      db,
-		queries: sqlc.New(db),
-	}
+func NewGranPremioHandler(g *aplicacion.GranPremioService, h *aplicacion.PilotoHistoricoService, u *aplicacion.UsuarioService) *GranPremioHandler {
+	return &GranPremioHandler{granPremios: g, historicos: h, usuarios: u}
 }
 
-// esAdmin usa la misma regla que AdminHandler.RequiereAdmin: el rol sale de la base.
 func (h *GranPremioHandler) esAdmin(ctx context.Context, usuario string) bool {
 	if usuario == "" {
 		return false
 	}
-	ok, err := h.queries.EsAdmin(ctx, usuario)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("EsAdmin:", err)
-		}
-		return false
-	}
-	return ok
+	ok, err := h.usuarios.EsAdmin(ctx, usuario)
+	return err == nil && ok
 }
 
 // ---------------------------------------------------------------
@@ -58,11 +46,9 @@ func (h *GranPremioHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 		if orden != "desc" {
 			orden = "asc"
 		}
-		data := h.datosGranPremios(r.Context(), usuario, orden, "")
-		vista.GranPremiosPage(data).Render(r.Context(), w)
+		vista.GranPremiosPage(h.datosGranPremios(r.Context(), usuario, orden, "")).Render(r.Context(), w)
 
 	case http.MethodPost:
-		// RequiereAdmin ya validó el rol en main.go
 		h.crearDesdeForm(w, r, usuario)
 
 	default:
@@ -70,8 +56,6 @@ func (h *GranPremioHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// mostrarError devuelve la lista con un mensaje arriba.
-// Responde 200 a propósito: así HTMX siempre reemplaza la lista.
 func (h *GranPremioHandler) mostrarError(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	h.renderLista(w, r, usuario, mensaje)
 }
@@ -81,58 +65,31 @@ func (h *GranPremioHandler) crearDesdeForm(w http.ResponseWriter, r *http.Reques
 		h.mostrarError(w, r, usuario, "Formulario inválido")
 		return
 	}
-	ctx := r.Context()
 
-	id := strings.TrimSpace(r.FormValue("id_gran_premio"))
-	pais := strings.TrimSpace(r.FormValue("pais"))
-	if id == "" || pais == "" {
-		h.mostrarError(w, r, usuario, "Completá el nombre del gran premio y el país")
-		return
+	g := dominio.GranPremio{
+		ID:   strings.TrimSpace(r.FormValue("id_gran_premio")),
+		Pais: strings.TrimSpace(r.FormValue("pais")),
 	}
-
 	vueltas, err := strconv.Atoi(strings.TrimSpace(r.FormValue("cantidad_vueltas")))
-	if err != nil || vueltas <= 0 {
+	if err != nil {
 		h.mostrarError(w, r, usuario, "Cantidad de vueltas inválida")
 		return
 	}
-
-	ganador, err := strconv.Atoi(r.FormValue("id_ultimo_ganador"))
+	g.Vueltas = vueltas
+	g.UltimoGanador, err = strconv.Atoi(r.FormValue("id_ultimo_ganador"))
 	if err != nil {
 		h.mostrarError(w, r, usuario, "Elegí el último ganador")
 		return
 	}
-	if _, err := h.queries.RecuperarPilotoHistorico(ctx, int32(ganador)); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			h.mostrarError(w, r, usuario, "El último ganador no existe")
-		} else {
-			log.Println("RecuperarPilotoHistorico:", err)
-			h.mostrarError(w, r, usuario, "Error al verificar el último ganador")
-		}
-		return
-	}
-
-	if h.existeGranPremio(ctx, id) {
-		h.mostrarError(w, r, usuario, "Ya existe un gran premio con ese nombre")
-		return
-	}
-
-	params := sqlc.CrearGranPremioParams{
-		IDGranPremio:    id,
-		Pais:            pais,
-		CantidadVueltas: int32(vueltas),
-		IDUltimoGanador: int32(ganador),
-	}
-	if !asignarLongitud(r.FormValue("longitud_km"), &params.LongitudKm) {
+	if !asignarLongitud(r.FormValue("longitud_km"), &g.Longitud) {
 		h.mostrarError(w, r, usuario, "Longitud inválida")
 		return
 	}
 
-	if _, err := h.queries.CrearGranPremio(ctx, params); err != nil {
-		log.Println("CrearGranPremio:", err)
-		h.mostrarError(w, r, usuario, "No se pudo crear el gran premio")
+	if err := h.granPremios.Crear(r.Context(), g); err != nil {
+		h.mostrarError(w, r, usuario, mensajeErrorGranPremio(err))
 		return
 	}
-
 	h.renderLista(w, r, usuario, "")
 }
 
@@ -140,32 +97,15 @@ func (h *GranPremioHandler) crearDesdeForm(w http.ResponseWriter, r *http.Reques
 // Datos y render
 // ---------------------------------------------------------------
 
-// listaOrdenada trae los grandes premios ordenados por nombre.
-// Si no hay ninguno devuelve un slice vacío (no es un error).
-func (h *GranPremioHandler) listaOrdenada(ctx context.Context, orden string) []sqlc.ListarGrandesPremiosRow {
-	gps, err := h.ListarGranPremios(ctx)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("ListarGrandesPremios:", err)
-		}
-		return nil
-	}
-	sort.Slice(gps, func(i, j int) bool {
-		if orden == "desc" {
-			return gps[i].IDGranPremio > gps[j].IDGranPremio
-		}
-		return gps[i].IDGranPremio < gps[j].IDGranPremio
-	})
-	return gps
-}
-
 func (h *GranPremioHandler) datosGranPremios(ctx context.Context, usuario, orden, mensaje string) vista.GranPremiosData {
 	adm := h.esAdmin(ctx, usuario)
-	data := vista.GranPremiosData{
-		EsAdmin:     adm,
-		Orden:       orden,
-		Mensaje:     mensaje,
-		GranPremios: h.listaOrdenada(ctx, orden),
+	data := vista.GranPremiosData{EsAdmin: adm, Orden: orden, Mensaje: mensaje}
+
+	gps, err := h.granPremios.Listar(ctx, orden)
+	if err != nil {
+		log.Println("Listar grandes premios:", err)
+	} else {
+		data.GranPremios = gps
 	}
 	if adm {
 		data.Pilotos = h.opcionesPilotos(ctx)
@@ -173,52 +113,38 @@ func (h *GranPremioHandler) datosGranPremios(ctx context.Context, usuario, orden
 	return data
 }
 
-// renderLista devuelve solo el fragmento de la lista, para HTMX.
 func (h *GranPremioHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	data := h.datosGranPremios(r.Context(), usuario, "asc", mensaje)
 	vista.GranPremiosLista(data.GranPremios, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
 }
 
-// opcionesPilotos: pilotos históricos para elegir el último ganador.
 func (h *GranPremioHandler) opcionesPilotos(ctx context.Context) []vista.OpcionPiloto {
-	hist, err := h.queries.ListarPilotosHistoricos(ctx)
+	pilotos, err := h.historicos.Opciones(ctx)
 	if err != nil {
-		log.Println("ListarPilotosHistoricos:", err)
+		log.Println("Listar pilotos históricos:", err)
 		return nil
 	}
-	out := make([]vista.OpcionPiloto, 0, len(hist))
-	for _, p := range hist {
-		out = append(out, vista.OpcionPiloto{ID: int(p.IDPiloto), Nombre: p.Nombre})
+	out := make([]vista.OpcionPiloto, 0, len(pilotos))
+	for _, p := range pilotos {
+		out = append(out, vista.OpcionPiloto{ID: p.ID, Nombre: p.Nombre})
 	}
 	return out
 }
 
-func (h *GranPremioHandler) existeGranPremio(ctx context.Context, id string) bool {
-	gps, err := h.ListarGranPremios(ctx)
-	if err != nil {
-		return false
+func mensajeErrorGranPremio(err error) string {
+	var ev dominio.ErrValidacion
+	switch {
+	case errors.As(err, &ev):
+		return ev.Error()
+	case errors.Is(err, dominio.ErrGranPremioDuplicado):
+		return "Ya existe un gran premio con ese nombre"
+	default:
+		log.Println("gran premio:", err)
+		return "No se pudo crear el gran premio"
 	}
-	for _, g := range gps {
-		if g.IDGranPremio == id {
-			return true
-		}
-	}
-	return false
 }
 
-func (h *GranPremioHandler) ListarGranPremios(ctx context.Context) ([]sqlc.ListarGrandesPremiosRow, error) {
-	granPremios, err := h.queries.ListarGrandesPremios(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(granPremios) == 0 {
-		return nil, sql.ErrNoRows
-	}
-	return granPremios, nil
-}
-
-// asignarLongitud valida que el texto sea un número > 0 y lo escribe en el
-// campo de destino (sirve sea int, float o string, según lo que genere sqlc).
+// asignarLongitud valida el texto y lo escribe en el destino (int, float o string).
 func asignarLongitud(texto string, destino any) bool {
 	texto = strings.Replace(strings.TrimSpace(texto), ",", ".", 1)
 	f, err := strconv.ParseFloat(texto, 64)
@@ -250,55 +176,39 @@ func (h *GranPremioHandler) ModificarGranPremio(w http.ResponseWriter, r *http.R
 		}
 		ctx := r.Context()
 
-		// La identidad del GP viaja en un campo oculto; no se puede cambiar.
+		// La identidad viaja en un campo oculto; no se puede cambiar.
 		id := strings.TrimSpace(r.FormValue("id_gran_premio"))
 		if id == "" {
 			http.Redirect(w, r, "/gran_premios", http.StatusSeeOther)
 			return
 		}
-
-		pais := strings.TrimSpace(r.FormValue("pais"))
-		if pais == "" {
-			h.renderModificar(w, r, id, "El país es obligatorio", http.StatusBadRequest)
-			return
-		}
+		g := dominio.GranPremio{ID: id, Pais: strings.TrimSpace(r.FormValue("pais"))}
 		vueltas, err := strconv.Atoi(strings.TrimSpace(r.FormValue("cantidad_vueltas")))
-		if err != nil || vueltas <= 0 {
+		if err != nil {
 			h.renderModificar(w, r, id, "Cantidad de vueltas inválida", http.StatusBadRequest)
 			return
 		}
-		ganador, err := strconv.Atoi(r.FormValue("id_ultimo_ganador"))
+		g.Vueltas = vueltas
+		g.UltimoGanador, err = strconv.Atoi(r.FormValue("id_ultimo_ganador"))
 		if err != nil {
 			h.renderModificar(w, r, id, "Elegí el último ganador", http.StatusBadRequest)
 			return
 		}
-		if _, err := h.queries.RecuperarPilotoHistorico(ctx, int32(ganador)); err != nil {
-			h.renderModificar(w, r, id, "El último ganador no existe", http.StatusBadRequest)
-			return
-		}
-
-		params := sqlc.ModificarGranPremioParams{
-			IDGranPremio:    id,
-			Pais:            pais,
-			CantidadVueltas: int32(vueltas),
-			IDUltimoGanador: int32(ganador),
-		}
-		if !asignarLongitud(r.FormValue("longitud_km"), &params.LongitudKm) {
+		if !asignarLongitud(r.FormValue("longitud_km"), &g.Longitud) {
 			h.renderModificar(w, r, id, "Longitud inválida", http.StatusBadRequest)
 			return
 		}
 
-		_, err = h.queries.ModificarGranPremio(ctx, params)
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Redirect(w, r, "/gran_premios", http.StatusSeeOther)
+		if err := h.granPremios.Modificar(ctx, g); err != nil {
+			var ev dominio.ErrValidacion
+			status := http.StatusInternalServerError
+			mensaje := "No se pudo guardar el cambio"
+			if errors.As(err, &ev) {
+				status, mensaje = http.StatusBadRequest, ev.Error()
+			}
+			h.renderModificar(w, r, id, mensaje, status)
 			return
 		}
-		if err != nil {
-			log.Println("ModificarGranPremio:", err)
-			h.renderModificar(w, r, id, "No se pudo guardar el cambio", http.StatusInternalServerError)
-			return
-		}
-
 		http.Redirect(w, r, "/gran_premios", http.StatusSeeOther)
 
 	default:
@@ -309,29 +219,21 @@ func (h *GranPremioHandler) ModificarGranPremio(w http.ResponseWriter, r *http.R
 func (h *GranPremioHandler) renderModificar(w http.ResponseWriter, r *http.Request, id, mensaje string, status int) {
 	ctx := r.Context()
 
-	var actual *sqlc.ListarGrandesPremiosRow
-	gps, _ := h.ListarGranPremios(ctx)
-	for i := range gps {
-		if gps[i].IDGranPremio == id {
-			actual = &gps[i]
-			break
-		}
-	}
-	if actual == nil {
+	g, err := h.granPremios.Recuperar(ctx, id)
+	if err != nil {
 		http.Redirect(w, r, "/gran_premios", http.StatusSeeOther)
 		return
 	}
 
 	data := vista.ModificarGranPremioData{
 		Mensaje:  mensaje,
-		ID:       actual.IDGranPremio,
-		Pais:     actual.Pais,
-		Longitud: fmt.Sprint(actual.LongitudKm),
-		Vueltas:  fmt.Sprint(actual.CantidadVueltas),
-		Ganador:  fmt.Sprint(actual.IDUltimoGanador),
+		ID:       g.ID,
+		Pais:     g.Pais,
+		Longitud: fmt.Sprint(g.Longitud),
+		Vueltas:  fmt.Sprint(g.Vueltas),
+		Ganador:  fmt.Sprint(g.UltimoGanador),
 		Pilotos:  h.opcionesPilotos(ctx),
 	}
-
 	w.WriteHeader(status)
 	vista.ModificarGranPremioPage(data).Render(ctx, w)
 }
@@ -340,8 +242,6 @@ func (h *GranPremioHandler) renderModificar(w http.ResponseWriter, r *http.Reque
 // Eliminar un gran premio (admin)
 // ---------------------------------------------------------------
 
-// DELETE /gran_premios/{id}
-// Siempre devuelve la lista (200): si falla, con un mensaje arriba.
 func (h *GranPremioHandler) EliminarGranPremio(w http.ResponseWriter, r *http.Request) {
 	usuario, _ := usuarioActual(r)
 
@@ -350,9 +250,8 @@ func (h *GranPremioHandler) EliminarGranPremio(w http.ResponseWriter, r *http.Re
 		h.renderLista(w, r, usuario, "ID de gran premio inválido")
 		return
 	}
-
-	if err := h.queries.EliminarGranPremio(r.Context(), id); err != nil {
-		log.Println("EliminarGranPremio:", err)
+	if err := h.granPremios.Eliminar(r.Context(), id); err != nil {
+		log.Println("Eliminar gran premio:", err)
 		msg := "No se pudo borrar el gran premio"
 		if strings.Contains(strings.ToLower(err.Error()), "foreign key") {
 			msg = "No se puede borrar: tiene carreras o apuestas asociadas"
@@ -360,6 +259,5 @@ func (h *GranPremioHandler) EliminarGranPremio(w http.ResponseWriter, r *http.Re
 		h.renderLista(w, r, usuario, msg)
 		return
 	}
-
 	h.renderLista(w, r, usuario, "")
 }

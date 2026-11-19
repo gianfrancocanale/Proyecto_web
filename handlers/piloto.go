@@ -1,48 +1,35 @@
+// handlers/piloto.go
 package handlers
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	sqlc "Proyecto_web/db/sqlc"
+	"Proyecto_web/aplicacion"
+	"Proyecto_web/dominio"
 	vista "Proyecto_web/views"
 )
 
-// PilotoHandler agrupa los handlers de piloto y guarda
-// la conexión a la base de datos y las queries de sqlc.
 type PilotoHandler struct {
-	DB      *sql.DB
-	queries *sqlc.Queries
+	pilotos  *aplicacion.PilotoService
+	usuarios *aplicacion.UsuarioService
 }
 
-// NewPilotoHandler es el constructor del handler.
-func NewPilotoHandler(db *sql.DB) *PilotoHandler {
-	return &PilotoHandler{
-		DB:      db,
-		queries: sqlc.New(db),
-	}
+func NewPilotoHandler(p *aplicacion.PilotoService, u *aplicacion.UsuarioService) *PilotoHandler {
+	return &PilotoHandler{pilotos: p, usuarios: u}
 }
 
-// Admin
 func (h *PilotoHandler) esAdmin(ctx context.Context, usuario string) bool {
 	if usuario == "" {
 		return false
 	}
-	ok, err := h.queries.EsAdmin(ctx, usuario)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("EsAdmin:", err)
-		}
-		return false
-	}
-	return ok
+	esAdmin, err := h.usuarios.EsAdmin(ctx, usuario)
+	return err == nil && esAdmin
 }
 
 // ---------------------------------------------------------------
@@ -60,13 +47,13 @@ func (h *PilotoHandler) Pagina(w http.ResponseWriter, r *http.Request) {
 		}
 		data := h.datosPilotos(r.Context(), usuario, orden, "")
 
-		// La misma URL devuelve página completa o solo la lista, según quién pregunte.
 		w.Header().Add("Vary", "HX-Request")
 		if r.Header.Get("HX-Request") == "true" {
 			vista.PilotosLista(data.Pilotos, data.Orden, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
 			return
 		}
 		vista.PilotosPage(data).Render(r.Context(), w)
+
 	case http.MethodPost:
 		h.crearPilotoDesdeForm(w, r, usuario)
 
@@ -86,100 +73,36 @@ func (h *PilotoHandler) crearPilotoDesdeForm(w http.ResponseWriter, r *http.Requ
 		h.mostrarError(w, r, usuario, "Formulario inválido")
 		return
 	}
-	ctx := r.Context()
 
-	// 1) Número de piloto
 	n, err := strconv.Atoi(strings.TrimSpace(r.FormValue("id_piloto")))
 	if err != nil || n <= 0 {
 		h.mostrarError(w, r, usuario, "Número de piloto inválido")
 		return
 	}
-	idPiloto := int32(n)
 
-	// 2) Escudería: tiene que existir
-	idEscuderia := r.FormValue("id_escuderia")
-	if _, err := h.queries.RecuperarEscuderia(ctx, idEscuderia); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			h.mostrarError(w, r, usuario, "No existe la escudería")
-		} else {
-			log.Println("RecuperarEscuderia:", err)
-			h.mostrarError(w, r, usuario, "Error al verificar la escudería")
-		}
-		return
+	p := dominio.Piloto{
+		ID:        n,
+		Nombre:    strings.TrimSpace(r.FormValue("nombre")),
+		Pais:      strings.TrimSpace(r.FormValue("pais")),
+		Escuderia: strings.TrimSpace(r.FormValue("id_escuderia")),
+		Puntos:    0,
 	}
-
-	// 3) No puede estar ya en la temporada
-	if h.pilotoEnTemporada(ctx, idPiloto) {
-		h.mostrarError(w, r, usuario, "Ese piloto ya está en la temporada")
-		return
+	if p.Nacimiento, err = time.Parse("2006-01-02", r.FormValue("fecha_nacimiento")); err != nil {
+		// Si el piloto ya existe en el histórico, la fecha del formulario viene vacía.
+		p.Nacimiento = time.Time{}
 	}
-
-	// Todo o nada: histórico (si hace falta) + temporada
-	tx, err := h.DB.BeginTx(ctx, nil)
-	if err != nil {
-		log.Println("BeginTx:", err)
-		h.mostrarError(w, r, usuario, "Error interno")
-		return
-	}
-	defer tx.Rollback()
-	qtx := h.queries.WithTx(tx)
-
-	// 4) Si el piloto no existe en el histórico, se crea con los datos del formulario
-	_, err = qtx.RecuperarPilotoHistorico(ctx, idPiloto)
-	if errors.Is(err, sql.ErrNoRows) {
-		nombre := strings.TrimSpace(r.FormValue("nombre"))
-		pais := strings.TrimSpace(r.FormValue("pais"))
-		nacimiento, errFecha := time.Parse("2006-01-02", r.FormValue("fecha_nacimiento"))
-		titulos := 0
-		if v := strings.TrimSpace(r.FormValue("titulos_ganados")); v != "" {
-			titulos, err = strconv.Atoi(v)
-			if err != nil || titulos < 0 {
-				h.mostrarError(w, r, usuario, "Títulos ganados inválidos")
-				return
-			}
-		}
-
-		if nombre == "" || pais == "" || errFecha != nil {
-			h.mostrarError(w, r, usuario, "Piloto nuevo: completá nombre, país y fecha de nacimiento")
+	if v := strings.TrimSpace(r.FormValue("titulos_ganados")); v != "" {
+		p.Titulos, err = strconv.Atoi(v)
+		if err != nil || p.Titulos < 0 {
+			h.mostrarError(w, r, usuario, "Títulos ganados inválidos")
 			return
 		}
-
-		_, err = qtx.CrearPilotoHistorico(ctx, sqlc.CrearPilotoHistoricoParams{
-			IDPiloto:        idPiloto,
-			Nombre:          nombre,
-			Pais:            pais,
-			FechaNacimiento: nacimiento,
-			TitulosGanados:  int32(titulos),
-		})
-		if err != nil {
-			log.Println("CrearPilotoHistorico:", err)
-			h.mostrarError(w, r, usuario, "No se pudo crear el piloto")
-			return
-		}
-	} else if err != nil {
-		log.Println("RecuperarPilotoHistorico:", err)
-		h.mostrarError(w, r, usuario, "Error al verificar el piloto")
-		return
 	}
 
-	// 5) Inscribirlo en la temporada (arranca con 0 puntos)
-	_, err = qtx.CrearPilotoTemporada(ctx, sqlc.CrearPilotoTemporadaParams{
-		IDPiloto:        idPiloto,
-		IDEscuderia:     idEscuderia,
-		PuntosTemporada: 0,
-	})
-	if err != nil {
-		log.Println("CrearPilotoTemporada:", err)
-		h.mostrarError(w, r, usuario, "No se pudo agregar a la temporada")
+	if err := h.pilotos.Inscribir(r.Context(), p); err != nil {
+		h.mostrarError(w, r, usuario, mensajeErrorPiloto(err))
 		return
 	}
-
-	if err := tx.Commit(); err != nil {
-		log.Println("Commit:", err)
-		h.mostrarError(w, r, usuario, "No se pudo guardar")
-		return
-	}
-
 	h.renderLista(w, r, usuario, "")
 }
 
@@ -187,26 +110,6 @@ func (h *PilotoHandler) crearPilotoDesdeForm(w http.ResponseWriter, r *http.Requ
 // Datos y render
 // ---------------------------------------------------------------
 
-// listaOrdenada trae los pilotos de la temporada ordenados por puntos.
-// Si no hay ninguno devuelve un slice vacío (no es un error).
-func (h *PilotoHandler) listaOrdenada(ctx context.Context, orden string) []sqlc.ListarPilotosRow {
-	pilotos, err := h.ListarPilotos(ctx)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Println("ListarPilotos:", err)
-		}
-		return nil
-	}
-	sort.Slice(pilotos, func(i, j int) bool {
-		if orden == "asc" {
-			return pilotos[i].PuntosTemporada < pilotos[j].PuntosTemporada
-		}
-		return pilotos[i].PuntosTemporada > pilotos[j].PuntosTemporada
-	})
-	return pilotos
-}
-
-// datosPilotos arma todo lo que necesitan la página y la lista.
 func (h *PilotoHandler) datosPilotos(ctx context.Context, usuario, orden, mensaje string) vista.PilotosData {
 	esAdm := h.esAdmin(ctx, usuario)
 	data := vista.PilotosData{
@@ -214,61 +117,57 @@ func (h *PilotoHandler) datosPilotos(ctx context.Context, usuario, orden, mensaj
 		EsAdmin: esAdm,
 		Orden:   orden,
 		Mensaje: mensaje,
-		Pilotos: h.listaOrdenada(ctx, orden),
 	}
 
+	pilotos, err := h.pilotos.Listar(ctx, orden)
+	if err != nil {
+		log.Println("Listar pilotos:", err)
+	} else {
+		data.Pilotos = pilotos
+	}
 	if esAdm {
 		data.Escuderias = h.opcionesEscuderias(ctx)
 	}
 	return data
 }
 
-// renderLista devuelve solo el fragmento de la lista, para HTMX.
 func (h *PilotoHandler) renderLista(w http.ResponseWriter, r *http.Request, usuario, mensaje string) {
 	orden := r.FormValue("orden")
 	if orden != "asc" {
 		orden = "desc"
 	}
 	data := h.datosPilotos(r.Context(), usuario, orden, mensaje)
-	vista.PilotosLista(data.Pilotos, orden, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
+	vista.PilotosLista(data.Pilotos, data.Orden, data.EsAdmin, data.Mensaje).Render(r.Context(), w)
 }
 
-// opcionesEscuderias devuelve las escuderías para el select.
 func (h *PilotoHandler) opcionesEscuderias(ctx context.Context) []vista.OpcionEscuderia {
-	es, err := h.queries.ListarEscuderias(ctx)
+	ids, err := h.pilotos.Escuderias(ctx)
 	if err != nil {
-		log.Println("ListarEscuderias:", err)
+		log.Println("Listar escuderías:", err)
 		return nil
 	}
-	out := make([]vista.OpcionEscuderia, 0, len(es))
-	for _, e := range es {
-		out = append(out, vista.OpcionEscuderia{ID: e.IDEscuderia})
+	out := make([]vista.OpcionEscuderia, 0, len(ids))
+	for _, id := range ids {
+		out = append(out, vista.OpcionEscuderia{ID: id})
 	}
 	return out
 }
 
-func (h *PilotoHandler) pilotoEnTemporada(ctx context.Context, id int32) bool {
-	pilotos, err := h.ListarPilotos(ctx)
-	if err != nil {
-		return false
+func mensajeErrorPiloto(err error) string {
+	var ev dominio.ErrValidacion
+	switch {
+	case errors.As(err, &ev):
+		return ev.Error()
+	case errors.Is(err, dominio.ErrEscuderiaNoExiste):
+		return "No existe la escudería"
+	case errors.Is(err, dominio.ErrPilotoDuplicado):
+		return "Ese piloto ya está en la temporada"
+	case errors.Is(err, dominio.ErrHistoricoIncompleto):
+		return "Piloto nuevo: completá nombre, país y fecha de nacimiento"
+	default:
+		log.Println("piloto:", err)
+		return "Error interno"
 	}
-	for _, p := range pilotos {
-		if p.IDPiloto == id {
-			return true
-		}
-	}
-	return false
-}
-
-func (h *PilotoHandler) ListarPilotos(ctx context.Context) ([]sqlc.ListarPilotosRow, error) {
-	pilotos, err := h.queries.ListarPilotos(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(pilotos) == 0 {
-		return nil, sql.ErrNoRows
-	}
-	return pilotos, nil
 }
 
 // ---------------------------------------------------------------
@@ -289,7 +188,7 @@ func (h *PilotoHandler) ModificarPiloto(w http.ResponseWriter, r *http.Request) 
 			http.Redirect(w, r, "/pilotos", http.StatusSeeOther)
 			return
 		}
-		h.renderModificar(w, r, usuario, int32(id), "", http.StatusOK)
+		h.renderModificar(w, r, usuario, id, "", http.StatusOK)
 
 	case http.MethodPost:
 		if err := r.ParseForm(); err != nil {
@@ -301,34 +200,21 @@ func (h *PilotoHandler) ModificarPiloto(w http.ResponseWriter, r *http.Request) 
 			http.Redirect(w, r, "/pilotos", http.StatusSeeOther)
 			return
 		}
-
-		idEscuderia := r.FormValue("id_escuderia")
-		if _, err := h.queries.RecuperarEscuderia(r.Context(), idEscuderia); err != nil {
-			h.renderModificar(w, r, usuario, int32(id), "No existe la escudería", http.StatusBadRequest)
-			return
-		}
-
 		puntos, err := strconv.Atoi(r.FormValue("puntos_temporada"))
 		if err != nil || puntos < 0 {
-			h.renderModificar(w, r, usuario, int32(id), "Puntos inválidos", http.StatusBadRequest)
+			h.renderModificar(w, r, usuario, id, "Puntos inválidos", http.StatusBadRequest)
 			return
 		}
 
-		_, err = h.queries.ModificarPiloto(r.Context(), sqlc.ModificarPilotoParams{
-			IDPiloto:        int32(id),
-			IDEscuderia:     idEscuderia,
-			PuntosTemporada: int32(puntos),
-		})
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Redirect(w, r, "/pilotos", http.StatusSeeOther)
+		p := dominio.Piloto{
+			ID:        id,
+			Escuderia: r.FormValue("id_escuderia"),
+			Puntos:    puntos,
+		}
+		if err := h.pilotos.Modificar(r.Context(), p); err != nil {
+			h.renderModificar(w, r, usuario, id, mensajeErrorPiloto(err), http.StatusBadRequest)
 			return
 		}
-		if err != nil {
-			log.Println("ModificarPiloto:", err)
-			h.renderModificar(w, r, usuario, int32(id), "No se pudo guardar el cambio", http.StatusInternalServerError)
-			return
-		}
-
 		http.Redirect(w, r, "/pilotos", http.StatusSeeOther)
 
 	default:
@@ -336,19 +222,11 @@ func (h *PilotoHandler) ModificarPiloto(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (h *PilotoHandler) renderModificar(w http.ResponseWriter, r *http.Request, usuario string, id int32, mensaje string, status int) {
+func (h *PilotoHandler) renderModificar(w http.ResponseWriter, r *http.Request, usuario string, id int, mensaje string, status int) {
 	ctx := r.Context()
 
-	// Busca el piloto en la temporada
-	var actual *sqlc.ListarPilotosRow
-	pilotos, _ := h.ListarPilotos(ctx)
-	for i := range pilotos {
-		if pilotos[i].IDPiloto == id {
-			actual = &pilotos[i]
-			break
-		}
-	}
-	if actual == nil {
+	p, err := h.pilotos.Recuperar(ctx, id)
+	if err != nil {
 		http.Redirect(w, r, "/pilotos", http.StatusSeeOther)
 		return
 	}
@@ -356,13 +234,12 @@ func (h *PilotoHandler) renderModificar(w http.ResponseWriter, r *http.Request, 
 	data := vista.ModificarPilotoData{
 		Usuario:    usuario,
 		Mensaje:    mensaje,
-		ID:         int(actual.IDPiloto),
-		Nombre:     actual.Nombre,
-		Escuderia:  actual.IDEscuderia,
-		Puntos:     int(actual.PuntosTemporada),
+		ID:         p.ID,
+		Nombre:     p.Nombre,
+		Escuderia:  p.Escuderia,
+		Puntos:     p.Puntos,
 		Escuderias: h.opcionesEscuderias(ctx),
 	}
-
 	w.WriteHeader(status)
 	vista.ModificarPilotoPage(data).Render(ctx, w)
 }
@@ -371,21 +248,17 @@ func (h *PilotoHandler) renderModificar(w http.ResponseWriter, r *http.Request, 
 // Eliminar un piloto (admin)
 // ---------------------------------------------------------------
 
-// DELETE /pilotos/{id}
-// Responde 200 vacío para que HTMX reemplace la tarjeta por nada.
-// Si no se puede borrar responde 4xx/5xx: HTMX no toca el DOM y la tarjeta queda.
+// DELETE /pilotos/{id}: 200 vacío para que HTMX saque la tarjeta.
 func (h *PilotoHandler) EliminarPiloto(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
 	if err != nil {
 		http.Error(w, "ID de piloto inválido", http.StatusBadRequest)
 		return
 	}
-
-	if err := h.queries.EliminarPilotoTemporada(r.Context(), int32(id)); err != nil {
-		log.Println("EliminarPilotoTemporada:", err)
+	if err := h.pilotos.Eliminar(r.Context(), int(id)); err != nil {
+		log.Println("Eliminar piloto:", err)
 		http.Error(w, "No se pudo borrar", http.StatusInternalServerError)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 }

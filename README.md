@@ -112,4 +112,20 @@ Cualquier ruta que no coincida con ninguna de las anteriores muestra una página
 
 Se registra con el patrón `"/"`, que Go aplica solo a las rutas que ninguna otra captura; la raíz exacta sigue siendo atendida por `"GET /{$}"`.
 
+Proyecto_web/
+├── domain/               ← NÚCLEO: sin imports de sqlc, sql ni net/http
+│   ├── escuderia.go
+│   └── usuario.go
+├── services/             ← APLICACIÓN: casos de uso, solo importa domain
+│   ├── escuderia.go
+│   └── usuario.go
+├── repository/           ← INFRAESTRUCTURA: implementa domain.*Repository con sqlc
+│   ├── escuderia.go
+│   └── usuario.go
+├── handlers/             ← INFRAESTRUCTURA: HTTP + templ
+│   └── escuderia.go
+├── views/                ← INFRAESTRUCTURA: templ (ahora recibe domain.Escuderia)
+└── main.go               ← raíz de composición (único lugar que conoce todo)
+
+
 ```
